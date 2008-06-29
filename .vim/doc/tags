@@ -1,0 +1,14 @@
+:Flydiff	flydiff.txt	/*:Flydiff*
+b:flydiff_info	flydiff.txt	/*b:flydiff_info*
+flydiff#toggle()	flydiff.txt	/*flydiff#toggle()*
+flydiff-bugs	flydiff.txt	/*flydiff-bugs*
+flydiff-changelog	flydiff.txt	/*flydiff-changelog*
+flydiff-commands	flydiff.txt	/*flydiff-commands*
+flydiff-functions	flydiff.txt	/*flydiff-functions*
+flydiff-interface	flydiff.txt	/*flydiff-interface*
+flydiff-introduction	flydiff.txt	/*flydiff-introduction*
+flydiff-variables	flydiff.txt	/*flydiff-variables*
+flydiff.txt	flydiff.txt	/*flydiff.txt*
+g:flydiff_direction	flydiff.txt	/*g:flydiff_direction*
+g:flydiff_filetype	flydiff.txt	/*g:flydiff_filetype*
+g:flydiff_timing	flydiff.txt	/*g:flydiff_timing*
