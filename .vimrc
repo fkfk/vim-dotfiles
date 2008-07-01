@@ -12,7 +12,10 @@ set fencs=iso-2022-jp,enc-jp,cp932
 set wrap
 set number
 set ruler
+set ambiwidth=double
+set laststatus=2
 
+set incsearch
 set nocompatible
 
 syntax on
@@ -53,9 +56,50 @@ set autoread
 " 補完候補を表示する
 set wildmenu
 
+"横分割時は下へ、縦分割時は右へ新しいウィンドウが開くようにする
 set splitbelow
+set splitright
 
+"<C-x> <C-a>で増減させるもの
 set nrformats="hex"
 
 let git_diff_spawn_mode=1
 autocmd BufNewFile,BufRead COMMIT_EDITMSG set filetype=git
+
+"エンコーディング via kana/dot.vimrc
+if !exists('did_encoding_settings') && has('iconv')
+  let s:enc_euc = 'euc-jp'
+  let s:enc_jis = 'iso-2022-jp'
+
+  " Does iconv support JIS X 0213 ?
+  if iconv("\x87\x64\x87\x6a", 'cp932', 'euc-jisx0213') ==# "\xad\xc5\xad\xcb"
+    let s:enc_euc = 'euc-jisx0213,euc-jp'
+    let s:enc_jis = 'iso-2022-jp-3'
+  endif
+
+  " Make fileencodings
+  let &fileencodings = 'ucs-bom'
+  if &encoding !=# 'utf-8'
+    let &fileencodings = &fileencodings . ',' . 'ucs-2le'
+    let &fileencodings = &fileencodings . ',' . 'ucs-2'
+  endif
+  let &fileencodings = &fileencodings . ',' . s:enc_jis
+
+  if &encoding ==# 'utf-8'
+    let &fileencodings = &fileencodings . ',' . s:enc_euc
+    let &fileencodings = &fileencodings . ',' . 'cp932'
+  elseif &encoding =~# '^euc-\%(jp\|jisx0213\)$'
+    let &encoding = s:enc_euc
+    let &fileencodings = &fileencodings . ',' . 'utf-8'
+    let &fileencodings = &fileencodings . ',' . 'cp932'
+  else  " cp932
+    let &fileencodings = &fileencodings . ',' . 'utf-8'
+    let &fileencodings = &fileencodings . ',' . s:enc_euc
+  endif
+  let &fileencodings = &fileencodings . ',' . &encoding
+
+  unlet s:enc_euc
+  unlet s:enc_jis
+
+  let did_encoding_settings = 1
+endif
