@@ -10,13 +10,16 @@ set enc=utf-8
 set fenc=utf-8
 set fencs=iso-2022-jp,enc-jp,cp932
 set wrap
-set number
 set ruler
 set ambiwidth=double
 set laststatus=2
 
+" ステイタス行に文字コードと改行コードを表示。
+set statusline=%<%f\ %m%r%h%w%=%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}\ \ %l,%c%V%8P
+
 set incsearch
 set nocompatible
+set hidden
 
 syntax on
 filetype on
