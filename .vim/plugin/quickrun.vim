@@ -1,48 +1,126 @@
-if !exists('b:did_quickrun')
-  let b:did_quickrun = 1
+" quickrun - run a command and show its result quickly
+" Author: ujihisa <http://ujihisa.nowa.jp/>
+" ModifiedBy: kana <http://whileimautomaton.net/>
 
-  fu! QuickRun(command)
-    if filereadable(expand('%'))
-      w
-      let s:file = expand('%')
-      exe 'rightbelow vsp [' . a:command . ']'
-      redr
-      call append(0, split(system(a:command . ' ' . s:file), '\n'))
-    el
-      let codes = getline(1, line("$"))
-      let tmpfile = "/tmp/quickrun-vim-tmpfile." . expand('%:e')
-
-      exe 'rightbelow vsp [' . a:command . ']'
-      redr
-      call writefile(codes, tmpfile)
-      call append(0, split(system(a:command . ' ' . tmpfile), '\n'))
-      call system('rm ' . tmpfile)
-    en
-
-    setlocal nomodifiable
-    setlocal nobuflisted
-    setlocal nonumber
-    setlocal noswapfile
-    setlocal buftype=nofile
-    setlocal bufhidden=delete
-    setlocal noshowcmd
-    setlocal wrap
-    noremap <buffer> <silent> q :close<cr>
-  endfunc
+if exists('g:loaded_quickrun')
+  finish
 endif
 
-au Filetype ruby        nnoremap <buffer><leader>r :call QuickRun('ruby')<Return>
-au Filetype haskell     nnoremap <buffer><leader>r :call QuickRun('runghc')<Return>
-au Filetype python      nnoremap <buffer><leader>r :call QuickRun('python')<Return>
-au Filetype javascript  nnoremap <buffer><leader>r :call QuickRun('js')<Return>
-au Filetype scheme      nnoremap <buffer><leader>r :call QuickRun('gosh')<Return>
-au Filetype sh          nnoremap <buffer><leader>r :call QuickRun('sh')<Return>
-au Filetype awk         nnoremap <buffer><leader>r :call QuickRun('awk')<Return>
-au Filetype sed         nnoremap <buffer><leader>r :call QuickRun('sed')<Return>
-au Filetype scala       nnoremap <buffer><leader>r :call QuickRun('scala')<Return>
-au Filetype perl        nnoremap <buffer><leader>r :call QuickRun('perl')<Return>
-au Filetype php         nnoremap <buffer><leader>r :call QuickRun('php')<Return>
-au Filetype io          nnoremap <buffer><leader>r :call QuickRun('io')<Return>
-au Filetype c           nnoremap <buffer><leader>r :call QuickRun('function __rungcc__() { gcc $1 && ./a.out } && __rungcc__')<Return>
+
+
+
+function! s:quickrun()
+  if !exists('b:quickrun_command')
+    echoerr 'quickrun is not available for filetype:' string(&l:filetype)
+    return
+  endif
+  let quickrun_command = b:quickrun_command
+
+  let existent_file_p = filereadable(expand('%'))
+  if existent_file_p
+    silent update
+    let file = expand('%')
+  else
+    let file = tempname() . expand('%:e')
+    let original_bufname = bufname('')
+    let original_modified = &l:modified
+      silent keepalt write `=file`
+      if original_bufname == ''
+        " Reset the side effect of ":write {file}" - it sets {file} as the
+        " name of the current buffer if it is unnamed buffer.
+        silent 0 file
+      endif
+    let &l:modified = original_modified
+  endif
+
+  call s:open_result_buffer(quickrun_command)
+  setlocal modifiable
+    silent % delete _
+    call append(0, ':-)')
+    redraw
+    silent % delete _
+    call append(0, '')
+    execute 'silent! read !' quickrun_command file
+    silent 1 delete _
+  setlocal nomodifiable
+
+  if existent_file_p
+    " nop.
+  else
+    call delete(file)
+  endif
+endfunc
+
+
+function! s:open_result_buffer(quickrun_command)
+  let bufname = printf('*quickrun* %s', a:quickrun_command)
+
+  if !bufexists(bufname)
+    execute g:quickrun_direction 'new'
+    setlocal bufhidden=unload
+    setlocal nobuflisted
+    setlocal buftype=nofile
+    setlocal nomodifiable
+    setlocal noswapfile
+    setfiletype quickrun
+    silent file `=bufname`
+
+    nnoremap <buffer> <silent> q  <C-w>c
+  else
+    let bufnr = bufnr(bufname)  " FIXME: escape.
+    let winnr = bufwinnr(bufnr)
+    if winnr == -1
+      execute g:quickrun_direction 'split'
+      execute bufnr 'buffer'
+    else
+      execute winnr 'wincmd w'
+    endif
+  endif
+endfunction
+
+
+function! s:set_quickrun_command(command)
+  " Use user's settings if they exist.
+  if !exists('b:quickrun_command')
+    let b:quickrun_command = a:command
+  endif
+endfunction
+
+
+
+
+
+if !exists('g:quickrun_direction')
+  let g:quickrun_direction = 'rightbelow'
+endif
+
+
+
+
+nnoremap <silent> <Plug>(quickrun)  :<C-u>call <SID>quickrun()<Return>
+silent! nmap <unique> <Leader>r  <Plug>(quickrun)
+
+augroup plugin-quickrun
+  autocmd!
+  autocmd Filetype awk  call s:set_quickrun_command('awk')
+  autocmd Filetype c  call s:set_quickrun_command('function __rungcc__() { gcc $1 && ./a.out } && __rungcc__')
+  autocmd Filetype objc  call s:set_quickrun_command('function __rungcc__() { gcc $1 && ./a.out } && __rungcc__')
+  autocmd Filetype haskell  call s:set_quickrun_command('runghc')
+  autocmd Filetype io  call s:set_quickrun_command('io')
+  autocmd Filetype javascript  call s:set_quickrun_command('js')
+  autocmd Filetype perl  call s:set_quickrun_command('perl')
+  autocmd Filetype php  call s:set_quickrun_command('php')
+  autocmd Filetype python  call s:set_quickrun_command('python')
+  autocmd Filetype ruby  call s:set_quickrun_command('ruby')
+  autocmd Filetype scala  call s:set_quickrun_command('scala')
+  autocmd Filetype scheme  call s:set_quickrun_command('gosh')
+  autocmd Filetype sed  call s:set_quickrun_command('sed')
+  autocmd Filetype sh  call s:set_quickrun_command('sh')
+augroup END
+
+
+
+
+let g:loaded_quickrun = 1
 
 " __END__

@@ -3,6 +3,7 @@ set backspace=2
 set tabstop=2
 set softtabstop=2
 set expandtab
+"set autoindent
 
 "表地回り
 set enc=utf-8
@@ -14,21 +15,13 @@ set ruler
 set ambiwidth=double
 set laststatus=2
 
-" ステイタス行に文字コードと改行コードを表示。
-set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
-
-" screen にファイル名を表示
-if $TERM == 'screen'
-  autocmd BufEnter * silent! exe '!echo -n "k%\\"'
-endif
-
 set incsearch
 set nocompatible
 
-set hidden
-
 syntax on
-filetype plugin indent on
+filetype on
+filetype indent on
+filetype plugin on
 
 "Rubyのオムニ補完を設定(ft-ruby-omni)
 let g:rubycomplete_buffer_loading = 1
@@ -70,8 +63,14 @@ set splitright
 "<C-x> <C-a>で増減させるもの
 set nrformats="hex"
 
+"Git用
 let git_diff_spawn_mode=1
 autocmd BufNewFile,BufRead COMMIT_EDITMSG set filetype=git
+
+"Flex(*.asと*.mxml)用
+autocmd BufNewFile,BufRead *.as set filetype=actionscript
+autocmd BufNewFile,BufRead *.mxml set filetype=mxml
+autocmd FileType actionscript :set dictionary=~/.vim/dict/actionscript3.dict
 
 "エンコーディング via kana/dot.vimrc
 if !exists('did_encoding_settings') && has('iconv')
@@ -109,17 +108,4 @@ if !exists('did_encoding_settings') && has('iconv')
   unlet s:enc_jis
 
   let did_encoding_settings = 1
-endif
-
-" for printing
-if has('printer')
-  if has('win32')
-    set printfont=FixedSys:h10
-  elseif has("unix")
-    set printencoding=euc-jp
-    if exists('&printmbcharset')
-      set printmbcharset=JIS_X_1983
-      set printmbfont=r:Ryumin-Light,b:Ryumin-Light,a:yes,c:yes
-    endif
-  endif
 endif
