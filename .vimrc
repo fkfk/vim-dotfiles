@@ -121,5 +121,6 @@ let g:quicklaunch_commands = [
   \ 'git status',
   \ 'git log',
   \ 'git add *',
-  \ 'git pull'
+  \ 'git pull',
+  \ 'git svn dcommit'
   \ ]
