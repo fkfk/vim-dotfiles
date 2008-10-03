@@ -112,3 +112,14 @@ if !exists('did_encoding_settings') && has('iconv')
 
   let did_encoding_settings = 1
 endif
+
+"quickrun.vimの設定
+let g:mapleader=" "
+""0〜9に割り当てるコマンドを順番に記述する
+let g:quicklaunch_commands = [
+  \ '',
+  \ 'git status',
+  \ 'git log',
+  \ 'git add *',
+  \ 'git pull'
+  \ ]
