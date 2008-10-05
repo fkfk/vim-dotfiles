@@ -15,16 +15,9 @@ function! s:quicklaunch(no)
   endif
   let quicklaunch_command = g:quicklaunch_commands[a:no]
   call s:open_result_buffer(quicklaunch_command)
-  setlocal modifiable
-    silent % delete _
-    call append(0, ':-<')
-    redraw
-    silent % delete _
-    call append(0, '')
-    execute 'silent! read !' quicklaunch_command
-    silent 1 delete _
-  setlocal nomodifiable
+  call s:write_result_buffer(':-<', 'silent! read !' . quicklaunch_command)
 endfunction
+
 
 function! s:quicklaunch_list()
   if !exists('g:quicklaunch_commands')
@@ -32,6 +25,7 @@ function! s:quicklaunch_list()
     return
   endif
   call s:open_result_buffer('quicklaunch_list')
+  " FIXME: use s:write_result_buffer
   setlocal modifiable
     silent % delete _
     call append(0, '')
@@ -44,6 +38,14 @@ function! s:quicklaunch_list()
     endfor
     silent 1 delete _
   setlocal nomodifiable
+endfunction
+
+
+function! s:quickkeywordprg()
+  let keyword = expand('<cword>')
+  let keywordprg = &keywordprg
+  call s:open_result_buffer(keyword)
+  call s:write_result_buffer(':-D', 'silent! read ! ' . keywordprg . ' ' . keyword)
 endfunction
 
 
@@ -72,15 +74,7 @@ function! s:quickrun()
   endif
 
   call s:open_result_buffer(quickrun_command)
-  setlocal modifiable
-    silent % delete _
-    call append(0, ':-)')
-    redraw
-    silent % delete _
-    call append(0, '')
-    execute 'silent! read !' quickrun_command file
-    silent 1 delete _
-  setlocal nomodifiable
+  call s:write_result_buffer(':-)', 'silent! read !' . quickrun_command . ' ' . file)
 
   if existent_file_p
     " nop.
@@ -117,6 +111,19 @@ function! s:open_result_buffer(quickrun_command)
 endfunction
 
 
+function! s:write_result_buffer(loading_message, command)
+  setlocal modifiable
+    silent % delete _
+    call append(0, a:loading_message)
+    redraw
+    silent % delete _
+    call append(0, '')
+    execute a:command
+    silent 1 delete _
+  setlocal nomodifiable
+endfunction
+
+
 function! s:set_quickrun_command(command)
   " Use user's settings if they exist.
   if !exists('b:quickrun_command')
@@ -143,6 +150,9 @@ for i in range(10)
 endfor
 nnoremap <silent> <Plug>(quicklaunch-list)  :<C-u>call <SID>quicklaunch_list()<Return>
 silent! nmap <unique> <Leader>l  <Plug>(quicklaunch-list)
+nnoremap <silent> <buffer> <Plug>(quickkeywordprg) :<C-u>call <SID>quickkeywordprg()<Cr>
+silent! nmap <unique> K  <Plug>(quickkeywordprg)
+
 
 augroup plugin-quickrun
   autocmd!
