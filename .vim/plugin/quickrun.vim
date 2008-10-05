@@ -26,6 +26,26 @@ function! s:quicklaunch(no)
   setlocal nomodifiable
 endfunction
 
+function! s:quicklaunch_list()
+  if !exists('g:quicklaunch_commands')
+    echo 'no command registered'
+    return
+  endif
+  call s:open_result_buffer('quicklaunch_list')
+  setlocal modifiable
+    silent % delete _
+    call append(0, '')
+    for i in range(10)
+      if exists('g:quicklaunch_commands[i]')
+        call append(line('$'), i . ': ' . g:quicklaunch_commands[i])
+      else
+        call append(line('$'), i . ': <Nop>')
+      endif
+    endfor
+    silent 1 delete _
+  setlocal nomodifiable
+endfunction
+
 
 function! s:quickrun()
   if !exists('b:quickrun_command')
@@ -71,7 +91,7 @@ endfunc
 
 
 function! s:open_result_buffer(quickrun_command)
-  let bufname = printf('*quickrun* %s', a:quickrun_command)
+  let bufname = printf('[quickrun] %s', a:quickrun_command)
 
   if !bufexists(bufname)
     execute g:quickrun_direction 'new'
@@ -121,6 +141,8 @@ for i in range(10)
   execute "nnoremap <silent> <Plug>(quicklaunch-" . i . ") :<C-u>call <SID>quicklaunch(" . i . ")<Return>"
   execute "silent! nmap <unique> <Leader>" . i . "  <Plug>(quicklaunch-" . i . ")"
 endfor
+nnoremap <silent> <Plug>(quicklaunch-list)  :<C-u>call <SID>quicklaunch_list()<Return>
+silent! nmap <unique> <Leader>l  <Plug>(quicklaunch-list)
 
 augroup plugin-quickrun
   autocmd!
