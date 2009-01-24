@@ -4,6 +4,7 @@ set tabstop=2
 set softtabstop=2
 set expandtab
 "set autoindent
+set nowritebackup
 
 "表地回り
 set enc=utf-8

@@ -1,0 +1,1 @@
+/Users/from_kyushu/src/vim/merb.vim/syntax/merb_mailer.vim
