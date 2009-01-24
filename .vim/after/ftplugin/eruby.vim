@@ -1,1 +1,3 @@
-/Users/from_kyushu/src/vim/merb.vim/after/ftplugin/eruby.vim
+inorea <buffer> == <%= %><Left><Left><Left>
+inorea <buffer> << <% -%><Left><Left><Left><Left>
+set ts=2

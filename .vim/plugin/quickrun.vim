@@ -170,6 +170,9 @@ augroup plugin-quickrun
   autocmd Filetype scheme  call s:set_quickrun_command('gosh')
   autocmd Filetype sed  call s:set_quickrun_command('sed')
   autocmd Filetype sh  call s:set_quickrun_command('sh')
+  autocmd Filetype gnuplot  call s:set_quickrun_command('gnuplot')
+  autocmd Filetype eruby  call s:set_quickrun_command('erb -T -')
+  autocmd Filetype r  call s:set_quickrun_command('R')
 augroup END
 
 
