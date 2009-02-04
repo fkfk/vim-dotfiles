@@ -3,10 +3,10 @@ set backspace=2
 set tabstop=2
 set softtabstop=2
 set expandtab
-"set autoindent
+set noautoindent
 set nowritebackup
 
-"表地回り
+"表示回り
 set enc=utf-8
 set fenc=utf-8
 set fencs=iso-2022-jp,enc-jp,cp932
@@ -14,6 +14,8 @@ set wrap
 set ruler
 set ambiwidth=double
 set laststatus=2
+
+set listchars=tab:>-,trail:-,nbsp:%,extends:>,precedes:<
 
 " ステイタス行に文字コードと改行コードを表示。
 set statusline=%<%f\ %m%r%h%w%=%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}\ \ %l,%c%V%8P
