@@ -14,6 +14,7 @@ set wrap
 set ruler
 set ambiwidth=double
 set laststatus=2
+set foldmethod=marker
 
 set listchars=tab:>-,trail:-,nbsp:%,extends:>,precedes:<
 
