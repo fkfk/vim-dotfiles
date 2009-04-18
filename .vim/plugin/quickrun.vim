@@ -54,7 +54,7 @@ function! s:quickrun()
     echoerr 'quickrun is not available for filetype:' string(&l:filetype)
     return
   endif
-  let quickrun_command = b:quickrun_command
+  let quickrun_command = s:get_quickrun_command()
 
   let existent_file_p = filereadable(expand('%'))
   if existent_file_p
@@ -82,6 +82,16 @@ function! s:quickrun()
     call delete(file)
   endif
 endfunc
+
+
+function! s:get_quickrun_command()
+  let m = matchlist(getline(1), '#!\(.*\)')
+  if(len(m) > 2)
+    return m[1]
+  else
+    return b:quickrun_command
+  endif
+endfunction
 
 
 function! s:open_result_buffer(quickrun_command)
@@ -158,6 +168,7 @@ augroup plugin-quickrun
   autocmd!
   autocmd Filetype awk  call s:set_quickrun_command('awk')
   autocmd Filetype c  call s:set_quickrun_command('function __rungcc__() { gcc $1 && ./a.out } && __rungcc__')
+  autocmd Filetype cpp  call s:set_quickrun_command('function __rungpp__() { g++ $1 && ./a.out } && __rungpp__')
   autocmd Filetype objc  call s:set_quickrun_command('function __rungcc__() { gcc $1 && ./a.out } && __rungcc__')
   autocmd Filetype haskell  call s:set_quickrun_command('runghc')
   autocmd Filetype io  call s:set_quickrun_command('io')
@@ -165,14 +176,14 @@ augroup plugin-quickrun
   autocmd Filetype perl  call s:set_quickrun_command('perl')
   autocmd Filetype php  call s:set_quickrun_command('php')
   autocmd Filetype python  call s:set_quickrun_command('python')
-  autocmd Filetype ruby  call s:set_quickrun_command('ruby')
+  autocmd Filetype ruby  call s:set_quickrun_command('ruby1.9')
   autocmd Filetype scala  call s:set_quickrun_command('scala')
   autocmd Filetype scheme  call s:set_quickrun_command('gosh')
   autocmd Filetype sed  call s:set_quickrun_command('sed')
   autocmd Filetype sh  call s:set_quickrun_command('sh')
   autocmd Filetype gnuplot  call s:set_quickrun_command('gnuplot')
   autocmd Filetype eruby  call s:set_quickrun_command('erb -T -')
-  autocmd Filetype r  call s:set_quickrun_command('R')
+  autocmd Filetype r  call s:set_quickrun_command('R --no-save --slave <')
 augroup END
 
 

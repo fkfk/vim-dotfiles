@@ -1,6 +1,6 @@
-"ウィンドウサイズ設定
-set lines=54
-set columns=180
+"非フルスクリーン時のウィンドウサイズ設定
+"set lines=54
+"set columns=180
 
 "カラースキーム設定
 colorscheme Black
