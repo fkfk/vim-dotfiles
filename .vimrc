@@ -48,7 +48,12 @@ let g:NeoComplCache_TagsAutoUpdate = 1
 let g:NeoComplCache_TryKeywordCompletion = 1
 
 " <TAB>で補完できるよう設定
-inoremap <tab> <c-n>
+noremap <tab> <c-n>
+
+noremap <C-k>s :Ku source<CR>
+noremap <C-k>b :Ku buffer<CR>
+noremap <C-k>f :Ku file<CR>
+noremap <C-k>h :Ku history<CR>
 
 " rails.vim
 let g:rails_level=4
@@ -126,4 +131,4 @@ let g:quicklaunch_commands = [
   \ 'git add *',
   \ 'git pull',
   \ 'git svn dcommit'
-  \ ]
+ \ ]
