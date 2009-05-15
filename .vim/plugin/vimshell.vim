@@ -2,7 +2,7 @@
 " FILE: vimshell.vim
 " AUTHOR: Janakiraman .S <prince@india.ti.com>(Original)
 "         Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 03 Apr 2009
+" Last Modified: 29 Apr 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -24,9 +24,23 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 5.3, for Vim 7.0
+" Version: 5.7, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   5.8:
+"     - Fixed !! error.
+"     - Implemented filename completion.
+"     - Implemented exchange ~ into $HOME.
+"   5.7:
+"     - Implemented g:VimShell_ExecuteFileList.
+"     - Refactoring.
+"     - Added screen, bg internal command.
+"   5.6:
+"     - Escape prompt when prompt search.
+"     - Fixed auto cd error.
+"   5.5:
+"     - Created ftplugin/vimshell.vim
+"     - Added command vimshell_previous_prompt and vimshell_next_prompt.
 "   5.4:
 "     - Fixed alias, cd, histdel bug.
 "   5.3:
@@ -186,6 +200,8 @@ nnoremap <silent> <Plug>(vimshell_create)  :<C-u>call vimshell#create_shell(0)<C
 nnoremap <silent> <Plug>(vimshell_enter)  :<C-u>call vimshell#process_enter()<CR>
 nnoremap <silent> <Plug>(vimshell_insert_command_completion)  :<C-u>call vimshell#insert_command_completion()<CR>
 nnoremap <silent> <Plug>(vimshell_push_current_line)  :<C-u>call vimshell#push_current_line()<CR>
+nnoremap <silent> <Plug>(vimshell_previous_prompt)  :<C-u>call vimshell#previous_prompt()<CR>
+nnoremap <silent> <Plug>(vimshell_next_prompt)  :<C-u>call vimshell#next_prompt()<CR>
 nmap <silent> <Leader>sp     <Plug>(vimshell_split_switch)
 nmap <silent> <Leader>sn     <Plug>(vimshell_split_create)
 nmap <silent> <Leader>sh     <Plug>(vimshell_switch)
@@ -216,6 +232,9 @@ if !exists('g:VimShell_MaxHistoryWidth')
 endif
 if !exists('g:VimShell_UseCkw')
     let g:VimShell_UseCkw = 0
+endif
+if !exists('g:VimShell_ExecuteFileList')
+    let g:VimShell_ExecuteFileList = {}
 endif
 "}}}
 
