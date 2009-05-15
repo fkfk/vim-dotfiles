@@ -40,12 +40,12 @@ let g:AutoComplPop_NotEnableAtStartup = 1
 
 "nocomplcacheの設定
 let g:NeoComplCache_EnableAtStartup = 1
+let g:NeoComplCache_KeywordCompletionStartLength = 1
+let g:NeoComplCache_MinKeywordLength = 3
+let g:NeoComplCache_MinSyntaxLength = 3
 let g:NeoComplCache_SmartCase = 1
-let g:NeoComplCache_PreviousKeywordCompletion = 1
 let g:NeoComplCache_TagsAutoUpdate = 1
 let g:NeoComplCache_TryKeywordCompletion = 1
-let g:NeoComplCache_EnableCamelCaseCompletion = 1
-let g:NeoComplCache_EnableUnderbarCompletion = 1
 
 "<TAB>で補完
 function InsertTabWrapper()
