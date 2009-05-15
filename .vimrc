@@ -35,6 +35,18 @@ let g:rubycomplete_buffer_loading = 1
 let g:rubycomplete_classes_in_global = 1
 let g:rubycomplete_rails = 1
 
+"autocomplpopを無効化
+let g:AutoComplPop_NotEnableAtStartup = 1
+
+"nocomplcacheの設定
+let g:NeoComplCache_EnableAtStartup = 1
+let g:NeoComplCache_SmartCase = 1
+let g:NeoComplCache_PreviousKeywordCompletion = 1
+let g:NeoComplCache_TagsAutoUpdate = 1
+let g:NeoComplCache_TryKeywordCompletion = 1
+let g:NeoComplCache_EnableCamelCaseCompletion = 1
+let g:NeoComplCache_EnableUnderbarCompletion = 1
+
 "<TAB>で補完
 function InsertTabWrapper()
   if pumvisible()
