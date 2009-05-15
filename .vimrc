@@ -48,8 +48,9 @@ let g:NeoComplCache_TagsAutoUpdate = 1
 let g:NeoComplCache_TryKeywordCompletion = 1
 
 " <TAB>で補完できるよう設定
-noremap <tab> <c-n>
+inoremap <tab> <C-n>
 
+" Ku用マッピング
 noremap <C-k>s :Ku source<CR>
 noremap <C-k>b :Ku buffer<CR>
 noremap <C-k>f :Ku file<CR>
