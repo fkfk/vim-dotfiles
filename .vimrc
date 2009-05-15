@@ -47,21 +47,8 @@ let g:NeoComplCache_SmartCase = 1
 let g:NeoComplCache_TagsAutoUpdate = 1
 let g:NeoComplCache_TryKeywordCompletion = 1
 
-"<TAB>で補完
-function InsertTabWrapper()
-  if pumvisible()
-    return "\<c-n>"
-  endif
-  let col = col('.') - 1
-  if !col || getline('.')[col -1] !~ '\k\|<\|/'
-    return "\<tab>"
-  elseif exists('&omnifunc') && &omnifunc == ''
-    return "\<c-n>"
-  else
-    return "\<c-x>\<c-o>"
-  endif
-endfunction
-inoremap <tab> <c-r>=InsertTabWrapper()<cr>
+" <TAB>で補完できるよう設定
+inoremap <tab> <c-n>
 
 " rails.vim
 let g:rails_level=4
