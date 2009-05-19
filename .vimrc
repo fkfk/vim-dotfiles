@@ -56,6 +56,10 @@ noremap <C-k>b :Ku buffer<CR>
 noremap <C-k>f :Ku file<CR>
 noremap <C-k>h :Ku history<CR>
 
+" vnew,new用マッピング
+noremap <C-x>v :vnew<CR>
+noremap <C-x>n :new<CR>
+
 " rails.vim
 let g:rails_level=4
 let g:rails_default_file="app/controllers/application.rb"
