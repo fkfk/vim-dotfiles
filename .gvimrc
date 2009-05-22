@@ -5,8 +5,10 @@
 "カラースキーム設定
 colorscheme Black
 
-"フルスクリーン時にウィンドウサイズをMAXに指定
-set fuoptions=maxvert,maxhorz
+"ツールバー、スクロールバー非表示
+set go=egmtc 
 
-"ツールバー非表示
-set guioptions-=T
+if has("gui_macvim")
+  "フルスクリーン時にウィンドウサイズをMAXに指定
+  set fuoptions=maxvert,maxhorz
+end
