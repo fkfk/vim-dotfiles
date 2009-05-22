@@ -26,18 +26,16 @@ function! s:quicklaunch_list()
   endif
   call s:open_result_buffer('quicklaunch_list')
   " FIXME: use s:write_result_buffer
-  setlocal modifiable
-    silent % delete _
-    call append(0, '')
-    for i in range(10)
-      if exists('g:quicklaunch_commands[i]')
-        call append(line('$'), i . ': ' . g:quicklaunch_commands[i])
-      else
-        call append(line('$'), i . ': <Nop>')
-      endif
-    endfor
-    silent 1 delete _
-  setlocal nomodifiable
+  silent % delete _
+  call append(0, '')
+  for i in range(10)
+    if exists('g:quicklaunch_commands[i]')
+      call append(line('$'), i . ': ' . g:quicklaunch_commands[i])
+    else
+      call append(line('$'), i . ': <Nop>')
+    endif
+  endfor
+  silent 1 delete _
 endfunction
 
 
@@ -102,7 +100,6 @@ function! s:open_result_buffer(quickrun_command)
     setlocal bufhidden=unload
     setlocal nobuflisted
     setlocal buftype=nofile
-    setlocal nomodifiable
     setlocal noswapfile
     setfiletype quickrun
     silent file `=bufname`
@@ -122,15 +119,13 @@ endfunction
 
 
 function! s:write_result_buffer(loading_message, command)
-  setlocal modifiable
-    silent % delete _
-    call append(0, a:loading_message)
-    redraw
-    silent % delete _
-    call append(0, '')
-    execute a:command
-    silent 1 delete _
-  setlocal nomodifiable
+  silent % delete _
+  call append(0, a:loading_message)
+  redraw
+  silent % delete _
+  call append(0, '')
+  execute a:command
+  silent 1 delete _
 endfunction
 
 
@@ -169,21 +164,22 @@ augroup plugin-quickrun
   autocmd Filetype awk  call s:set_quickrun_command('awk')
   autocmd Filetype c  call s:set_quickrun_command('function __rungcc__() { gcc $1 && ./a.out } && __rungcc__')
   autocmd Filetype cpp  call s:set_quickrun_command('function __rungpp__() { g++ $1 && ./a.out } && __rungpp__')
-  autocmd Filetype objc  call s:set_quickrun_command('function __rungcc__() { gcc $1 && ./a.out } && __rungcc__')
+  autocmd Filetype eruby  call s:set_quickrun_command('erb -T -')
+  autocmd Filetype gnuplot  call s:set_quickrun_command('gnuplot')
   autocmd Filetype haskell  call s:set_quickrun_command('runghc')
   autocmd Filetype io  call s:set_quickrun_command('io')
   autocmd Filetype javascript  call s:set_quickrun_command('js')
+  autocmd Filetype mkd  call s:set_quickrun_command('function __mkd__() { rpeg-markdown $1 > /tmp/__markdown.html; open /tmp/__markdown.html } && __mkd__')
+  autocmd Filetype objc  call s:set_quickrun_command('function __rungcc__() { gcc $1 && ./a.out } && __rungcc__')
   autocmd Filetype perl  call s:set_quickrun_command('perl')
   autocmd Filetype php  call s:set_quickrun_command('php')
   autocmd Filetype python  call s:set_quickrun_command('python')
-  autocmd Filetype ruby  call s:set_quickrun_command('ruby1.9')
+  autocmd Filetype r  call s:set_quickrun_command('R --no-save --slave <')
+  autocmd Filetype ruby  call s:set_quickrun_command('ruby')
   autocmd Filetype scala  call s:set_quickrun_command('scala')
   autocmd Filetype scheme  call s:set_quickrun_command('gosh')
   autocmd Filetype sed  call s:set_quickrun_command('sed')
   autocmd Filetype sh  call s:set_quickrun_command('sh')
-  autocmd Filetype gnuplot  call s:set_quickrun_command('gnuplot')
-  autocmd Filetype eruby  call s:set_quickrun_command('erb -T -')
-  autocmd Filetype r  call s:set_quickrun_command('R --no-save --slave <')
 augroup END
 
 
