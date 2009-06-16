@@ -2,9 +2,11 @@
 set backspace=2
 set tabstop=2
 set softtabstop=2
+set shiftwidth=2
 set expandtab
 set noautoindent
 set nowritebackup
+set tags=$HOME/.tags
 
 "表示回り
 set enc=utf-8
@@ -59,6 +61,15 @@ noremap <C-k>h :Ku history<CR>
 " vnew,new用マッピング
 noremap <C-x>v :vnew<CR>
 noremap <C-x>n :new<CR>
+
+" sp,vsp用マッピング
+noremap <C-x>V :vsp<CR>
+noremap <C-x>S :sp<CR>
+
+" etc
+noremap <C-x>r :source $HOME/.vimrc<CR>
+noremap <Space>d :bdelete<CR>
+noremap <Space>D :bdelete!<CR>
 
 " rails.vim
 let g:rails_level=4
