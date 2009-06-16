@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: interactive.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 15 Feb 2009
+" Last Modified: 05 Jun 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,13 +23,18 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.01, for Vim 7.0
+" Version: 1.20, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
-"   1.01:
-"     - Compatible Windows and Linux.
-"   1.00:
-"     - Initial version.
+"   1.20: Independent from vimshell.
+"
+"   1.11: Improved autocmd.
+"
+"   1.10: Use vimshell.
+"
+"   1.01: Compatible Windows and Linux.
+"
+"   1.00: Initial version.
 " }}}
 "-----------------------------------------------------------------------------
 " TODO: "{{{
@@ -39,50 +44,274 @@
 "     - Nothing.
 ""}}}
 "=============================================================================
-"
-function! interactive#async_callback(res)
-    call append(line('$'), split(a:res, "\n"))
-    redraw
-endfunction
+
+" Utility functions.
+
+let s:password_regex = 
+            \'^\s*Password:' . '\|'     "  su, ssh, ftp
+            \. 'password:' . '\|'       "  ???, seen this somewhere
+            \. 'Password required'      "  other ftp clients
+
+let s:last_out = ''
+
 if has('win32') || has('win64')
-    " For Windows.
-    function! interactive#run(command) " {{{
-        let g:async_command=a:command
+    function! interactive#execute_inout(is_interactive)"{{{
+        if !exists('b:subproc')
+            return
+        endif
 
-python << EOP
-import vim
-import thread
-import nt as os
+        if !b:subproc.stdout.eof
+            if b:subproc.stdin.fd > 0
+                if a:is_interactive
+                    let l:in = input('Input: ')
+                else
+                    let l:in = getline('.')
+                    if l:in !~ '^> '
+                        echohl WarningMsg | echo "Invalid input." | echohl None
+                        call append(line('$'), '> ')
+                        normal! G
+                        startinsert!
 
-def run():
-    command = vim.eval('g:async_command')
-    fr = os.popen(command, 'r')
-    result = fr.read()
-    fr.close()
-    vim.eval("interactive#async_callback('" + result + "')")
+                        return
+                    endif
+                    let l:in = l:in[2:]
+                endif
 
-thread.start_new_thread(run, ())
-EOP
-    endfunction
-    " }}}
+                try
+                    if l:in =~ ""
+                        call b:subproc.stdin.close()
+                    else
+                        call b:subproc.stdin.write(l:in . "\<CR>")
+                    endif
+
+                    if a:is_interactive
+                        call append(line('$'), '>' . l:in)
+                        normal! j
+                        redraw
+                    endif
+                catch
+                    call b:subproc.stdin.close()
+                endtry
+            endif
+
+            call interactive#execute_out()
+        endif
+
+        if !exists('b:subproc')
+            return
+        elseif b:subproc.stdout.eof
+            call interactive#exit()
+        elseif !a:is_interactive
+            call append(line('$'), '> ')
+            normal! G
+            startinsert!
+        endif
+    endfunction"}}}
+
+    function! interactive#execute_out()"{{{
+        if !exists('b:subproc')
+            return
+        endif
+
+        if !b:subproc.stdout.eof
+            let l:read = b:subproc.stdout.read(-1, 200)
+            while l:read != ''
+                call s:print_buffer(l:read)
+                redraw
+
+                let l:read = b:subproc.stdout.read(-1, 200)
+            endwhile
+        endif
+
+        if b:subproc.stdout.eof
+            call interactive#exit()
+        endif
+    endfunction"}}}
 else
-    " For Linux.
-    function! interactive#run(command) " {{{
-        let g:async_command=a:command
+    function! interactive#execute_inout(is_interactive)"{{{
+        if !exists('b:subproc')
+            return
+        endif
 
-python << EOP
-import vim
-import thread
-import commands
+        if !b:subproc.eof
+            if a:is_interactive
+                let l:in = input('Input: ')
+            else
+                let l:in = getline('.')
+                if l:in !~ '^> '
+                    echohl WarningMsg | echo "Invalid input." | echohl None
+                    call append(line('$'), '> ')
+                    normal! G
+                    startinsert!
 
-def run():
-    command = vim.eval('g:async_command')
-    result = commands.getoutput(command)
-    vim.eval("interactive#async_callback('" + result + "')")
+                    return
+                endif
 
-thread.start_new_thread(run, ())
-EOP
-    endfunction
-    " }}}
+                let l:in = l:in[2:]
+            endif
+
+            try
+                if l:in =~ ""
+                    call b:subproc.write(l:in)
+                    call interactive#execute_out()
+
+                    call interactive#exit()
+                    return
+                elseif l:in != ''
+                    call b:subproc.write(l:in . "\<CR>")
+                endif
+            catch
+                call b:subproc.close()
+            endtry
+
+            call interactive#execute_out()
+        endif
+
+        if !exists('b:subproc')
+            return
+        elseif b:subproc.eof
+            call interactive#exit()
+        elseif !a:is_interactive
+            call append(line('$'), '> ')
+            normal! G
+            startinsert!
+        endif
+    endfunction"}}}
+
+    function! interactive#execute_out()"{{{
+        if !exists('b:subproc')
+            return
+        endif
+
+        let l:read = b:subproc.read(-1, 200)
+        while l:read != ''
+            call s:print_buffer(l:read)
+            redraw
+
+            let l:read = b:subproc.read(-1, 200)
+        endwhile
+
+        if b:subproc.eof
+            call interactive#exit()
+        endif
+    endfunction"}}}
+
+    function! interactive#execute_pipe_out()"{{{
+        if !exists('b:subproc')
+            return
+        endif
+
+        if !b:subproc.stdout.eof
+            let l:read = b:subproc.stdout.read(-1, 200)
+            while l:read != ''
+                call s:print_buffer(l:read)
+                redraw
+
+                let l:read = b:subproc.stdout.read(-1, 200)
+            endwhile
+        endif
+
+        if b:subproc.stdout.eof
+            call interactive#exit()
+        endif
+    endfunction"}}}
 endif
+
+function! interactive#exit()"{{{
+    if !exists('b:subproc')
+        return
+    endif
+
+    let [l:cond, l:status] = b:vimproc.api.vp_waitpid(b:subproc.pid)
+    if &filetype != 'vimshell'
+        call append(line('$'), '*Exit*')
+        normal! G
+    endif
+
+    let s:last_out = ''
+
+    unlet b:subproc
+    unlet b:vimproc
+endfunction"}}}
+
+function! s:print_buffer(string)
+    if a:string == ''
+        return
+    endif
+
+    " Convert encoding for system().
+    if has('win32') || has('win64')
+        let l:string = iconv(a:string, 'cp932', &encoding) 
+    else
+
+        "let l:string = iconv(a:string, 'utf-8', &encoding) 
+        let l:string = a:string
+    endif
+
+    if l:string =~ '\r[[:print:]]'
+        " Set line.
+        for line in split(l:string, '\r\n\|\n')
+            call append(line('$'), '')
+
+            for l in split(line, '\r')
+                call setline(line('$'), l)
+                redraw
+            endfor
+        endfor
+    else
+        for line in split(l:string, '\r\n\|\r\|\n')
+            call append(line('$'), line)
+        endfor
+    endif
+
+    " Set cursor.
+    normal! G
+endfunction
+
+" Command functions.
+
+" Interactive execute command.
+function! interactive#read(args)"{{{
+
+    " Exit previous command.
+    call s:on_exit()
+
+    let l:proc = proc#import()
+
+    try
+        if has('win32') || has('win64')
+            let l:sub = l:proc.popen2(a:args)
+        else
+            let l:sub = l:proc.ptyopen(a:args)
+        endif
+    catch
+        echohl WarningMsg | echo printf('File: "%s" is not found.', a:args[0]) | echohl None
+
+        return
+    endtry
+
+    " Set variables.
+    let b:vimproc = l:proc
+    let b:subproc = l:sub
+
+    augroup interactive
+        autocmd CursorHold <buffer>     call interactive#execute_out()
+        autocmd BufDelete <buffer>      call s:on_exit()
+    augroup END
+
+    nnoremap <buffer><silent><C-c>       :<C-u>call <sid>on_exit()<CR>
+    inoremap <buffer><silent><C-c>       <ESC>:<C-u>call <sid>on_exit()<CR>
+    nnoremap <buffer><silent><CR>       :<C-u>call interactive#execute_out()<CR>
+
+    call interactive#execute_out()
+endfunction"}}}
+
+function! s:on_exit()"{{{
+    augroup interactive
+        autocmd! * <buffer>
+    augroup END
+
+    call interactive#exit()
+endfunction"}}}
+
 " vim: foldmethod=marker

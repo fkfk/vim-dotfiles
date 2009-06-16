@@ -1,6 +1,6 @@
 "=============================================================================
-" FILE: alias.vim
-" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
+" FILE: exe.vim
+" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
 " Last Modified: 05 Jun 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
@@ -23,23 +23,12 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.3, for Vim 7.0
+" Version: 1.1, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
-"   1.4:
-"     - Optimized parse.
+"   1.1: Use interactive.
 "
-"   1.3:
-"     - Supported vimshell Ver.3.2.
-"
-"   1.2:
-"     - Use vimshell#print_line.
-"
-"   1.1:
-"     - Changed s:alias_table into b:vimshell_alias_table.
-"
-"   1.0:
-"     - Initial version.
+"   1.0: Initial version.
 ""}}}
 "-----------------------------------------------------------------------------
 " TODO: "{{{
@@ -50,20 +39,58 @@
 ""}}}
 "=============================================================================
 
-function! vimshell#internal#alias#execute(program, args, fd, other_info)
-    if empty(a:args)
-        " View all aliases.
-        for alias in keys(b:vimshell_alias_table)
-            call vimshell#print_line(printf('%s=%s', alias, b:vimshell_alias_table[alias]))
-        endfor
-    elseif len(a:args) == 1
-        if has_key(b:vimshell_alias_table, a:args[0])
-            " View alias.
-            call vimshell#print_line(b:vimshell_alias_table[a:args[0]])
+function! vimshell#internal#exe#execute(program, args, fd, other_info)"{{{
+    " Execute command.
+    if g:VimShell_EnableInteractive
+        call s:init_process(a:args, a:other_info.is_interactive)
+
+        if has('win32') || has('win64')
+            while exists('b:subproc')
+                call interactive#execute_out()
+            endwhile
+        else
+            while exists('b:subproc')
+                call interactive#execute_pipe_out()
+            endwhile
         endif
     else
-        " Define alias.
-        let l:arguments = join(a:args[1:])
-        let b:vimshell_alias_table[a:args[0]] = l:arguments
+        let l:cmdline = ''
+        for arg in a:args
+            let l:cmdline .= substitute(arg, '"', '\\""', 'g') . ' '
+        endfor
+
+        if l:cmdline !~ '[<|]'
+            let l:null = tempname()
+            call writefile([], l:null)
+
+            silent execute printf('read! %s < %s', l:cmdline, l:null)
+
+            call delete(l:null)
+        else
+            silent execute printf('read! %s %s', l:cmdline)
+        endif
     endif
+
+    return 0
+endfunction"}}}
+
+function! s:init_process(args, is_interactive)
+    let l:proc = proc#import()
+
+    try
+        let l:sub = l:proc.popen2(a:args)
+        call l:sub.stdin.close()
+    catch
+        if a:is_interactive
+            call vimshell#error_line(printf('File: "%s" is not found.', a:args[0]))
+        else
+            echohl WarningMsg | echo printf('File: "%s" is not found.', a:args[0]) | echohl None
+        endif
+
+        return
+    endtry
+
+    " Set variables.
+    let b:vimproc = l:proc
+    let b:subproc = l:sub
 endfunction
