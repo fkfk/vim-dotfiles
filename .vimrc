@@ -49,6 +49,13 @@ let g:NeoComplCache_SmartCase = 1
 let g:NeoComplCache_TagsAutoUpdate = 1
 let g:NeoComplCache_TryKeywordCompletion = 1
 
+"tabpage周り
+noremap <C-x>tn :tabnew<CR>
+noremap <C-x>tq :tabclose<CR>
+noremap <C-x>to :tabonly<CR>
+noremap <C-l> gt
+noremap <C-h> gT
+
 " <TAB>で補完できるよう設定
 inoremap <tab> <C-n>
 
@@ -71,6 +78,7 @@ noremap <C-x>r :source $HOME/.vimrc<CR>
 noremap <Space>d :bdelete<CR>
 noremap <Space>D :bdelete!<CR>
 noremap <Space>t :set tags=$HOME/.tags/
+noremap <C-x>u :undolist<CR>
 
 " rails.vim
 let g:rails_level=4
@@ -149,3 +157,29 @@ let g:quicklaunch_commands = [
   \ 'git pull',
   \ 'git svn dcommit'
  \ ]
+
+" TabpageCD
+" Reference: kana's vimrc
+call altercmd#load()
+
+command! -complete=customlist,s:complete_cdpath -nargs=? TabpageCD
+\ execute 'cd' fnameescape(<q-args>)
+\| let t:cwd = getcwd()
+ 
+function! s:complete_cdpath(arglead, cmdline, cursorpos)
+    return split(globpath(&cdpath,
+            \ join(split(a:cmdline, '\s', 1)[1:], ' ') . '*/'),
+            \ "\n")
+endfunction
+ 
+AlterCommand cd TabpageCD
+ 
+command! CD silent exe "TabpageCD " . expand('%:p:h')
+ 
+augroup vimrc-autocmd
+    autocmd VimEnter,TabEnter *
+    \ if !exists('t:cwd')
+    \| let t:cwd = getcwd()
+    \| endif
+    \| execute 'cd' fnameescape(t:cwd)
+augroup END
