@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: history.vim
+" FILE: let.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 31 Jan 2009
+" Last Modified: 21 Jun 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,11 +23,18 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.1, for Vim 7.0
+" Version: 1.3, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.3:
+"     - Supported system variables.
+"
+"   1.2:
+"     - Implemented special commands.
+"
 "   1.1:
-"     - Supported vimshell Ver.3.2.
+"     - Optimized parse.
+"
 "   1.0:
 "     - Initial version.
 ""}}}
@@ -40,28 +47,34 @@
 ""}}}
 "=============================================================================
 
-function! vimshell#internal#history#execute(program, args, fd, other_info)
-    if get(g:vimshell#hist_buffer, 0) =~ '^history'
-        " Delete from history.
-        call remove(g:vimshell#hist_buffer, 0)
+function! vimshell#special#let#execute(program, args, fd, other_info)
+    let l:args = join(a:args)
+
+    if l:args !~ '^$$\?\h\w*'
+        call vimshell#error_line(a:fd, 'Wrong syntax.')
+        return
     endif
 
-    let l:cnt = 0
-    let l:arguments = join(a:args, ' ')
-    if l:arguments =~ '^\d\+$'
-        let l:max = str2nr(l:arguments)
-    elseif empty(l:arguments)
-        " Default max value.
-        let l:max = 20
+    if l:args =~ '^$\zs\l\w*'
+        " User variable.
+        let l:varname = printf("b:vimshell_variables['%s']", matchstr(l:args, '^$\zs\l\w*'))
+    elseif l:args =~ '^$\u\w*'
+        " Environment variable.
+        let l:varname = matchstr(l:args, '^$\u\w*')
+    elseif l:args =~ '^$$\h\w*'
+        " System variable.
+        let l:varname = printf("b:vimshell_system_variables['%s']", matchstr(l:args, '^$$\zs\h\w*'))
     else
-        let l:max = len(g:vimshell#hist_buffer)
+        let l:varname = ''
     endif
-    if l:max >= len(g:vimshell#hist_buffer)
-        " Overflow.
-        let l:max = len(g:vimshell#hist_buffer)
-    endif
-    while l:cnt < l:max
-        call vimshell#print_line(a:fd, printf('%3d: %s', l:cnt, g:vimshell#hist_buffer[l:cnt]))
-        let l:cnt += 1
+
+    let l:expression = l:args[match(l:args, '^$$\?\h\w*\zs') :]
+    while l:expression =~ '$$\h\w*'
+        let l:expression = substitute(l:expression, '$$\h\w*', printf("b:vimshell_system_variables['%s']", matchstr(l:expression, '$$\zs\h\w*')), '')
     endwhile
+    while l:expression =~ '$\l\w*'
+        let l:expression = substitute(l:expression, '$\l\w*', printf("b:vimshell_variables['%s']", matchstr(l:expression, '$\zs\l\w*')), '')
+    endwhile
+
+    execute 'let ' . l:varname . l:expression
 endfunction
