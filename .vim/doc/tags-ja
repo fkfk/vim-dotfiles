@@ -5367,6 +5367,7 @@ g:NeoComplCache_EnableQuickMatch	neocomplcache.jax	/*g:NeoComplCache_EnableQuick
 g:NeoComplCache_EnableSkipCompletion	neocomplcache.jax	/*g:NeoComplCache_EnableSkipCompletion*
 g:NeoComplCache_EnableUnderbarCompletion	neocomplcache.jax	/*g:NeoComplCache_EnableUnderbarCompletion*
 g:NeoComplCache_EnableWildCard	neocomplcache.jax	/*g:NeoComplCache_EnableWildCard*
+g:NeoComplCache_FilenameCompletionSkipItems	neocomplcache.jax	/*g:NeoComplCache_FilenameCompletionSkipItems*
 g:NeoComplCache_IgnoreCase	neocomplcache.jax	/*g:NeoComplCache_IgnoreCase*
 g:NeoComplCache_KeywordCompletionStartLength	neocomplcache.jax	/*g:NeoComplCache_KeywordCompletionStartLength*
 g:NeoComplCache_KeywordPatterns	neocomplcache.jax	/*g:NeoComplCache_KeywordPatterns*
