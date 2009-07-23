@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: exe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 05 Jul 2009
+" Last Modified: 14 Jul 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,9 +23,15 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.3, for Vim 7.0
+" Version: 1.5, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.5:
+"     - Fixed stdin bug when g:VimShell_EnableInteractive is 0.
+"
+"   1.4:
+"     - Kill zombee process.
+"
 "   1.3:
 "     - Supported pipe.
 "     - Improved in console.
@@ -73,7 +79,7 @@ function! vimshell#internal#exe#execute(program, args, fd, other_info)"{{{
             let l:stdin = '<' . l:null
         endif
 
-        call vimshell#print(a:fd, system(printf('%s <%s', l:cmdline, l:stdin)))
+        call vimshell#print(a:fd, system(printf('%s', l:cmdline, l:stdin)))
 
         if a:fd.stdin == ''
             call delete(l:null)
@@ -88,7 +94,7 @@ endfunction"}}}
 function! s:init_process(fd, args, is_interactive)
     if exists('b:vimproc_sub')
         " Delete zombee process.
-        call interactive#exit()
+        call interactive#force_exit()
     endif
 
     let l:proc = proc#import()

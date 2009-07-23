@@ -2,7 +2,7 @@
 " FILE: vimshell.vim
 " AUTHOR: Janakiraman .S <prince@india.ti.com>(Original)
 "         Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 05 Jul 2009
+" Last Modified: 12 Jul 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -24,7 +24,7 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 5.22, for Vim 7.0
+" Version: 5.24, for Vim 7.0
 "=============================================================================
 
 " Helper functions.
@@ -251,11 +251,6 @@ function! vimshell#process_enter()"{{{
     " Check current directory.
     if !exists('w:vimshell_directory_stack')
         let w:vimshell_directory_stack = []
-        let w:vimshell_directory_stack[0] = getcwd()
-    endif
-    if empty(w:vimshell_directory_stack) || getcwd() != w:vimshell_directory_stack[0]
-        " Push current directory.
-        call insert(w:vimshell_directory_stack, getcwd())
     endif
 
     " Delete prompt string.
@@ -276,17 +271,28 @@ function! vimshell#process_enter()"{{{
     " Delete head spaces.
     let l:line = substitute(l:line, '^\s\+', '', '')
     if l:line =~ '^\s*$'
-        " Ignore empty command line.
-        call setline(line('.'), g:VimShell_Prompt)
+        if g:VimShell_EnableAutoLs
+            call setline(line('.'), g:VimShell_Prompt . 'ls')
+            call vimshell#internal#ls#execute('ls', [], 
+                        \{ 'stdin' : '', 'stdout' : '', 'stderr' : '' },
+                        \{ 'has_head_spaces' : 0, 'is_interactive' : 1, 'is_background' : 0 })
 
-        call vimshell#start_insert()
+            call vimshell#print_prompt()
+            call interactive#highlight_escape_sequence()
+
+            call vimshell#start_insert()
+        else
+            " Ignore empty command line.
+            call setline(line('.'), g:VimShell_Prompt)
+
+            call vimshell#start_insert()
+        endif
         return
     endif
 
+    let l:other_info = { 'has_head_spaces' : l:line =~ '^\s\+', 'is_interactive' : 1, 'is_background' : 0 }
     try
-        let l:program = split(l:line)[0]
-        let l:string = substitute(l:line, '^'.l:program, '', '')
-        let [l:program, l:args, l:fd] = vimshell#parser#eval_script(l:string, l:program)
+        let l:skip_prompt = vimshell#parser#eval_script(l:line, l:other_info)
     catch /^Quote/
         call vimshell#error_line('', 'Quote error.')
         call vimshell#print_prompt()
@@ -295,12 +301,6 @@ function! vimshell#process_enter()"{{{
         call vimshell#start_insert()
         return
     endtry
-
-    let l:other_info = { 'has_head_spaces' : l:line =~ '^\s\+', 'is_interactive' : 1, 'is_background' : 0 }
-
-    " Interactive execute.
-    let l:skip_prompt = vimshell#execute_command(l:program, l:args, l:fd, l:other_info)
-    call interactive#highlight_escape_sequence()
 
     if l:skip_prompt
         " Skip prompt.
@@ -423,7 +423,7 @@ function! vimshell#append_history(command)"{{{
     " Reduce blanks.
     let l:command = substitute(a:command, '\s\+', ' ', 'g')
     " Filtering.
-    call insert(filter(g:vimshell#hist_buffer, printf("v:val != '%s'", l:command)), l:command)
+    call insert(filter(g:vimshell#hist_buffer, printf("v:val != '%s'", substitute(l:command, "'", "''", 'g'))), l:command)
 
     " Trunk.
     let g:vimshell#hist_buffer = g:vimshell#hist_buffer[:g:VimShell_HistoryMaxSize-1]
@@ -682,8 +682,8 @@ function! vimshell#create_shell(split_flag)"{{{
     endif
     " Load rc file.
     if filereadable(g:VimShell_VimshrcPath) && !exists('b:vimshell_loaded_vimshrc')
-        let l:fd = {}
-        let l:other_info = { 'has_head_spaces' : 0, 'is_interactive' : 0 }
+        let l:fd = { 'stdin' : '', 'stdout' : '', 'stderr' : '' }
+        let l:other_info = { 'has_head_spaces' : 0, 'is_interactive' : 0, 'is_background' : 0 }
         call vimshell#internal#vimsh#execute('vimsh', [g:VimShell_VimshrcPath], l:fd, l:other_info)
         let b:vimshell_loaded_vimshrc = 1
     endif
@@ -728,6 +728,11 @@ function! s:get_complete_words(cur_keyword_str)"{{{
     let l:ret = []
     let l:pattern = printf('v:val =~ "^%s"', a:cur_keyword_str)
 
+    for keyword in filter(split(glob(a:cur_keyword_str . '*'), '\n'), 'isdirectory(v:val)')
+        let l:dict = { 'word' : keyword, 'abbr' : keyword . '/', 'menu' : '[Dir]', 'icase' : 1 }
+        call add(l:ret, l:dict)
+    endfor 
+
     for keyword in filter(keys(b:vimshell_alias_table), l:pattern)
         let l:dict = { 'word' : keyword . ' ', 'abbr' : keyword, 'menu' : '[Alias]', 'icase' : 1 }
         call add(l:ret, l:dict)
@@ -740,11 +745,6 @@ function! s:get_complete_words(cur_keyword_str)"{{{
 
     for keyword in filter(keys(s:internal_func_table), l:pattern)
         let l:dict = { 'word' : keyword . ' ', 'abbr' : keyword, 'menu' : '[Internal]', 'icase' : 1 }
-        call add(l:ret, l:dict)
-    endfor 
-
-    for keyword in filter(split(glob(a:cur_keyword_str . '*'), '\n'), 'isdirectory(v:val)')
-        let l:dict = { 'word' : keyword, 'abbr' : keyword . '/', 'menu' : '[Dir]', 'icase' : 1 }
         call add(l:ret, l:dict)
     endfor 
 

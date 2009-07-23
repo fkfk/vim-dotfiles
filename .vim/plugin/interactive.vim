@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: dirs.vim
-" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 15 Jul 2009
+" FILE: interactive.vim
+" AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
+" Last Modified: 03 Jul 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,51 +23,15 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.3, for Vim 7.0
-"-----------------------------------------------------------------------------
-" ChangeLog: "{{{
-"   1.3:
-"     - Improved output.
-"
-"   1.2:
-"     - Supported vimshell Ver.3.2.
-"
-"   1.1:
-"     - Use vimshell#print_line.
-"
-"   1.0:
-"     - Initial version.
-""}}}
-"-----------------------------------------------------------------------------
-" TODO: "{{{
-"     - Nothing.
-""}}}
-" Bugs"{{{
-"     -
-""}}}
 "=============================================================================
 
-function! vimshell#internal#dirs#execute(program, args, fd, other_info)
-    " Print directory stack.
-    
-    let l:cnt = 0
-    let l:arguments = join(a:args, ' ')
-    if empty(l:arguments)
-        " Default max value.
-        let l:max = 20
-    elseif l:arguments =~ '^\d\+$'
-        let l:max = str2nr(a:args)
-    else
-        " Ignore arguments.
-        let l:max = len(w:vimshell_directory_stack)
-    endif
-    if l:max > len(w:vimshell_directory_stack)
-        " Overflow.
-        let l:max = len(w:vimshell_directory_stack)
-    endif
+command! -nargs=+ -complete=shellcmd InteractiveRead call interactive#read(split(<q-args>))
 
-    while l:cnt < l:max
-        call vimshell#print_line(a:fd, printf('%2d: %s', l:cnt, fnamemodify(w:vimshell_directory_stack[l:cnt], ':~')))
-        let l:cnt += 1
-    endwhile
-endfunction
+" Global options definition."{{{
+if !exists('g:Interactive_EscapeColors')
+    let g:Interactive_EscapeColors = [
+                \'#3c3c3c', '#ff6666', '#66ff66', '#ffd30a', '#1e95fd', '#ff13ff', '#1bc8c8', '#C0C0C0', 
+                \'#686868', '#ff6666', '#66ff66', '#ffd30a', '#6699ff', '#f820ff', '#4ae2e2', '#ffffff'
+                \]
+endif
+"}}}

@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: iexe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 05 Jul 2009
+" Last Modified: 15 Jul 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,9 +23,16 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.9, for Vim 7.0
+" Version: 1.10, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.10: 
+"     - Improved behavior.
+"     - Kill zombee process.
+"     - Supported completion on pty.
+"     - Improved initialize program.
+"     - Implemented command history on pty.
+"
 "   1.9: 
 "     - Fixed error when file not found.
 "     - Improved in console.
@@ -133,7 +140,7 @@ function! vimshell#internal#iexe#execute(program, args, fd, other_info)"{{{
 
     if exists('b:vimproc_sub')
         " Delete zombee process.
-        call interactive#exit()
+        call interactive#force_exit()
     endif
 
     if a:other_info.is_background
@@ -158,10 +165,11 @@ function! vimshell#internal#iexe#execute(program, args, fd, other_info)"{{{
 
     if a:other_info.is_background
         if has('win32') || has('win64')
-            call interactive#execute_pipe_inout(0)
+            call interactive#execute_pipe_out()
         else
-            call interactive#execute_pty_inout(0)
+            call interactive#execute_pty_out()
         endif
+        startinsert!
 
         return 1
     else
@@ -201,8 +209,8 @@ function! s:init_bg(proc, sub, args, is_interactive)"{{{
     setlocal buftype=nofile
     setlocal noswapfile
 
-    nnoremap <buffer><silent><C-c>       :<C-u>call <sid>on_exit()<CR>
-    inoremap <buffer><silent><C-c>       <ESC>:<C-u>call <sid>on_exit()<CR>
+    nnoremap <buffer><silent><C-c>       :<C-u>call <SID>on_exit()<CR>
+    inoremap <buffer><silent><C-c>       <ESC>:<C-u>call <SID>on_exit()<CR>
     augroup vimshell_iexe
         autocmd BufDelete <buffer>   call s:on_exit()
     augroup END
@@ -215,19 +223,74 @@ function! s:init_bg(proc, sub, args, is_interactive)"{{{
     else
         nnoremap <buffer><silent><CR>       :<C-u>call interactive#execute_pty_inout(0)<CR>
         inoremap <buffer><silent><CR>       <ESC>:<C-u>call interactive#execute_pty_inout(0)<CR>
+        inoremap <buffer><silent><C-t>       <ESC>:<C-u>call <SID>pty_completion()<CR>
+        inoremap <buffer><silent><Up>        <ESC>:<C-u>call <SID>previous_command()<CR>
+        inoremap <buffer><silent><Down>      <ESC>:<C-u>call <SID>next_command()<CR>
         autocmd vimshell_iexe CursorHold <buffer>  call interactive#execute_pty_out()
         call interactive#execute_pty_out()
     endif
+
+    normal! G$
+    startinsert!
 endfunction"}}}
 
 function! s:on_exit()
     augroup vimshell_iexe
-        autocmd! * <buffer>
+        autocmd! BufDelete <buffer>
+        autocmd! CursorHold <buffer>
     augroup END
 
-    call interactive#exit()
-    if exists('b:vimshell_system_variables')
-        let b:vimshell_system_variables['status'] = b:vimproc_status
-    endif
+    call interactive#force_exit()
 endfunction
 
+function! s:pty_completion()"{{{
+    " Insert <TAB>.
+    let l:in = getline('.')
+    let l:prompt = getline('.')
+    call setline(line('.'), getline('.') . "\<TAB>")
+    if exists("b:prompt_history['".line('.')."']")
+        let l:in = l:in[len(b:prompt_history[line('.')]) : ]
+    endif
+    let l:prompt = l:prompt[: len(l:in)]
+
+    " Do command completion.
+    call interactive#execute_pty_inout(0)
+
+    startinsert!
+endfunction"}}}
+
+function! s:previous_command()"{{{
+    " If this is the first up arrow use, save what's been typed in so far.
+    if b:interactive_command_position == 0
+        let b:current_working_command = strpart(getline('.'), len(b:prompt_history[line('.')]))
+    endif
+    " If there are no more previous commands.
+    if len(b:interactive_command_history) == b:interactive_command_position
+        echo 'End of history'
+        startinsert!
+        return
+    endif
+    let b:interactive_command_position = b:interactive_command_position + 1
+    let l:prev_command = b:interactive_command_history[len(b:interactive_command_history) - b:interactive_command_position]
+    call setline(line('.'), b:prompt_history[max(keys(b:prompt_history))] . l:prev_command)
+    startinsert!
+endfunction"}}}
+
+function! s:next_command()"{{{
+    " If we're already at the last command.
+    if b:interactive_command_position == 0
+        echo 'End of history'
+        startinsert!
+        return
+    endif
+    let b:interactive_command_position = b:interactive_command_position - 1
+    " Back at the beginning, put back what had been typed.
+    if b:interactive_command_position == 0
+        call setline(line('.'), b:prompt_history[max(keys(b:prompt_history))] . b:current_working_command)
+        startinsert!
+        return
+    endif
+    let l:next_command = b:interactive_command_history[len(b:interactive_command_history) - b:interactive_command_position]
+    call setline(line('.'), b:prompt_history[max(keys(b:prompt_history))] . l:next_command)
+    startinsert!
+endfunction"}}}

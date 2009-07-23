@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: interactive.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 03 Jul 2009
+" Last Modified: 14 Jul 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,9 +23,27 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.26, for Vim 7.0
+" Version: 1.29, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.29:
+"     - Implemented force exit.
+"     - Catch kill error.
+"     - Improved prompt in background pty(Thanks Nico!).
+"     - Supported input empty.
+"     - Supported completion on pty.
+"
+"   1.28:
+"     - Implemented input cancel.
+"     - Improved signal.
+"     - Stripped "\n$" when print_buffer.
+"     - Echo in running command.
+"
+"   1.27:
+"     - Fixed prompt in background pty(Thanks Nico!).
+"     - Stripped <CR>(Thanks Nico!).
+"     - Improved output in background program.
+"
 "   1.26:
 "     - Improved error highlight.
 "     - Implemented password input.
@@ -93,7 +111,7 @@ function! interactive#execute_pipe_inout(is_interactive)"{{{
             if l:in !~ '^> '
                 echohl WarningMsg | echo "Invalid input." | echohl None
                 call append(line('$'), '> ')
-                normal! G
+                normal! G$
                 startinsert!
 
                 return
@@ -103,8 +121,10 @@ function! interactive#execute_pipe_inout(is_interactive)"{{{
 
         try
             if l:in =~ ""
+                " EOF.
                 call b:vimproc_sub[0].stdin.close()
             else
+                " Input.
                 call b:vimproc_sub[0].stdin.write(l:in . "\<NL>")
             endif
 
@@ -126,7 +146,7 @@ function! interactive#execute_pipe_inout(is_interactive)"{{{
         call interactive#exit()
     elseif !a:is_interactive
         call append(line('$'), '> ')
-        normal! G
+        normal! G$
         startinsert!
     endif
 endfunction"}}}
@@ -142,33 +162,93 @@ function! interactive#execute_pty_inout(is_interactive)"{{{
         let l:in = inputsecret('Input Secret : ')
         call b:vimproc_sub[0].write(l:in . "\<NL>")
         let b:vimproc_is_secret = 0
-
     elseif !b:vimproc_sub[0].eof
         if a:is_interactive
             set imsearch=0
             let l:in = input('Input: ')
+
+            if l:in != '' && l:in !~ ""
+                if match(getline('$'), g:VimShell_Prompt) < 0
+                    call setline(line('$'), getline('$') . l:in)
+                else
+                    call append(line('$'), l:in)
+                endif
+            endif
         else
             let l:in = getline('.')
-            if l:in !~ '^> '
-                echohl WarningMsg | echo "Invalid input." | echohl None
-                call append(line('$'), '> ')
-                normal! G
-                startinsert!
 
-                return
+            if l:in == ''
+                " Do nothing.
+
+            elseif !exists('b:prompt_history')
+                let l:in = ''
+
+            elseif exists("b:prompt_history['".line('.')."']")
+                let l:in = l:in[len(b:prompt_history[line('.')]) : ]
+
+            else
+                " Maybe line numbering got disrupted, search for a matching prompt.
+                let l:prompt_search = 0
+                for pnr in reverse(sort(keys(b:prompt_history)))
+                    let l:prompt_length = len(b:prompt_history[pnr])
+                    " In theory 0 length or ' ' prompt shouldn't exist, but still...
+                    if l:prompt_length > 0 && b:prompt_history[pnr] != ' '
+                        " Does the current line have this prompt?
+                        if l:in[0 : l:prompt_length - 1] == b:prompt_history[pnr]
+                        let l:in = l:in[l:prompt_length : ]
+                            let l:prompt_search = pnr
+                        endif
+                    endif
+                endfor
+                " Still nothing? Maybe a multi-line command was pasted in.
+                let l:max_prompt = max(keys(b:prompt_history)) " Only count once.
+                if l:prompt_search == 0 && l:max_prompt < line('$')
+                    for i in range(l:max_prompt, line('$'))
+                        if i == l:max_prompt
+                            let l:in = getline(i)
+                            let l:in = l:in[len(b:prompt_history[i]) : ]
+                        else
+                            let l:in = l:in . getline(i)
+                        endif
+                    endfor
+                    let l:prompt_search = l:max_prompt
+                endif
+
+                " Still nothing? We give up.
+                if l:prompt_search == 0
+                    echohl WarningMsg | echo "Invalid input." | echohl None
+                    normal! G$
+                    startinsert!
+                    return
+                endif
             endif
-
-            let l:in = l:in[2:]
         endif
+
+        " record command history
+        if !exists('b:interactive_command_history')
+            let b:interactive_command_history = []
+        endif
+        if l:in != ''
+            call add(b:interactive_command_history, l:in)
+        endif
+        let b:interactive_command_position = 0
 
         try
             if l:in =~ ""
+                " EOF.
                 call b:vimproc_sub[0].write(l:in)
                 call interactive#execute_pty_out()
 
                 call interactive#exit()
                 return
+            elseif l:in =~ '^\s\+$'
+                " Input empty.
+                call b:vimproc_sub[0].write("\<NL>")
+            elseif l:in =~ '\t$'
+                " Completion.
+                call b:vimproc_sub[0].write(l:in)
             elseif l:in != ''
+                " If input is empty, only output.
                 call b:vimproc_sub[0].write(l:in . "\<NL>")
             endif
         catch
@@ -183,8 +263,7 @@ function! interactive#execute_pty_inout(is_interactive)"{{{
     elseif b:vimproc_sub[-1].eof
         call interactive#exit()
     elseif !a:is_interactive
-        call append(line('$'), '> ')
-        normal! G
+        normal! G$
         startinsert!
     endif
 endfunction"}}}
@@ -194,6 +273,9 @@ function! interactive#execute_pty_out()"{{{
         return
     endif
 
+    redraw
+    echo 'Running command.'
+    redraw
     let l:i = 0
     let l:submax = len(b:vimproc_sub) - 1
     for sub in b:vimproc_sub
@@ -215,6 +297,12 @@ function! interactive#execute_pty_out()"{{{
         let l:i += 1
     endfor
 
+    " record prompt used on this line
+    if !exists('b:prompt_history')
+        let b:prompt_history = {}
+    endif
+    let b:prompt_history[line('.')] = getline('.')
+
     if b:vimproc_sub[-1].eof
         call interactive#exit()
     endif
@@ -225,6 +313,9 @@ function! interactive#execute_pipe_out()"{{{
         return
     endif
 
+    redraw
+    echo 'Running command.'
+    redraw
     let l:i = 0
     let l:submax = len(b:vimproc_sub) - 1
     for sub in b:vimproc_sub
@@ -258,6 +349,7 @@ function! interactive#execute_pipe_out()"{{{
 
         let l:i += 1
     endfor
+    echo ''
 
     if b:vimproc_sub[-1].stdout.eof && (g:VimShell_UsePopen2 || b:vimproc_sub[-1].stderr.eof)
         call interactive#exit()
@@ -273,16 +365,44 @@ function! interactive#exit()"{{{
     for sub in b:vimproc_sub
         let [l:cond, l:status] = b:vimproc.api.vp_waitpid(sub.pid)
         if l:cond != 'exit'
-            " Kill process.
-            " 9 == SIGKILL
-            call b:vimproc.api.vp_kill(sub.pid, 9)
+            try
+                " Kill process.
+                " 15 == SIGTERM
+                call b:vimproc.api.vp_kill(sub.pid, 15)
+            catch /No such process/
+            endtry
         endif
     endfor
 
     let b:vimproc_status = eval(l:status)
     if &filetype != 'vimshell'
         call append(line('$'), '*Exit*')
-        normal! G
+        normal! G$
+    endif
+
+    let s:last_out = ''
+
+    unlet b:vimproc
+    unlet b:vimproc_sub
+    unlet b:vimproc_fd
+endfunction"}}}
+function! interactive#force_exit()"{{{
+    if !exists('b:vimproc_sub')
+        return
+    endif
+
+    " Kill processes.
+    for sub in b:vimproc_sub
+        try
+            " 15 == SIGTERM
+            call b:vimproc.api.vp_kill(sub.pid, 15)
+        catch /No such process/
+        endtry
+    endfor
+
+    if &filetype != 'vimshell'
+        call append(line('$'), '*Killed*')
+        normal! G$
     endif
 
     let s:last_out = ''
@@ -420,26 +540,20 @@ function! s:print_buffer(fd, string)"{{{
         let l:string = iconv(a:string, 'utf-8', &encoding) 
     endif
 
-    if l:string =~ '\r[[:print:]]'
-        " Set line.
-        for line in split(l:string, '\r\n\|\n')
-            call append(line('$'), '')
-
-            for l in split(line, '\r')
-                call setline(line('$'), l)
-                call interactive#highlight_escape_sequence()
-                redraw
-            endfor
-        endfor
-    else
-        for line in split(l:string, '\r\n\|\r\|\n')
-            call append(line('$'), line)
-        endfor
-        call interactive#highlight_escape_sequence()
-    endif
+    " Strip <CR>.
+    let l:string = substitute(substitute(l:string, '\r', '', 'g'), '\n$', '', '')
+    let l:lines = split(l:string, '\n', 1)
+    for i in range(len(l:lines))
+        if line('$') == 1 && empty(getline('$'))
+            call setline(line('$'), l:lines[i])
+        else
+            call append(line('$'), l:lines[i])
+        endif
+    endfor
+    call interactive#highlight_escape_sequence()
 
     " Set cursor.
-    normal! G
+    normal! G$
 endfunction"}}}
 
 function! s:error_buffer(fd, string)"{{{
@@ -489,7 +603,7 @@ function! s:error_buffer(fd, string)"{{{
     endif
 
     " Set cursor.
-    normal! G
+    normal! G$
 endfunction"}}}
 
 " Command functions.

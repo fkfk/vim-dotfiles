@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: sudo.vim
+" FILE: repeat.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 09 Jul 2009
+" Last Modified: 12 Jul 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,16 +23,9 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.2, for Vim 7.0
+" Version: 1.0, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
-"   1.2:
-"     - Implemented sudo vim.
-"     - Supported Mac OS X.
-"
-"   1.1:
-"     - Improved in console.
-"
 "   1.0:
 "     - Initial version.
 ""}}}
@@ -45,25 +38,21 @@
 ""}}}
 "=============================================================================
 
-function! vimshell#internal#sudo#execute(program, args, fd, other_info)
-    " Execute GUI program.
-    if has('win32') || has('win64')
-        call vimshell#error_line(a:fd, 'This platform is not supported.')
-        return 0
-    elseif empty(a:args)
-        call vimshell#error_line(a:fd, 'Arguments required.')
-        return 0
-    elseif a:args[0] == 'vim'
-        let l:args = a:args[1:]
-        let l:args[0] = 'sudo:' . l:args[0]
-        return vimshell#internal#vim#execute('vim', l:args, a:fd, a:other_info)
-    elseif has('gui_running')
-        return vimshell#internal#iexe#execute('iexe', insert(a:args, 'sudo'), a:fd, a:other_info)
+function! vimshell#internal#repeat#execute(program, args, fd, other_info)
+    " Repeat command.
+
+    if len(a:args) < 2 || a:args[0] !~ '\d\+'
+        call vimshell#error_line(a:fd, 'Arguments error.')
     else
-        " Console.
-        let l:interactive_save = g:VimShell_EnableInteractive
-        let g:VimShell_EnableInteractive = 0
-        call vimshell#internal#iexe#execute('iexe', insert(a:args, 'sudo'), a:fd, a:other_info)
-        let g:VimShell_EnableInteractive = l:interactive_save
+        " Repeat.
+        let l:max = a:args[0]
+        let l:i = 0
+        let l:skip_prompt = 0
+        while l:i < l:max
+            let l:skip_prompt = vimshell#execute_command(a:args[1], a:args[2:], a:fd, a:other_info) 
+            let l:i += 1
+        endwhile
+        return l:skip_prompt
     endif
+    return 0
 endfunction
