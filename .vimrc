@@ -49,6 +49,9 @@ let g:NeoComplCache_SmartCase = 1
 let g:NeoComplCache_TagsAutoUpdate = 1
 let g:NeoComplCache_TryKeywordCompletion = 1
 
+"VimShellの設定
+let g:VimShell_EnableInteractive = 1
+
 "tabpage周り
 noremap <C-x>tn :tabnew<CR>
 noremap <C-x>tq :tabclose<CR>
