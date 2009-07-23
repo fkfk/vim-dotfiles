@@ -186,3 +186,6 @@ augroup vimrc-autocmd
     \| endif
     \| execute 'cd' fnameescape(t:cwd)
 augroup END
+
+"QuickRun用設定
+autocmd Filetype java noremap <silent> <Space>r :QuickRun java<CR>
