@@ -1,8 +1,6 @@
-"=============================================================================
-" FILE: screen.vim
-" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 26 Jun 2009
-" Usage: Just source this file.
+" altercmd - Alter built-in Ex commands by your own ones
+" Version: 0.0.0
+" Copyright (C) 2009 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -23,33 +21,21 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.2, for Vim 7.0
-"-----------------------------------------------------------------------------
-" ChangeLog: "{{{
-"   1.2:
-"     - Only work in screen.
-"
-"   1.1:
-"     - Fixed error.
-"
-"   1.0:
-"     - Initial version.
-""}}}
-"-----------------------------------------------------------------------------
-" TODO: "{{{
-"     - Nothing.
-""}}}
-" Bugs"{{{
-"     -
-""}}}
-"=============================================================================
 
-function! vimshell#internal#screen#execute(program, args, fd, other_info)
-    " Execute program in screen.
-    if &term =~ "^screen"
-        silent execute printf('!screen %s', join(a:args))
-    else
-        " Error.
-        call vimshell#error_line('Must use vimproc plugin.')
-    endif
-endfunction
+if exists('g:loaded_altercmd')
+  finish
+endif
+
+
+
+
+command! -bar -complete=command -nargs=* AlterCommand
+\ call altercmd#define(<f-args>)
+
+
+
+
+let g:loaded_altercmd = 1
+
+" __END__
+" vim: foldmethod=marker

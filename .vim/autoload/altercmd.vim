@@ -1,8 +1,6 @@
-"=============================================================================
-" FILE: screen.vim
-" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 26 Jun 2009
-" Usage: Just source this file.
+" altercmd - Alter built-in Ex commands by your own ones
+" Version: 0.0.0
+" Copyright (C) 2009 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -23,33 +21,43 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.2, for Vim 7.0
-"-----------------------------------------------------------------------------
-" ChangeLog: "{{{
-"   1.2:
-"     - Only work in screen.
-"
-"   1.1:
-"     - Fixed error.
-"
-"   1.0:
-"     - Initial version.
-""}}}
-"-----------------------------------------------------------------------------
-" TODO: "{{{
-"     - Nothing.
-""}}}
-" Bugs"{{{
-"     -
-""}}}
-"=============================================================================
+" Interface  "{{{1
+function! altercmd#define(...)  "{{{2
+  let buffer_p = (a:000[0] ==? '<buffer>')
+  let original_name = a:000[buffer_p ? 1 : 0]
+  let alternate_name = a:000[buffer_p ? 2 : 1]
 
-function! vimshell#internal#screen#execute(program, args, fd, other_info)
-    " Execute program in screen.
-    if &term =~ "^screen"
-        silent execute printf('!screen %s', join(a:args))
-    else
-        " Error.
-        call vimshell#error_line('Must use vimproc plugin.')
-    endif
+  if original_name =~ '\['
+    let [original_name_head, original_name_tail] = split(original_name, '[')
+    let original_name_tail = substitute(original_name_tail, '\]', '', '')
+  else
+    let original_name_head = original_name
+    let original_name_tail = ''
+  endif
+
+  let original_name_tail = ' ' . original_name_tail
+  for i in range(len(original_name_tail))
+    let lhs = original_name_head . original_name_tail[1:i]
+    execute 'cnoreabbrev <expr>' lhs
+    \ '(getcmdtype() == ":" && getcmdline() ==# "' . lhs  . '")'
+    \ '?' ('"' . alternate_name . '"')
+    \ ':' ('"' . lhs . '"')
+  endfor
 endfunction
+
+
+
+
+function! altercmd#load()  "{{{2
+  runtime plugin/altercmd.vim
+endfunction
+
+
+
+
+
+
+
+
+" __END__  "{{{1
+" vim: foldmethod=marker

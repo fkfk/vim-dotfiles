@@ -2,7 +2,7 @@
 " FILE: vimshell.vim
 " AUTHOR: Janakiraman .S <prince@india.ti.com>(Original)
 "         Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 22 Jun 2009
+" Last Modified: 01 Jul 2009
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -23,11 +23,32 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 5.17, for Vim 7.0
+" Version: 5.20, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   5.20 :
+"     - Added g:VimShell_UsePopen2 option.
+"     - Openable directory in vim command.
+"
+"   5.19 :
+"     - Improved variables path.
+"     - Implemented "h string".
+"     - Added space when command completed.
+"     - Improved escape sequence support.
+"
+"   5.18 :
+"     - Improved command completion.
+"     - Changed alias syntax.
+"     - Improved stdin read.
+"     - Improved pipe in external command.
+"
 "   5.17 :
 "     - Fixed error when bg or iexe terminated.
+"     - Implemented gexe command.
+"     - Implemented pipe.
+"     - Check pipe in ls command.
+"     - Improved wildcard.
+"     - Fully pipe implemented.
 "
 "   5.16 :
 "     - Implemented back quote and vim quote.
@@ -288,13 +309,21 @@ if !exists('g:VimShell_Prompt')
     let g:VimShell_Prompt = 'VimShell% '
 endif
 if !exists('g:VimShell_HistoryPath')
-    let g:VimShell_HistoryPath = $HOME.'/.vimshell_hist'
+    if has('win32') || has('win64')
+        let g:VimShell_HistoryPath = $HOME.'\.vimshell_hist'
+    else
+        let g:VimShell_HistoryPath = $HOME.'/.vimshell_hist'
+    endif
 endif
 if !exists('g:VimShell_HistoryMaxSize')
     let g:VimShell_HistoryMaxSize = 1000
 endif
 if !exists('g:VimShell_VimshrcPath')
-    let g:VimShell_VimshrcPath = $HOME.'/.vimshrc'
+    if has('win32') || has('win64')
+        let g:VimShell_VimshrcPath = $HOME.'\.vimshrc'
+    else
+        let g:VimShell_VimshrcPath = $HOME.'/.vimshrc'
+    endif
 endif
 if !exists('g:VimShell_IgnoreCase')
     let g:VimShell_IgnoreCase = 1
@@ -316,6 +345,9 @@ if !exists('g:VimShell_EnableInteractive')
 endif
 if !exists('g:VimShell_SplitHeight')
     let g:VimShell_SplitHeight = 30
+endif
+if !exists('g:VimShell_UsePopen2')
+    let g:VimShell_UsePopen2 = 0
 endif
 "}}}
 

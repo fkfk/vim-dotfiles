@@ -1,62 +1,50 @@
-#!/usr/bin/env ruby
-
 require 'rubygems'
 require 'git'
-require 'find'
-require 'fileutils'
 
-def dotpop dir
-  dir.delete(".")
-  dir.delete("..")
-  dir.delete(".git")
-  dir
-end
+VIMSHELL_TARGETS = %w[
+  autoload/proc.vim
+  autoload/vimshell
+  autoload/vimshell.vim
+  ftplugin/vimshell.vim
+  plugin/vimshell.vim
+  syntax/vimshell.vim
+]
 
-def find_files
-  files = []
-  dirname = File.expand_path(File.dirname(__FILE__))
-  Find.find(dirname) do |path|
-    next unless File.directory? path
-    dotpop(Dir.entries(path)).each do |f|
-      if path == dirname
-        file = f
-      else
-        file = "#{path.gsub("#{dirname}/","")}/#{f}"
-      end
-      files.push file
-    end
-  end
-  files
-end
-
-# Settings
 git_dir = "/Users/from_kyushu/src/dotfiles/vim/"
 git = Git.open(git_dir)
 vim_path = "/Users/from_kyushu/.vim"
-entries = dotpop(Dir.entries(File.dirname(__FILE__)))
 script_name = "VimShell"
 
-desc "Install scripts"
 task :install do
-  entries.delete("Rakefile")
-  FileUtils.cp_r entries, vim_path
+  VIMSHELL_TARGETS.each do |f|
+    FileUtils.cp_r "#{pwd}/#{f}", "#{$HOME}/.vim/#{f}"
+  end
   git.add("#{git_dir}/.vim")
   git.commit("install #{script_name}")
 end
 
-desc "Uninstall scripts"
 task :uninstall do
-  (find_files).each do |e|
-    FileUtils.remove_entry_secure "#{vim_path}/#{e}" unless File.directory?("#{vim_path}/#{e}") or e.match(/Rakefile/)
+  VIMSHELL_TARGETS.each do |f|
+    FileUtils.rm_r "#{$HOME}/.vim/#{f}"
   end
   git.add("#{git_dir}/.vim")
   git.commit("uninstall #{script_name}")
 end
 
-desc "Update scripts"
 task :update do
-  entries.delete("Rakefile")
-  FileUtils.cp_r entries, vim_path
+  VIMSHELL_TARGETS.each do |f|
+    FileUtils.cp_r "#{pwd}/#{f}", "#{$HOME}/.vim/#{f}"
+  end
   git.add("#{git_dir}/.vim")
   git.commit("update #{script_name}")
+end
+
+task :upgrade do
+  warn "do `git pull`"
+end
+
+task :install_for_developpers do
+  VIMSHELL_TARGETS.each do |f|
+    sh "ln -s #{pwd}/#{f} ~/.vim/#{f}"
+  end
 end
