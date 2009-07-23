@@ -70,6 +70,7 @@ noremap <C-x>S :sp<CR>
 noremap <C-x>r :source $HOME/.vimrc<CR>
 noremap <Space>d :bdelete<CR>
 noremap <Space>D :bdelete!<CR>
+noremap <Space>t :set tags=$HOME/.tags/
 
 " rails.vim
 let g:rails_level=4
