@@ -83,10 +83,6 @@ noremap <Space>D :bdelete!<CR>
 noremap <Space>t :set tags=$HOME/.tags/
 noremap <C-x>u :undolist<CR>
 
-" rails.vim
-let g:rails_level=4
-let g:rails_default_file="app/controllers/application.rb"
-
 " zsh っぽい補完に
 set wildmode=longest,list
 
@@ -148,18 +144,6 @@ if !exists('did_encoding_settings') && has('iconv')
 
   let did_encoding_settings = 1
 endif
-
-"quickrun.vimの設定
-let g:mapleader=" "
-""0〜9に割り当てるコマンドを順番に記述する
-let g:quicklaunch_commands = [
-  \ '',
-  \ 'git status',
-  \ 'git log',
-  \ 'git add *',
-  \ 'git pull',
-  \ 'git svn dcommit'
- \ ]
 
 " TabpageCD
 " Reference: kana's vimrc
