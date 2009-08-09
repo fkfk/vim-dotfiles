@@ -1,14 +1,14 @@
 " Run a command quickly.
-" Version: 0.0.3
+" Version: 0.0.5
 " Author : thinca <http://d.hatena.ne.jp/thinca/>
 " License: Creative Commons Attribution 2.1 Japan License
 "          <http://creativecommons.org/licenses/by/2.1/jp/deed.en>
 scriptencoding utf-8
 
-if exists('g:loaded_QuickRun') || v:version < 702
+if exists('g:loaded_quickrun') || v:version < 702
   finish
 endif
-let g:loaded_QuickRun = 1
+let g:loaded_quickrun = 1
 
 let s:save_cpo = &cpo
 set cpo&vim
@@ -37,7 +37,7 @@ function! s:Runner.parse_args(args) " {{{2
   " => ['foo', 'bar buz', 'hoge "huga']
   let args = a:args
   let arglist = []
-  while args != ''
+  while args !~ '^\s*$'
     let args = substitute(args, '^\s*', '', '')
     if args[0] =~ '[''"]'
       let arg = matchstr(args, '\v([''"])\zs.{-}\ze\\@<!\1')
@@ -107,7 +107,7 @@ function! s:Runner.normalize() " {{{2
         let self.input = join(readfile(input), "\n")
       endif
     catch
-      throw 'QuickRun:Can not treat input:' . v:exception
+      throw 'quickrun:Can not treat input:' . v:exception
     endtry
   endif
 
@@ -116,21 +116,34 @@ function! s:Runner.normalize() " {{{2
   let self.end = get(self, 'end', line('$'))
   let self.output = get(self, 'output', '')
 
-  if exists('self.src')
-    if type(self.src) == type('')
-      let src = self.src
-      unlet self.src
-      let self.src = {'src' : split(src, "\n")}
-    end
-  else
+  if !exists('self.src')
     if self.mode == 'n' && filereadable(expand('%:p'))
           \ && self.start == 1 && self.end == line('$') && !&modified
       " Use file in direct.
       let self.src = bufnr('%')
     else
       " Executes on the temporary file.
-      let self.src = {'src' : self.get_region(),
-            \ 'enc' : &fenc, 'ff' : &ff, 'bin' : &bin}
+      let body = self.get_region()
+
+      if self.eval
+        let body = printf(self.eval_template, body)
+      endif
+
+      let conv = iconv(body, &enc, &fenc)
+      if conv != ''
+        let body = conv
+      endif
+
+      if &l:ff == 'mac'
+        let body = substitute(body, "\n", "\r", 'g')
+      elseif &l:ff == 'dos'
+        if !&l:bin
+          let body .= "\n"
+        endif
+        let body = substitute(body, "\n", "\r\n", 'g')
+      endif
+
+      let self.src = body
     endif
   end
 endfunction
@@ -152,6 +165,7 @@ function! s:Runner.run() " {{{2
   finally
     if has_key(self, '_temp') && filereadable(self._temp)
       call delete(self._temp)
+      unlet self._temp
     endif
   endtry
   return result
@@ -181,11 +195,9 @@ function! s:Runner.execute(cmd) " {{{2
       call writefile(split(in, "\n"), inputfile)
       let cmd .= ' <' . shellescape(inputfile)
     endif
-    if s:is_win()
-      execute 'silent !"' . cmd . '" & pause'
-    else
-      execute '!' . cmd
-    endif
+
+    execute printf(self.shellcmd, cmd)
+
     if exists('inputfile') && filereadable(inputfile)
       call delete(inputfile)
     endif
@@ -241,8 +253,8 @@ endfunction
 " ----------------------------------------------------------------------------
 " Detect the shebang, and return the shebang command if it exists.
 function! s:Runner.detect_shebang()
-  if type(self.src) == type({})
-    let line = self.src.src[0]
+  if type(self.src) == type('')
+    let line = matchstr(self.src, '^.\{-}\ze\(\n\|$\)')
   elseif type(self.src) == type(0)
     let line = getbufline(self.src, 1)[0]
   endif
@@ -258,10 +270,10 @@ endfunction
 function! s:Runner.get_source_file() " {{{2
   let fname = expand('%')
   if exists('self.src')
-    if type(self.src) == type({})
+    if type(self.src) == type('')
       let fname = self.expand(self.tempfile)
       let self._temp = fname
-      call self.write(fname, self.src)
+      call writefile(split(self.src, "\n", 'b'), fname)
     elseif type(self.src) == type(0)
       let fname = expand('#'.self.src.':p')
     endif
@@ -270,25 +282,26 @@ function! s:Runner.get_source_file() " {{{2
 endfunction
 
 " ----------------------------------------------------------------------------
-" Get the text of specified region by list.
+" Get the text of specified region.
 function! s:Runner.get_region() " {{{2
-  " Normal mode
   if self.mode == 'n'
-    return getline(self.start, self.end)
-  endif
+    " Normal mode
+    return join(getline(self.start, self.end), "\n")
 
-  if self.mode == 'o'
+  elseif self.mode == 'o'
     " Operation mode
     let vm = {
-        \ 'line' : 'V',
-        \ 'char' : 'v',
-        \ 'block' : "\<C-v>" }[self.visualmode]
+        \ 'line': 'V',
+        \ 'char': 'v',
+        \ 'block': "\<C-v>" }[self.visualmode]
     let [sm, em] = ['[', ']']
     let save_sel = &selection
     set selection=inclusive
+
   elseif self.mode == 'v'
     " Visual mode
     let [vm, sm, em] = [visualmode(), '<', '>']
+
   else
     return ''
   end
@@ -311,42 +324,7 @@ function! s:Runner.get_region() " {{{2
   if self.mode == 'o'
     let &selection = save_sel
   endif
-  return split(selected, "\n")
-endfunction
-
-" ----------------------------------------------------------------------------
-" Output the dictionary of the following forms in the file.
-" src: text with string or texts with list.
-" bin: binary flag.
-" ff: &fileformat.
-" enc: file encoding.
-function! s:Runner.write(file, src) " {{{2
-  let body = get(a:src, 'src', '')
-  let bin = get(a:src, 'bin', &bin)
-  let ff = get(a:src, 'ff', &ff)
-  let enc = get(a:src, 'enc', &fenc)
-
-  if type(body) == type([])
-    let tmp = body
-    unlet body
-    let body = join(tmp, "\n")
-  endif
-
-  let conv = iconv(body, &enc, enc)
-  if conv != ''
-    let body = conv
-  endif
-
-  if ff == 'mac'
-    let body = substitute(body, "\n", "\r", 'g')
-  elseif ff == 'dos'
-    if !bin
-      let body .= "\n"
-    endif
-    let body = substitute(body, "\n", "\r\n", 'g')
-  endif
-
-  return writefile(split(body, "\n", 1), a:file, bin ? 'b' : '')
+  return selected
 endfunction
 
 " ----------------------------------------------------------------------------
@@ -407,7 +385,7 @@ function! s:Runner.open_result_window() " {{{2
   endif
   if !bufexists(s:bufnr)
     execute self.expand(self.split) 'split'
-    edit `='[QuickRun Output]'`
+    edit `='[quickrun Output]'`
     let s:bufnr = bufnr('%')
     setlocal bufhidden=hide buftype=nofile noswapfile nobuflisted
     setlocal filetype=quickrun
@@ -425,7 +403,7 @@ endfunction
 " MISC Functions. {{{1
 " ----------------------------------------------------------------------------
 " function for main command.
-function! s:QuickRun(args) " {{{2
+function! s:quickrun(args) " {{{2
   try
     let runner = s:Runner.new(a:args)
     " let g:runner = runner " for debug
@@ -467,7 +445,12 @@ function! s:QuickRun(args) " {{{2
       execute 'let' out '= result'
     endif
   else
-    " TODO: Output to file.
+    let size = strlen(result)
+    if append && filereadable(out)
+      let result = join(readfile(out, 'b'), "\n") . result
+    endif
+    call writefile(split(result, "\n"), out, 'b')
+    echo printf('Output to %s: %d bytes', out, size)
   endif
 endfunction
 
@@ -480,7 +463,7 @@ function! QuickRun(mode) " {{{2
   execute 'QuickRun -mode o -visualmode' a:mode
 endfunction
 
-function! s:QuickRun_complete(lead, cmd, pos) " {{{2
+function! s:quickrun_complete(lead, cmd, pos) " {{{2
   let line = split(a:cmd[:a:pos], '', 1)
   let head = line[-1]
   if 2 <= len(line) && line[-2] =~ '^-'
@@ -493,8 +476,9 @@ function! s:QuickRun_complete(lead, cmd, pos) " {{{2
     end
   elseif head =~ '^-'
     let options = map(['type', 'src', 'input', 'output', 'append',
-      \ 'command', 'exec', 'args', 'tempfile', 'shebang',
-      \ 'output_encode'], '"-".v:val')
+      \ 'command', 'exec', 'args', 'tempfile', 'shebang', 'eval',
+      \ 'mode', 'split', 'output_encode', 'shellcmd', 'eval_template'],
+      \ '"-".v:val')
     return filter(options, 'v:val =~ "^".head')
   end
   return filter(keys(g:QuickRunConfig), 'v:val != "*" && v:val =~ "^".a:lead')
@@ -508,92 +492,98 @@ function! s:init()
   endif
 
   let defaultConfig = {
-        \ '*' : {
-        \   'shebang' : 1,
-        \   'output_encode' : '&fenc:&enc',
+        \ '*': {
+        \   'shebang': 1,
+        \   'output_encode': '&fenc:&enc',
         \   'tempfile'  : '{tempname()}',
-        \   'exec' : '%c %s %a',
-        \   'split' : '{winwidth(0) * 2 < winheight(0) * 5 ? "" : "vertical"}',
+        \   'exec': '%c %s %a',
+        \   'split': '{winwidth(0) * 2 < winheight(0) * 5 ? "" : "vertical"}',
+        \   'eval': 0,
+        \   'eval_template': '%s',
+        \   'shellcmd': s:is_win() ? 'silent !"%s" & pause' : '!%s',
         \ },
-        \ 'awk' : {
-        \   'exec' : '%c -f %s %a',
+        \ 'awk': {
+        \   'exec': '%c -f %s %a',
         \ },
-        \ 'bash' : {},
-        \ 'c' :
+        \ 'bash': {},
+        \ 'c':
         \   s:is_win() && executable('cl') ? {
-        \     'command' : 'cl',
-        \     'exec' : ['%c %s /nologo /Fo%s:p:r.obj /Fe%s:p:r.exe > nul',
+        \     'command': 'cl',
+        \     'exec': ['%c %s /nologo /Fo%s:p:r.obj /Fe%s:p:r.exe > nul',
         \               '%s:p:r.exe %a', 'del %s:p:r.exe %s:p:r.obj'],
-        \     'tempfile' : '{tempname()}.c',
+        \     'tempfile': '{tempname()}.c',
         \   } :
         \   executable('gcc') ? {
-        \     'command' : 'gcc',
-        \     'exec' : ['%c %s -o %s:p:r', '%s:p:r %a', 'rm -f %s:p:r'],
-        \     'tempfile' : '{tempname()}.c',
+        \     'command': 'gcc',
+        \     'exec': ['%c %s -o %s:p:r', '%s:p:r %a', 'rm -f %s:p:r'],
+        \     'tempfile': '{tempname()}.c',
         \   } : {},
-        \ 'cpp' :
+        \ 'cpp':
         \   s:is_win() && executable('cl') ? {
-        \     'command' : 'cl',
-        \     'exec' : ['%c %s /nologo /Fo%s:p:r.obj /Fe%s:p:r.exe > nul',
+        \     'command': 'cl',
+        \     'exec': ['%c %s /nologo /Fo%s:p:r.obj /Fe%s:p:r.exe > nul',
         \               '%s:p:r.exe %a', 'del %s:p:r.exe %s:p:r.obj'],
-        \     'tempfile' : '{tempname()}.cpp',
+        \     'tempfile': '{tempname()}.cpp',
         \   } :
         \   executable('g++') ? {
-        \     'command' : 'g++',
-        \     'exec' : ['%c %s -o %s:p:r', '%s:p:r %a', 'rm -f %s:p:r'],
-        \     'tempfile' : '{tempname()}.cpp',
+        \     'command': 'g++',
+        \     'exec': ['%c %s -o %s:p:r', '%s:p:r %a', 'rm -f %s:p:r'],
+        \     'tempfile': '{tempname()}.cpp',
         \   } : {},
-        \ 'eruby' : {
-        \   'command' : 'erb',
-        \   'exec' : '%c -T - %s %a',
+        \ 'eruby': {
+        \   'command': 'erb',
+        \   'exec': '%c -T - %s %a',
         \ },
-        \ 'groovy' : {
-        \   'exec' : '%c -c {&fenc==""?&enc:&fenc} %s %a',
+        \ 'groovy': {
+        \   'exec': '%c -c {&fenc==""?&enc:&fenc} %s %a',
         \ },
-        \ 'haskell' : {
-        \   'command' : 'runghc',
-        \   'tempfile' : '{tempname()}.hs',
+        \ 'haskell': {
+        \   'command': 'runghc',
+        \   'tempfile': '{tempname()}.hs',
+        \   'eval_template': 'main = print $ %s',
         \ },
-        \ 'java' : {
-        \   'exec' : ['javac %s', '%c %s:t:r', ':call delete("%S:t:r.class")'],
+        \ 'java': {
+        \   'exec': ['javac %s', '%c %s:t:r', ':call delete("%S:t:r.class")'],
         \ },
-        \ 'javascript' : {
-        \   'command' : executable('js') ? 'js' :
-        \               executable('jrunscript') ? 'jrunscript' :
-        \               executable('cscript') ? 'cscript' : '',
-        \   'tempfile' : '{tempname()}.js',
+        \ 'javascript': {
+        \   'command': executable('js') ? 'js':
+        \              executable('jrunscript') ? 'jrunscript':
+        \              executable('cscript') ? 'cscript': '',
+        \   'tempfile': '{tempname()}.js',
         \ },
-        \ 'lua' : {},
-        \ 'dosbatch' : {
-        \   'command' : '',
-        \   'exec' : 'call %s %a',
-        \   'tempfile' : '{tempname()}.bat',
+        \ 'lua': {},
+        \ 'dosbatch': {
+        \   'command': '',
+        \   'exec': 'call %s %a',
+        \   'tempfile': '{tempname()}.bat',
         \ },
-        \ 'io' : {},
-        \ 'ocaml' : {},
-        \ 'perl' : {
-        \   'eval' : 'print eval{use Data::Dumper;$Data::Dumper::Terse = 1;$Data::Dumper::Indent = 0;Dumper %s}'
+        \ 'io': {},
+        \ 'ocaml': {},
+        \ 'perl': {
+        \   'eval_template':
+        \     'print eval{use Data::Dumper;$Data::Dumper::Terse = 1;$Data::Dumper::Indent = 0;Dumper %s}'
         \ },
-        \ 'python' : {'eval' : 'print(%s)'},
-        \ 'php' : {},
-        \ 'r' : {
-        \   'command' : 'R',
-        \   'exec' : '%c --no-save --slave %a < %s',
+        \ 'python': {'eval_template': 'print(%s)'},
+        \ 'php': {},
+        \ 'r': {
+        \   'command': 'R',
+        \   'exec': '%c --no-save --slave %a < %s',
         \ },
-        \ 'ruby' : {'eval' : " p proc {\n%s\n}.call"},
-        \ 'scala' : {},
-        \ 'scheme' : {
-        \   'command' : 'gosh',
-        \   'exec' : '%c %s:p %a',
-        \   'eval' : '(display (begin %s))',
+        \ 'ruby': {'eval_template': " p proc {\n%s\n}.call"},
+        \ 'scala': {},
+        \ 'scheme': {
+        \   'command': 'gosh',
+        \   'exec': '%c %s:p %a',
+        \   'eval_template': '(display (begin %s))',
         \ },
-        \ 'sed' : {},
-        \ 'sh' : {},
-        \ 'vim' : {
-        \   'command' : ':source',
-        \   'exec' : '%c %s',
+        \ 'sed': {},
+        \ 'sh': {},
+        \ 'vim': {
+        \   'command': ':source',
+        \   'exec': '%c %s',
+        \   'eval_template': "echo %s",
         \ },
-        \ 'zsh' : {},
+        \ 'zsh': {},
         \}
 
   if type(g:QuickRunConfig) == type({})
@@ -611,10 +601,10 @@ endfunction
 
 call s:init()
 
-command! -nargs=* -range=% -complete=customlist,s:QuickRun_complete QuickRun
-\ call s:QuickRun('-start <line1> -end <line2> ' . <q-args>)
+command! -nargs=* -range=% -complete=customlist,s:quickrun_complete QuickRun
+\ call s:quickrun('-start <line1> -end <line2> ' . <q-args>)
 
-nnoremap <silent> <Plug>(QuickRun-op) :<C-u>set operatorfunc=QuickRun<CR>g@
+nnoremap <silent> <Plug>(quickrun-op) :<C-u>set operatorfunc=QuickRun<CR>g@
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
