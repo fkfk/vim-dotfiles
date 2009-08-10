@@ -7,6 +7,7 @@ set expandtab
 set noautoindent
 set nowritebackup
 set tags=$HOME/.tags
+set kp=:help
 
 "表示回り
 set enc=utf-8
