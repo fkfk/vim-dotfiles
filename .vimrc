@@ -52,6 +52,9 @@ let g:NeoComplCache_TryKeywordCompletion = 1
 "VimShellの設定
 let g:VimShell_EnableInteractive = 1
 
+"ref.vimの設定
+let g:ref_refe_cmd = "refe187"
+
 "tabpage周り
 noremap <C-x>tn :tabnew<CR>
 noremap <C-x>tq :tabclose<CR>
