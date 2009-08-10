@@ -41,7 +41,7 @@ let g:rubycomplete_rails = 1
 "autocomplpopを無効化
 let g:AutoComplPop_NotEnableAtStartup = 1
 
-"nocomplcacheの設定
+"neocomplcacheの設定
 let g:NeoComplCache_EnableAtStartup = 1
 let g:NeoComplCache_KeywordCompletionStartLength = 1
 let g:NeoComplCache_MinKeywordLength = 3
