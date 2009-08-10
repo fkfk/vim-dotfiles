@@ -49,6 +49,7 @@ let g:NeoComplCache_MinSyntaxLength = 3
 let g:NeoComplCache_SmartCase = 1
 let g:NeoComplCache_TagsAutoUpdate = 1
 let g:NeoComplCache_TryKeywordCompletion = 1
+let g:NeoComplCache_FilenameCompletionSkipItems = 20
 
 "VimShellの設定
 let g:VimShell_EnableInteractive = 1
