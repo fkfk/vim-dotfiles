@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vim.vim
+" FILE: sexe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 30 Aug 2009
+" Last Modified: 03 Sep 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,26 +23,14 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.5, for Vim 7.0
+" Version: 1.1, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
-"   1.5:
-"     - Catch error.
+"   1.1: 
+"     - Shell escape.
+"     - Improved in Windows.
 "
-"   1.4:
-"     - Extend current directory.
-"
-"   1.3:
-"     - Open directory.
-"
-"   1.2:
-"     - Ignore directory.
-"
-"   1.1:
-"     - Split nicely.
-"
-"   1.0:
-"     - Initial version.
+"   1.0: Initial version.
 ""}}}
 "-----------------------------------------------------------------------------
 " TODO: "{{{
@@ -53,45 +41,48 @@
 ""}}}
 "=============================================================================
 
-function! vimshell#internal#vim#execute(program, args, fd, other_info)
-    " Edit file.
+function! vimshell#internal#sexe#execute(program, args, fd, other_info)"{{{
+    " Execute shell command.
+    let l:iswin = has('win32') || has('win64')
+    let l:cmdline = ''
+    for arg in a:args
+        if l:iswin
+            let l:arg = substitute(arg, '"', '\\"', 'g')
+            let l:arg = substitute(arg, '[<>|^]', '^\0', 'g')
+            let l:cmdline .= '"' . arg . '" '
+        else
+            let l:cmdline .= shellescape(arg) . ' '
+        endif
+    endfor
 
-    " Filename escape
-    let l:arguments = join(a:args, ' ')
-
-    call vimshell#print_prompt()
-
-    " Save current directiory.
-    let l:cwd = getcwd()
-
-    " Split nicely.
-    if winheight(0) > &winheight
-        let l:is_split = 1
-    else
-        let l:is_split = 0
+    if l:iswin
+        let l:cmdline = '"' . l:cmdline . '"'
     endif
 
-    if empty(l:arguments)
-        if l:is_split
-            new
-        else
-            vnew
-        endif
-    else
-        if l:is_split
-            split
-        else
-            vsplit
-        endif
+    " Set redirection.
+    if a:fd.stdin == ''
+        let l:stdin = ''
+    elseif a:fd.stdin == '/dev/null'
+        let l:null = tempname()
+        call writefile([], l:null)
 
-        try
-            edit `=l:arguments`
-        catch /^.*/
-            echohl Error | echomsg v:errmsg | echohl None
-        endtry
+        let l:stdin = '<' . l:null
+    else
+        let l:stdin = '<' . a:fd.stdin
     endif
 
-    lcd `=l:cwd`
+    echo 'Running command.'
+    let l:result = system(printf('%s %s', l:cmdline, l:stdin))
+    call vimshell#print(a:fd, l:result)
+    redraw
+    echo ''
 
-    return 1
-endfunction
+    if a:fd.stdin == '/dev/null'
+        call delete(l:null)
+    endif
+
+    let b:vimshell_system_variables['status'] = v:shell_error
+
+    return 0
+endfunction"}}}
+

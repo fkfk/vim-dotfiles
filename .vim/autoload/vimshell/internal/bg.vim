@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: bg.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 08 Aug 2009
+" Last Modified: 06 Sep 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,12 +23,16 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.14, for Vim 7.0
+" Version: 1.15, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.15:
+"     - Improved kill processes.
+"
 "   1.14:
 "     - Improved error message.
 "     - Set syntax.
+"     - Improved execute message.
 "
 "   1.13:
 "     - Extend current directory.
@@ -178,6 +182,7 @@ function! s:init_bg(fd, args, is_interactive)"{{{
     lcd `=l:cwd`
     setlocal buftype=nofile
     setlocal noswapfile
+    setlocal nowrap
     execute 'setfiletype ' . a:args[0]
 
     " Set syntax.
@@ -201,21 +206,28 @@ function! s:init_bg(fd, args, is_interactive)"{{{
         endif
     endif
 
-    autocmd vimshell_bg BufDelete <buffer>       call s:on_exit()
-    autocmd vimshell_bg CursorHold <buffer>  call interactive#execute_pipe_out()
-    nnoremap <buffer><silent><C-c>       :<C-u>call <sid>on_exit()<CR>
-    inoremap <buffer><silent><C-c>       <ESC>:<C-u>call <sid>on_exit()<CR>
-    nnoremap <buffer><silent><CR>       :<C-u>call interactive#execute_pipe_out()<CR>
-    call interactive#execute_pipe_out()
+    autocmd vimshell_bg BufUnload <buffer>       call <SID>on_exit()
+    autocmd vimshell_bg CursorHold <buffer>  call <SID>on_execute()
+    nnoremap <buffer><silent><C-c>       :<C-u>call interactive#interrupt()<CR>
+    inoremap <buffer><silent><C-c>       <ESC>:<C-u>call <SID>on_exit()<CR>
+    nnoremap <buffer><silent><CR>       :<C-u>call <SID>on_execute()<CR>
+    call s:on_execute()
 
     return 1
 endfunction"}}}
 
+function! s:on_execute()
+    echo 'Running command.'
+    call interactive#execute_pipe_out()
+    redraw
+    echo ''
+endfunction
+
 function! s:on_exit()
     augroup vimshell_bg
         autocmd! CursorHold <buffer>
-        autocmd! BufDelete <buffer>
+        autocmd! BufUnload <buffer>
     augroup END
 
-    call interactive#force_exit()
+    call interactive#hang_up()
 endfunction

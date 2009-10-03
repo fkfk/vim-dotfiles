@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vim.vim
-" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 30 Aug 2009
+" FILE: vexe.vim
+" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
+" Last Modified: 13 Sep 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,24 +23,9 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.5, for Vim 7.0
+" Version: 1.0, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
-"   1.5:
-"     - Catch error.
-"
-"   1.4:
-"     - Extend current directory.
-"
-"   1.3:
-"     - Open directory.
-"
-"   1.2:
-"     - Ignore directory.
-"
-"   1.1:
-"     - Split nicely.
-"
 "   1.0:
 "     - Initial version.
 ""}}}
@@ -53,45 +38,15 @@
 ""}}}
 "=============================================================================
 
-function! vimshell#internal#vim#execute(program, args, fd, other_info)
-    " Edit file.
+function! vimshell#special#vexe#execute(program, args, fd, other_info)
+    " Execute vim command.
 
-    " Filename escape
-    let l:arguments = join(a:args, ' ')
+    let l:command = join(a:args)
+    redir => l:output
+    execute l:command
+    redir END
 
-    call vimshell#print_prompt()
-
-    " Save current directiory.
-    let l:cwd = getcwd()
-
-    " Split nicely.
-    if winheight(0) > &winheight
-        let l:is_split = 1
-    else
-        let l:is_split = 0
-    endif
-
-    if empty(l:arguments)
-        if l:is_split
-            new
-        else
-            vnew
-        endif
-    else
-        if l:is_split
-            split
-        else
-            vsplit
-        endif
-
-        try
-            edit `=l:arguments`
-        catch /^.*/
-            echohl Error | echomsg v:errmsg | echohl None
-        endtry
-    endif
-
-    lcd `=l:cwd`
-
-    return 1
+    for line in split(l:output, '\n')
+        call vimshell#print_line(a:fd, line)
+    endfor
 endfunction

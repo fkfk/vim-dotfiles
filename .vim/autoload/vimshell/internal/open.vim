@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vim.vim
+" FILE: open.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 30 Aug 2009
+" Last Modified: 13 Sep 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,26 +23,10 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.5, for Vim 7.0
+" Version: 1.0, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
-"   1.5:
-"     - Catch error.
-"
-"   1.4:
-"     - Extend current directory.
-"
-"   1.3:
-"     - Open directory.
-"
-"   1.2:
-"     - Ignore directory.
-"
-"   1.1:
-"     - Split nicely.
-"
-"   1.0:
-"     - Initial version.
+"   1.0: Initial version.
 ""}}}
 "-----------------------------------------------------------------------------
 " TODO: "{{{
@@ -53,45 +37,27 @@
 ""}}}
 "=============================================================================
 
-function! vimshell#internal#vim#execute(program, args, fd, other_info)
-    " Edit file.
-
-    " Filename escape
-    let l:arguments = join(a:args, ' ')
-
-    call vimshell#print_prompt()
-
-    " Save current directiory.
-    let l:cwd = getcwd()
-
-    " Split nicely.
-    if winheight(0) > &winheight
-        let l:is_split = 1
+function! vimshell#internal#open#execute(program, args, fd, other_info)"{{{
+    " Open file.
+    if g:VimShell_EnableInteractive
+        let l:command = 'exe'
     else
-        let l:is_split = 0
+        let l:command = 'sexe'
     endif
 
-    if empty(l:arguments)
-        if l:is_split
-            new
-        else
-            vnew
-        endif
+    if has('win32') || has('win64')
+        let l:command = 'gexe'
+        let l:args = a:args
+    elseif has('mac')
+        let l:args = ['open'] + a:args
+    elseif executable(vimshell#getfilename('gnome-open'))
+        let l:args = ['gnome-open'] + a:args
+    elseif executable(vimshell#getfilename('kfmclient'))
+        let l:args = ['kfmclient', 'exec'] + a:args
     else
-        if l:is_split
-            split
-        else
-            vsplit
-        endif
-
-        try
-            edit `=l:arguments`
-        catch /^.*/
-            echohl Error | echomsg v:errmsg | echohl None
-        endtry
+        throw 'open: Not supported.'
     endif
 
-    lcd `=l:cwd`
+    return vimshell#execute_internal_command(l:command, l:args, a:fd, a:other_info)
+endfunction"}}}
 
-    return 1
-endfunction

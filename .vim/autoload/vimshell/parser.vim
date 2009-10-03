@@ -1,8 +1,7 @@
 "=============================================================================
 " FILE: parser.vim
-" AUTHOR: Janakiraman .S <prince@india.ti.com>(Original)
-"         Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 13 Aug 2009
+" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
+" Last Modified: 12 Sep 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -176,7 +175,12 @@ function! vimshell#parser#split_args(script)"{{{
             if l:end == -1
                 throw 'Quote error'
             endif
+
             let l:arg .= a:script[l:i+1 : l:end-2]
+            if l:arg == ''
+                call add(l:args, l:arg)
+            endif
+
             let l:i = l:end
         elseif a:script[l:i] == '"'
             " Double quote.
@@ -184,7 +188,12 @@ function! vimshell#parser#split_args(script)"{{{
             if l:end == -1
                 throw 'Quote error'
             endif
+
             let l:arg .= substitute(a:script[l:i+1 : l:end-2], '\\"', '"', 'g')
+            if l:arg == ''
+                call add(l:args, l:arg)
+            endif
+
             let l:i = l:end
         elseif a:script[l:i] == '`'
             " Back quote.
@@ -197,6 +206,10 @@ function! vimshell#parser#split_args(script)"{{{
                 let l:end = matchend(a:script, '^`[^`]*`', l:i)
                 let l:arg .= substitute(system(l:quote), '\n', ' ', 'g')
             endif
+            if l:arg == ''
+                call add(l:args, l:arg)
+            endif
+
             let l:i = l:end
         elseif a:script[i] == '\'
             " Escape.
@@ -280,11 +293,11 @@ function! s:parse_tilde(script)"{{{
 
     let l:i = 0
     let l:max = len(a:script)
-    while l:i < l:max - 1
+    while l:i < l:max
         if a:script[i] == ' ' && a:script[i+1] == '~'
             " Tilde.
             " Expand home directory.
-            let l:script .= escape($HOME, '\ ')
+            let l:script .= ' ' . escape($HOME, '\ ')
             let l:i += 2
         else
             let [l:script, l:i] = s:skip_else(l:script, a:script, l:i)
@@ -302,14 +315,18 @@ function! s:parse_equal(script)"{{{
         if a:script[i] == ' ' && a:script[i+1] == '='
             " Expand filename.
             let l:prog = matchstr(a:script, '^=\zs[^[:blank:]]*', l:i+1)
-            echomsg l:prog
-            try
-                let l:script .= s:getfilename(l:prog)
-            catch 'list index out of range'
-                throw printf('File: "%s" is not found.', l:prog)
-            endtry
+            if l:prog == ''
+                let [l:script, l:i] = s:skip_else(l:script, a:script, l:i)
+            else
+                let l:filename = vimshell#getfilename(l:prog)
+                if l:filename == ''
+                    throw printf('File: "%s" is not found.', l:prog)
+                else
+                    let l:script .= l:filename
+                endif
 
-            let l:i += matchend(a:script, '^=[^[:blank:]]*', l:i+1)
+                let l:i += matchend(a:script, '^=[^[:blank:]]*', l:i+1)
+            endif
         else
             let [l:script, l:i] = s:skip_else(l:script, a:script, l:i)
         endif
@@ -351,7 +368,7 @@ function! s:parse_wildcard(script)"{{{
             let l:head = matchstr(a:script[: l:i-1], '[^[:blank:]]*$')
             let l:wildcard = l:head . matchstr(a:script, '^[^[:blank:]]*', l:i)
             " Trunk l:script.
-            let l:script = l:script[: -len(l:head)+1]
+            let l:script = l:script[: -len(l:wildcard)+1]
 
             " Exclude wildcard.
             let l:exclude = matchstr(l:wildcard, '\~.*$')
@@ -488,24 +505,5 @@ function! s:skip_else(args, script, i)"{{{
 
     return [l:script, l:i]
 endfunction"}}}
-
-" Helper.
-function! s:getfilename(program)
-    " Command search.
-    if has('win32') || has('win64')
-        let l:path = substitute($PATH, '\\\?;', ',', 'g')
-        let l:files = ''
-        for ext in ['', '.bat', '.cmd', '.exe']
-            let l:files = globpath(l:path, a:program.ext)
-            if !empty(l:files)
-                break
-            endif
-        endfor
-        return split(l:files, '\n')[0]
-    else
-        let l:path = substitute($PATH, '/\?:', ',', 'g')
-        return split(globpath(l:path, a:program), '\n')[0]
-    endif
-endfunction
 
 " vim: foldmethod=marker
