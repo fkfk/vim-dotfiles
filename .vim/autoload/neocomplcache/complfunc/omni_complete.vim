@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: omni_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 27 Sep 2009
+" Last Modified: 22 Oct 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,9 +23,16 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.00, for Vim 7.0
+" Version: 1.02, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.02:
+"    - Deleted C++ support.
+"    - Fixed error when omnifunc is empty.
+"
+"   1.01:
+"    - Added ActionScript support.
+"
 "   1.00:
 "    - Initial version.
 " }}}
@@ -52,8 +59,8 @@ function! neocomplcache#complfunc#omni_complete#initialize()"{{{
     call s:set_omni_pattern('html,xhtml,xml', '\v\</?|\<[^>]+\s')
     call s:set_omni_pattern('css', '\v^\s+\w+|\w+[):;]?\s+|[@!]')
     call s:set_omni_pattern('javascript', '\v[^. \t]\.')
+    call s:set_omni_pattern('actionscript', '\v[^. \t][.:]')
     call s:set_omni_pattern('c', '\v[^. \t]%(\.|-\>)')
-    call s:set_omni_pattern('cpp', '\v[^. \t]%(\.|-\>|::)')
     call s:set_omni_pattern('php', '\v[^. \t]%(-\>|::)')
     call s:set_omni_pattern('java', '\v[^. \t]\.')
     call s:set_omni_pattern('vim', '\v%(^\s*:).*')
@@ -139,7 +146,7 @@ function! neocomplcache#complfunc#omni_complete#get_complete_words(cur_keyword_p
 endfunction"}}}
 
 function! neocomplcache#complfunc#omni_complete#manual_complete()"{{{
-    if !exists(':NeoComplCacheDisable')
+    if !exists(':NeoComplCacheDisable') || &l:omnifunc == ''
         return ''
     endif
 
@@ -164,13 +171,9 @@ function! neocomplcache#complfunc#omni_complete#manual_complete()"{{{
     " Set function.
     let &l:completefunc = 'neocomplcache#manual_complete'
 
-    if &l:omnifunc == ''
-        let l:complete_words = []
-    else
-        let l:complete_words = neocomplcache#get_quickmatch_list(neocomplcache#complfunc#omni_complete#get_complete_words(l:cur_keyword_pos, l:cur_keyword_str),
+    let l:complete_words = neocomplcache#get_quickmatch_list(neocomplcache#complfunc#omni_complete#get_complete_words(l:cur_keyword_pos, l:cur_keyword_str),
                 \ l:cur_keyword_pos, l:cur_keyword_str, 'omni_complete')
-        let l:complete_words = neocomplcache#remove_next_keyword(l:complete_words)
-    endif
+    let l:complete_words = neocomplcache#remove_next_keyword(l:complete_words)
 
     " Restore option.
     let &ignorecase = l:ignorecase_save

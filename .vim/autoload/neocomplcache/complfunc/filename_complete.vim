@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: filename_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 04 Oct 2009
+" Last Modified: 28 Oct 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,9 +23,12 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.01, for Vim 7.0
+" Version: 1.02, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.02:
+"    - Add '*' to a delimiter.
+"
 "   1.01:
 "    - Improved completion.
 "    - Deleted cdpath completion.
@@ -74,8 +77,7 @@ function! neocomplcache#complfunc#filename_complete#get_complete_words(cur_keywo
     let l:cur_keyword_str = escape(a:cur_keyword_str, '*?[]')
 
     let l:PATH_SEPARATOR = (has('win32') || has('win64')) ? '/\\' : '/'
-    let l:cur_keyword_str = substitute(substitute(l:cur_keyword_str, '\\ ', ' ', 'g'),
-                \printf('\w\{1,2}\ze[%s]', l:PATH_SEPARATOR), '\0*', 'g')
+    let l:cur_keyword_str = substitute(l:cur_keyword_str, '\\ ', ' ', 'g')
     " Substitute ... -> ../..
     while l:cur_keyword_str =~ '\.\.\.'
         let l:cur_keyword_str = substitute(l:cur_keyword_str, '\.\.\zs\.', '/\.\.', 'g')
@@ -89,6 +91,11 @@ function! neocomplcache#complfunc#filename_complete#get_complete_words(cur_keywo
 
     try
         let l:files = split(substitute(glob(l:cur_keyword_str . '*'), '\\', '/', 'g'), '\n')
+        if empty(l:files)
+            " Add '*' to a delimiter.
+            let l:cur_keyword_str = substitute(l:cur_keyword_str, printf('\w\+\ze[%s._-]', l:PATH_SEPARATOR), '\0*', 'g')
+            let l:files = split(substitute(glob(l:cur_keyword_str . '*'), '\\', '/', 'g'), '\n')
+        endif
     catch /.*/
         return []
     endtry
@@ -177,9 +184,8 @@ function! neocomplcache#complfunc#filename_complete#manual_complete()"{{{
         let &ignorecase = g:NeoComplCache_IgnoreCase
     endif
 
-    let l:complete_words = neocomplcache#get_quickmatch_list(neocomplcache#complfunc#filename_complete#get_complete_words(l:cur_keyword_pos, l:cur_keyword_str),
-            \ l:cur_keyword_pos, l:cur_keyword_str, 'filename_complete')
-    let l:complete_words = neocomplcache#remove_next_keyword(l:complete_words)
+    let l:complete_words = neocomplcache#remove_next_keyword(
+                \neocomplcache#complfunc#filename_complete#get_complete_words(l:cur_keyword_pos, l:cur_keyword_str))
 
     " Restore option.
     let &ignorecase = l:ignorecase_save

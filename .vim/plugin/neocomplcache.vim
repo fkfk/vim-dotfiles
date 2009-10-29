@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: neocomplcache.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 30 Sep 2009
+" Last Modified: 28 Oct 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,11 +23,14 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 3.01, for Vim 7.0
+" Version: 3.08, for Vim 7.0
 "=============================================================================
 
-if exists('g:loaded_neocomplcache') || v:version < 700
-  finish
+if v:version < 700
+    echoerr 'neocomplcache does not work this version of Vim (' . v:version . ').'
+    finish
+elseif exists('g:loaded_neocomplcache')
+    finish
 endif
 
 let s:save_cpo = &cpo
@@ -46,8 +49,8 @@ endif
 if !exists('g:NeoComplCache_MaxFilenameWidth')
     let g:NeoComplCache_MaxFilenameWidth = 15
 endif
-if !exists('g:NeoComplCache_PartialMatch')
-    let g:NeoComplCache_PartialMatch = 1
+if !exists('g:NeoComplCache_EnablePartialMatch')
+    let g:NeoComplCache_EnablePartialMatch = 1
 endif
 if !exists('g:NeoComplCache_KeywordCompletionStartLength')
     let g:NeoComplCache_KeywordCompletionStartLength = 2
@@ -79,14 +82,8 @@ endif
 if !exists('g:NeoComplCache_EnableWildCard')
     let g:NeoComplCache_EnableWildCard = 1
 endif
-if !exists('g:NeoComplCache_EnableQuickMatch')
-    let g:NeoComplCache_EnableQuickMatch = 1
-endif
 if !exists('g:NeoComplCache_CalcRankRandomize')
     let g:NeoComplCache_CalcRankRandomize = has('reltime')
-endif
-if !exists('g:NeoComplCache_QuickMatchMaxLists')
-    let g:NeoComplCache_QuickMatchMaxLists = 100
 endif
 if !exists('g:NeoComplCache_EnableSkipCompletion')
     let g:NeoComplCache_EnableSkipCompletion = has('reltime')
@@ -94,14 +91,8 @@ endif
 if !exists('g:NeoComplCache_SkipCompletionTime')
     let g:NeoComplCache_SkipCompletionTime = '0.2'
 endif
-if !exists('g:NeoComplCache_SkipInputTime')
-    let g:NeoComplCache_SkipInputTime = '0.0'
-endif
 if !exists('g:NeoComplCache_PreviousKeywordCompletion')
     let g:NeoComplCache_PreviousKeywordCompletion = 1
-endif
-if !exists('g:NeoComplCache_TagsAutoUpdate')
-    let g:NeoComplCache_TagsAutoUpdate = 0
 endif
 if !exists('g:NeoComplCache_TryFilenameCompletion')
     let g:NeoComplCache_TryFilenameCompletion = 1
@@ -131,11 +122,11 @@ if !exists('g:NeoComplCache_CachingPercentInStatusline')
     let g:NeoComplCache_CachingPercentInStatusline = 0
 endif
 if !exists('g:NeoComplCache_TemporaryDir')
-    let g:NeoComplCache_TemporaryDir = $HOME . '/.neocon'
-
-    if !isdirectory(g:NeoComplCache_TemporaryDir)
-         call mkdir(g:NeoComplCache_TemporaryDir, 'p')
-    endif
+    let g:NeoComplCache_TemporaryDir = '~/.neocon'
+endif
+let g:NeoComplCache_TemporaryDir = expand(g:NeoComplCache_TemporaryDir)
+if !isdirectory(g:NeoComplCache_TemporaryDir)
+    call mkdir(g:NeoComplCache_TemporaryDir, 'p')
 endif
 if exists('g:NeoComplCache_EnableAtStartup') && g:NeoComplCache_EnableAtStartup
     " Enable startup.
