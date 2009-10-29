@@ -1,9 +1,8 @@
 " Run a command quickly.
-" Version: 0.0.5
-" Author : thinca <http://d.hatena.ne.jp/thinca/>
+" Version: 0.1.0
+" Author : thinca <thinca@gmail.com>
 " License: Creative Commons Attribution 2.1 Japan License
 "          <http://creativecommons.org/licenses/by/2.1/jp/deed.en>
-scriptencoding utf-8
 
 if exists('g:loaded_quickrun') || v:version < 702
   finish
@@ -25,32 +24,44 @@ endfunction
 
 " ----------------------------------------------------------------------------
 " Initialize of instance.
-function! s:Runner.initialize(args) " {{{2
-  call self.parse_args(a:args)
+function! s:Runner.initialize(argline) " {{{2
+  let arglist = self.parse_argline(a:argline)
+  call self.set_options_from_arglist(arglist)
   call self.normalize()
 endfunction
 
-" ----------------------------------------------------------------------------
-" Parse arguments.
-function! s:Runner.parse_args(args) " {{{2
+
+
+function! s:Runner.parse_argline(argline) " {{{2
   " foo 'bar buz' "hoge \"huga"
   " => ['foo', 'bar buz', 'hoge "huga']
-  let args = a:args
+  " TODO: More improve.
+  " ex:
+  " foo ba'r b'uz "hoge \nhuga"
+  " => ['foo, 'bar buz', "hoge \nhuga"]
+  let argline = a:argline
   let arglist = []
-  while args !~ '^\s*$'
-    let args = substitute(args, '^\s*', '', '')
-    if args[0] =~ '[''"]'
-      let arg = matchstr(args, '\v([''"])\zs.{-}\ze\\@<!\1')
-      let args = args[strlen(arg) + 2 :]
+  while argline !~ '^\s*$'
+    let argline = matchstr(argline, '^\s*\zs.*$')
+    if argline[0] =~ '[''"]'
+      let arg = matchstr(argline, '\v([''"])\zs.{-}\ze\\@<!\1')
+      let argline = argline[strlen(arg) + 2 :]
     else
-      let arg = matchstr(args, '\S\+')
-      let args = args[strlen(arg) :]
+      let arg = matchstr(argline, '\S\+')
+      let argline = argline[strlen(arg) :]
     endif
+    let arg = substitute(arg, '\\\(.\)', '\1', 'g')
     call add(arglist, arg)
   endwhile
 
+  return arglist
+endfunction
+
+
+
+function! s:Runner.set_options_from_arglist(arglist)
   let option = ''
-  for arg in arglist
+  for arg in a:arglist
     if option != ''
       if has_key(self, option)
         if type(self[option]) == type([])
@@ -227,7 +238,7 @@ endfunction
 function! s:Runner.build_command(tmpl) " {{{2
   " TODO Add rules.
   let shebang = self.detect_shebang()
-  let src = string(self.get_source_file())
+  let src = string(self.get_source_name())
   let rule = [
         \ ['c', shebang != '' ? string(shebang) : 'self.command'],
         \ ['s', src], ['S', src],
@@ -267,13 +278,17 @@ endfunction
 " ----------------------------------------------------------------------------
 " Return the source file name.
 " Output to a temporary file if self.src is string.
-function! s:Runner.get_source_file() " {{{2
+function! s:Runner.get_source_name() " {{{2
   let fname = expand('%')
   if exists('self.src')
     if type(self.src) == type('')
-      let fname = self.expand(self.tempfile)
-      let self._temp = fname
-      call writefile(split(self.src, "\n", 'b'), fname)
+      if has_key(self, '_temp')
+        let fname = self._temp
+      else
+        let fname = self.expand(self.tempfile)
+        let self._temp = fname
+        call writefile(split(self.src, "\n", 'b'), fname)
+      endif
     elseif type(self.src) == type(0)
       let fname = expand('#'.self.src.':p')
     endif
@@ -306,7 +321,7 @@ function! s:Runner.get_region() " {{{2
     return ''
   end
 
-  let save_reg = @"
+  let [reg_save, reg_save_type] = [getreg(), getregtype()]
   let [pos_c, pos_s, pos_e] = [getpos('.'), getpos("'<"), getpos("'>")]
 
   execute 'silent normal! `' . sm . vm . '`' . em . 'y'
@@ -320,7 +335,8 @@ function! s:Runner.get_region() " {{{2
 
   let selected = @"
 
-  let @" = save_reg
+  call setreg(v:register, reg_save, reg_save_type)
+
   if self.mode == 'o'
     let &selection = save_sel
   endif
@@ -422,7 +438,11 @@ function! s:quickrun(args) " {{{2
     if !append
       silent % delete _
     endif
+
+    let cursor = getpos('$')
     call append(line('$') - 1, split(result, "\n", 1))
+    call setpos('.', cursor)
+    normal! zt
     wincmd p
   elseif out is '!'
     " Do nothing.
@@ -452,10 +472,6 @@ function! s:quickrun(args) " {{{2
     call writefile(split(result, "\n"), out, 'b')
     echo printf('Output to %s: %d bytes', out, size)
   endif
-endfunction
-
-function! Eval(expr, ...) " {{{2
-  let runner = s:Runner.new('-input ')
 endfunction
 
 " Function for |g@|.
@@ -597,6 +613,14 @@ function! s:init()
   endif
   unlet! g:QuickRunConfig
   let g:QuickRunConfig = defaultConfig
+
+  " Default key mappings.
+  silent! nnoremap <silent> <Plug>(quickrun) :<C-u>QuickRun -mode n ><CR>
+  silent! vnoremap <silent> <Plug>(quickrun) :<C-u>QuickRun -mode v ><CR>
+  if !exists('g:quickrun_no_default_key_mappings')
+  \  || !g:quickrun_no_default_key_mappings
+    silent! map <unique> <Leader>r <Plug>(quickrun)
+  endif
 endfunction
 
 call s:init()
