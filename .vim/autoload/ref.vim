@@ -1,5 +1,5 @@
 " Integrated reference viewer.
-" Version: 0.0.1
+" Version: 0.0.2
 " Author : thinca <http://d.hatena.ne.jp/thinca/>
 " License: Creative Commons Attribution 2.1 Japan License
 "          <http://creativecommons.org/licenses/by/2.1/jp/deed.en>
@@ -7,8 +7,8 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-if !exists('g:ref_split')
-  let g:ref_split = ''
+if !exists('g:ref_open')
+  let g:ref_open = 'split'
 endif
 
 
@@ -24,13 +24,10 @@ endfunction
 
 function! ref#complete(lead, cmd, pos)  " {{{2
   let list = matchlist(a:cmd, '^\v.{-}R%[ef]\s+(\w+)\s+(.*)$')
-  let g:cmd = a:cmd
-  let g:list = list
   if list == []
     return filter(ref#list(), 'v:val =~ "^".a:lead')
   endif
   let [subcmd, query] = list[1 : 2]
-  let [g:subcmd, g:query] = [subcmd, query]
   if exists('*ref#{subcmd}#complete')
     return ref#{subcmd}#complete(query)
   endif
@@ -42,13 +39,13 @@ endfunction
 " Get available reference list.
 function! ref#list()  " {{{2
   let list = split(globpath(&runtimepath, 'autoload/ref/*.vim'), "\n")
-  return filter(map(list, 'fnamemodify(v:val, ":t:r")'),
-  \             'ref#{v:val}#available()')
+  return s:uniq(filter(map(list, 'fnamemodify(v:val, ":t:r")'),
+  \             'ref#{v:val}#available()'))
 endfunction
 
 
 
-function! ref#open(source, query)  " {{{2
+function! ref#open(source, query, ...)  " {{{2
   if index(ref#list(), a:source) < 0 || !exists('*ref#{a:source}#available')
   \   || !ref#{a:source}#available()
     echoerr 'Reference unavailable:' a:source
@@ -86,7 +83,8 @@ function! ref#open(source, query)  " {{{2
   endfo
 
   if bufnr == 0
-    silent! execute g:ref_split 'new'
+    silent! execute (a:0 ? a:1 : g:ref_open)
+    enew
     call s:initialize_buffer(a:source)
   else
     setlocal modifiable noreadonly
@@ -226,6 +224,16 @@ function! s:dump_history()  " {{{2
   if i =~ '\d\+'
     call s:move_history(i - b:ref_history_pos - 1)
   endif
+endfunction
+
+
+
+function! s:uniq(list)
+  let d = {}
+  for i in a:list
+    let d[i] = 0
+  endfor
+  return sort(keys(d))
 endfunction
 
 

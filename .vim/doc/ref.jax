@@ -1,6 +1,6 @@
 *ref.txt*	総合リファレンスビューア。
 
-Version: 0.0.1
+Version: 0.0.2
 Author : thinca <http://d.hatena.ne.jp/thinca/>
 License: クリエイティブ・コモンズの表示 2.1 日本ライセンス
          <http://creativecommons.org/licenses/by/2.1/jp/>
@@ -14,8 +14,10 @@ License: クリエイティブ・コモンズの表示 2.1 日本ライセンス
 
 このプラグインには以下のソースが含まれています:
 - detect	(|ref-detect.txt|)
+- man		(|ref-man.txt|)
 - refe		(|ref-refe.txt|)
 - phpmanual	(|ref-phpmanual.txt|)
+- pydoc		(|ref-pydoc.txt|)
 
 
 ==============================================================================
@@ -97,13 +99,13 @@ FileType ref					*filetype-ref*
 	endfunction
 <
 
-g:ref_split					*g:ref_split*
-	|ref-viewer| を開く際の補助コマンドです。例えば、|:vertical| や |:tab|
-	などを指定します。デフォルト値は空です。
+g:ref_open					*g:ref_open*
+	|ref-viewer| を開く際の補助コマンドです。例えば、|:vsplit| や
+	|:tabnew|などを指定します。デフォルト値は "split" です。
 
 
 ==============================================================================
-ソース						*ref-source*
+ソース						*ref-sources*
 
 ソースは以下の関数を提供する必要があります。{query} は |:Ref| で渡される文字列
 です。
@@ -135,6 +137,11 @@ ref#{source}#leave()				*ref#{source}#leave()*
 
 ==============================================================================
 更新履歴					*ref-changelog*
+
+0.0.2	2009-08-20
+	- g:ref_split の名前と意味を変更。
+	  - g:ref_open へ変更。
+	- ソースの補完時に同じ項目が出ることがあるバグを修正。
 
 0.0.1	2009-08-09
 	- 初版。
