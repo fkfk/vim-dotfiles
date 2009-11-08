@@ -22,7 +22,7 @@ set foldmethod=marker
 set listchars=tab:>-,trail:-,nbsp:%,extends:>,precedes:<
 
 " ステイタス行に文字コードと改行コードを表示。
-set statusline=%<%f\ %m%r%h%w%=%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}\ \ %l,%c%V%8P
+set statusline=%<%f\ %=\%m%r%y%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}\ \ %l,%c%V%8P
 
 set incsearch
 set nocompatible
@@ -177,4 +177,4 @@ augroup vimrc-autocmd
 augroup END
 
 "QuickRun用設定
-autocmd Filetype java noremap <silent> <Space>r :QuickRun java<CR>
+noremap <silent> <C-r> :QuickRun<CR>
