@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: omni_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 10 Nov 2009
+" Last Modified: 26 Nov 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,9 +23,18 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.05, for Vim 7.0
+" Version: 1.07, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.07:
+"    - Deleted \v pattern.
+"    - Restore cursor position.
+"
+"   1.06:
+"    - Fixed ruby omni_complete bug.
+"    - Refactoringed.
+"    - Supported string and dictionary candidates.
+"
 "   1.05:
 "    - Allow dup.
 "    - Improved menu.
@@ -62,17 +71,27 @@ function! neocomplcache#complfunc#omni_complete#initialize()"{{{
         let g:NeoComplCache_OmniPatterns = {}
     endif
     if has('ruby')
-        call s:set_omni_pattern('ruby', '\v[^. *\t]%(\.|::)\h\w*')
+        call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'ruby',
+                    \'\h\w\+\|[^. *\t]%(\.\|::)\h\w*')
     endif
     if has('python')
-        call s:set_omni_pattern('python', '\v[^. \t]\.\h\w*')
+        call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'python',
+                    \'[^. \t]\.\h\w*')
     endif
-    call s:set_omni_pattern('html,xhtml,xml', '\v\<[^>]*')
-    call s:set_omni_pattern('css', '\v^\s+\w+|\w+[):;]?\s+|[@!]')
-    call s:set_omni_pattern('javascript', '\v[^. \t]\.%(\h\w*)?')
-    call s:set_omni_pattern('actionscript', '\v[^. \t][.:]\h\w*')
-    call s:set_omni_pattern('php', '\v[^. \t]%(-\>|::)\h\w*')
-    call s:set_omni_pattern('java', '\v[^. \t]\.\h\w*')
+    call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'html,xhtml,xml',
+                \'<[^>]*')
+    call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'css',
+                \'^\s\+\w+\|\w+[):;]?\s\+\|[@!]')
+    call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'javascript',
+                \'[^. \t]\.\%(\h\w*\)\?')
+    call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'actionscript',
+                \'[^. \t][.:]\h\w*')
+    call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'php',
+                \'[^. \t]%(->\|::)\h\w*')
+    call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'java',
+                \'[^. \t]\.\h\w*')
+    "call neocomplcache#set_variable_pattern('g:NeoComplCache_OmniPatterns', 'perl',
+                "\'\h\w*|[^. \t]%(->\|::)\h\w*')
     "}}}
 endfunction"}}}
 function! neocomplcache#complfunc#omni_complete#finalize()"{{{
@@ -86,11 +105,14 @@ function! neocomplcache#complfunc#omni_complete#get_keyword_pos(cur_text)"{{{
     if &l:completefunc == 'neocomplcache#auto_complete' &&
                 \(!has_key(g:NeoComplCache_OmniPatterns, &filetype)
                 \|| g:NeoComplCache_OmniPatterns[&filetype] == ''
-                \|| a:cur_text !~ '\v%(' . g:NeoComplCache_OmniPatterns[&filetype] . ')$')
+                \|| a:cur_text !~ '\%(' . g:NeoComplCache_OmniPatterns[&filetype] . '\m\)$')
         return -1
     endif
 
-    return call(&l:omnifunc, [1, ''])
+    let l:pos = getpos('.')
+    let l:cur_keyword_pos = call(&l:omnifunc, [1, ''])
+    call setpos('.', l:pos)
+    return l:cur_keyword_pos
 endfunction"}}}
 
 function! neocomplcache#complfunc#omni_complete#get_complete_words(cur_keyword_pos, cur_keyword_str)"{{{
@@ -100,7 +122,12 @@ function! neocomplcache#complfunc#omni_complete#get_complete_words(cur_keyword_p
         let l:start_time = 0
     endif
 
-    let l:omni_list = call(&l:omnifunc, [0, a:cur_keyword_str])
+    let l:cur_keyword_str = (&filetype == 'ruby')? '' : a:cur_keyword_str
+    
+    let l:pos = getpos('.')
+    let l:omni_list = call(&l:omnifunc, [0, l:cur_keyword_str])
+    call setpos('.', l:pos)
+    
     if empty(l:omni_list)
         return []
     endif
@@ -115,17 +142,17 @@ function! neocomplcache#complfunc#omni_complete#get_complete_words(cur_keyword_p
     echo ''
     redraw
 
-    if len(l:omni_list) >= 1 && type(l:omni_list[0]) == type('')
-        " Convert string list.
-        let l:list = []
-        for str in l:omni_list
-            call add(l:list, { 'word' : str })
-        endfor
-
-        let l:omni_list = l:list
-    endif
-
+    let l:omni_string_list = filter(copy(l:omni_list), 'type(v:val) == '.type(''))
     let l:list = []
+    " Convert string list.
+    for str in l:omni_string_list
+        call add(l:list, {
+                    \'word' : str, 'menu' : '[O]',
+                    \'icase' : 1, 'rank' : 5, 'dup' : 1
+                    \})
+    endfor
+
+    let l:omni_list = filter(l:omni_list, 'type(v:val) != '.type(''))
     for l:omni in l:omni_list
         let l:dict = {
                     \'word' : l:omni.word, 'menu' : '[O]',
@@ -160,14 +187,6 @@ endfunction"}}}
 
 function! neocomplcache#complfunc#omni_complete#get_rank()"{{{
     return 20
-endfunction"}}}
-
-function! s:set_omni_pattern(filetype, pattern)"{{{
-    for ft in split(a:filetype, ',')
-        if !has_key(g:NeoComplCache_OmniPatterns, ft) 
-            let g:NeoComplCache_OmniPatterns[ft] = a:pattern
-        endif
-    endfor
 endfunction"}}}
 
 " vim: foldmethod=marker
