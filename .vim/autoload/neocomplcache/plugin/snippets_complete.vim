@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: snippets_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 26 Nov 2009
+" Last Modified: 06 Dec 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,9 +23,17 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.31, for Vim 7.0
+" Version: 1.33, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.33:
+"    - Deleted Filename() and g:snips_author.
+"    - Catch eval error.
+"    - Fixed snippet expand bug.
+"
+"   1.32:
+"    - Implemented Filename() and g:snips_author for snipMate.
+"
 "   1.31:
 "    - Fixed disable expand when buftype is 'nofile' bug.
 "    - Implemented <Plug>(neocomplcache_snippets_jump).
@@ -199,6 +207,11 @@ function! neocomplcache#plugin#snippets_complete#initialize()"{{{
     let s:begin_snippet = 0
     let s:end_snippet = 0
     let s:snippet_holder_cnt = 1
+    
+    " Set snips_author.
+    if !exists('snips_author')
+        let g:snips_author = 'Me'
+    endif
 
     " Set snippets dir.
     let s:runtime_dir = split(globpath(&runtimepath, 'autoload/neocomplcache/plugin/snippets_complete'), '\n')
@@ -345,7 +358,7 @@ function! neocomplcache#plugin#snippets_complete#expandable()"{{{
         endfor
     endif
 
-    let l:cur_text = neocomplcache#get_cur_text()
+    let l:cur_text = s:get_cur_text()
     let l:cur_word = neocomplcache#match_word(l:cur_text)
     if !has_key(l:snippets, l:cur_word)
         let l:cur_word = matchstr(l:cur_text, '\h\w*[^[:alnum:][:space:]]*$')
@@ -357,7 +370,7 @@ function! neocomplcache#plugin#snippets_complete#expandable()"{{{
 endfunction"}}}
 function! neocomplcache#plugin#snippets_complete#get_cur_text()"{{{
     if mode() ==# 'i'
-        return matchstr(neocomplcache#get_cur_text(), '\h\w*[^[:alnum:][:space:]]*$')
+        return matchstr(s:get_cur_text(), '\h\w*[^[:alnum:][:space:]]*$')
     else
         return matchstr(s:cur_text, '\h\w*[^[:alnum:][:space:]]*$')
     endif
@@ -867,7 +880,7 @@ function! s:substitute_marker(start, end)"{{{
     endif
 endfunction"}}}
 function! s:trigger(function)"{{{
-    let l:cur_text = neocomplcache#get_cur_text()
+    let l:cur_text = s:get_cur_text()
     let s:cur_text = l:cur_text
     return printf("\<ESC>:call %s(%s,%d)\<CR>", a:function, string(l:cur_text), col('.'))
 endfunction"}}}
@@ -875,20 +888,31 @@ function! s:eval_snippet(snippet_text)"{{{
     let l:snip_word = ''
     let l:prev_match = 0
     let l:match = match(a:snippet_text, '`.\{-}`')
-    while l:match >= 0
-        if l:match - l:prev_match > 0
-            let l:snip_word .= a:snippet_text[l:prev_match : l:match - 1]
-        endif
-        let l:prev_match = matchend(a:snippet_text, '`.\{-}`', l:match)
-        let l:snip_word .= eval(a:snippet_text[l:match+1 : l:prev_match - 2])
+    
+    try
+        while l:match >= 0
+            if l:match - l:prev_match > 0
+                let l:snip_word .= a:snippet_text[l:prev_match : l:match - 1]
+            endif
+            let l:prev_match = matchend(a:snippet_text, '`.\{-}`', l:match)
+            let l:snip_word .= eval(a:snippet_text[l:match+1 : l:prev_match - 2])
 
-        let l:match = match(a:snippet_text, '`.\{-}`', l:prev_match)
-    endwhile
-    if l:prev_match >= 0
-        let l:snip_word .= a:snippet_text[l:prev_match :]
-    endif
+            let l:match = match(a:snippet_text, '`.\{-}`', l:prev_match)
+        endwhile
+        if l:prev_match >= 0
+            let l:snip_word .= a:snippet_text[l:prev_match :]
+        endif
+    catch
+        return ''
+    endtry
 
     return l:snip_word
+endfunction"}}}
+function! s:get_cur_text()"{{{
+    let l:pos = mode() ==# 'i' ? 2 : 1
+
+    let s:cur_text = col('.') < l:pos ? '' : getline('.')[: col('.') - l:pos]
+    return s:cur_text
 endfunction"}}}
 
 function! s:SID_PREFIX()
