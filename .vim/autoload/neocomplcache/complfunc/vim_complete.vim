@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: vim_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 09 Dec 2009
+" Last Modified: 14 Dec 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -28,7 +28,8 @@
 " ChangeLog: "{{{
 "   1.05:
 "    - Changed for neocomplcache 4.0.
-"    - Improved option.
+"    - Improved complete option.
+"    - Improved print prototype.
 "
 "   1.04:
 "    - Implemented environment variable completion.
@@ -100,7 +101,8 @@ function! neocomplcache#complfunc#vim_complete#get_keyword_pos(cur_text)"{{{
         let l:script_candidates_list = has_key(s:script_candidates_list, bufnr('%')) ?
                     \ s:script_candidates_list[bufnr('%')] : { 'functions' : [], 'variables' : [] }
         
-        let l:prototype_name = matchstr(l:cur_text, '\%(<[sS][iI][dD]>\|[sSgGbBwWtTlL]:\)\=\%(\i\|[#.]\|{.\{-1,}}\)*\s*(\ze[^)].*$')
+        let l:prototype_name = matchstr(l:cur_text, 
+                    \'\%(<[sS][iI][dD]>\|[sSgGbBwWtTlL]:\)\=\%(\i\|[#.]\|{.\{-1,}}\)*\s*(\ze\%([^(]\|(.\{-})\)*$')
         if l:prototype_name != ''
             if has_key(s:internal_candidates_list.functions_prototype, l:prototype_name)
                 echo s:internal_candidates_list.functions_prototype[l:prototype_name]
@@ -157,7 +159,8 @@ function! neocomplcache#complfunc#vim_complete#get_complete_words(cur_keyword_po
         return []
     endif
 
-    if l:cur_text =~ '\<\%(setl\%[ocal]\|setg\%[lobal]\|set\)\>'
+    let l:prev_word = neocomplcache#get_prev_word(a:cur_keyword_str)
+    if l:prev_word =~ '^\%(setl\%[ocal]\|setg\%[lobal]\|set\)$'
         let l:list += s:internal_candidates_list.options
     elseif a:cur_keyword_str =~ '^&\%([gl]:\)\?'
         let l:prefix = matchstr(a:cur_keyword_str, '&\%([gl]:\)\?')

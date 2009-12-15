@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: include_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 10 Dec 2009
+" Last Modified: 14 Dec 2009
 " Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -23,15 +23,20 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.09, for Vim 7.0
+" Version: 1.10, for Vim 7.0
 "-----------------------------------------------------------------------------
 " ChangeLog: "{{{
+"   1.10:
+"    - Use g:NeoComplCache_TagsFilterPatterns.
+"    - Supported nested include file in C/C++ filetype.
+"
 "   1.09:
 "    - Improved caching.
 "    - Deleted dup.
 "    - Use caching helper.
 "    - Use /dev/stdout in Linux and Mac.
 "    - Deleted caching current buffer.
+"    - Fixed error when load file.
 "
 "   1.08:
 "    - Caching current buffer.
@@ -212,7 +217,7 @@ function! s:check_buffer(bufname)"{{{
         endif
         
         " Check include.
-        let l:include_files = s:get_include_files(l:bufnumber)
+        let l:include_files = s:get_buffer_include_files(l:bufnumber)
         for l:filename in l:include_files
             if !has_key(s:include_cache, l:filename)
                 " Caching.
@@ -225,7 +230,7 @@ function! s:check_buffer(bufname)"{{{
         let s:include_info[l:bufnumber].include_files = []
     endif
 endfunction"}}}
-function! s:get_include_files(bufnumber)"{{{
+function! s:get_buffer_include_files(bufnumber)"{{{
     let l:filetype = getbufvar(a:bufnumber, '&filetype')
     if l:filetype == ''
         return []
@@ -252,22 +257,7 @@ function! s:get_include_files(bufnumber)"{{{
         let l:suffixes = &l:suffixesadd
     endif
 
-    let l:buflines = getbufline(a:bufnumber, 1, 100)
-    let l:include_files = []
-    for l:line in l:buflines"{{{
-        if l:line =~ l:pattern
-            let l:match_end = matchend(l:line, l:pattern)
-            if l:expr != ''
-                let l:eval = substitute(l:expr, 'v:fname', string(matchstr(l:line[l:match_end :], '\f\+')), 'g')
-                let l:filename = fnamemodify(findfile(eval(l:eval), l:path), ':p')
-            else
-                let l:filename = fnamemodify(findfile(matchstr(l:line[l:match_end :], '\f\+'), l:path), ':p')
-            endif
-            if filereadable(l:filename) && getfsize(l:filename) < g:NeoComplCache_CachingLimitFileSize
-                call add(l:include_files, l:filename)
-            endif
-        endif
-    endfor"}}}
+    let l:include_files = s:get_include_files(0, getbufline(a:bufnumber, 1, 100), l:filetype, l:pattern, l:path, l:expr)
     
     " Restore option.
     if has_key(g:NeoComplCache_IncludeSuffixes, l:filetype)
@@ -276,12 +266,36 @@ function! s:get_include_files(bufnumber)"{{{
     
     return l:include_files
 endfunction"}}}
+function! s:get_include_files(nestlevel, lines, filetype, pattern, path, expr)"{{{
+    let l:include_files = []
+    for l:line in a:lines"{{{
+        if l:line =~ a:pattern
+            let l:match_end = matchend(l:line, a:pattern)
+            if a:expr != ''
+                let l:eval = substitute(a:expr, 'v:fname', string(matchstr(l:line[l:match_end :], '\f\+')), 'g')
+                let l:filename = fnamemodify(findfile(eval(l:eval), a:path), ':p')
+            else
+                let l:filename = fnamemodify(findfile(matchstr(l:line[l:match_end :], '\f\+'), a:path), ':p')
+            endif
+            if filereadable(l:filename) && getfsize(l:filename) < g:NeoComplCache_CachingLimitFileSize
+                call add(l:include_files, l:filename)
+                
+                if (a:filetype == 'c' || a:filetype == 'cpp') && a:nestlevel < 1
+                    let l:include_files += s:get_include_files(a:nestlevel + 1, readfile(l:filename)[:100],
+                                \a:filetype, a:pattern, a:path, a:expr)
+                endif
+            endif
+        endif
+    endfor"}}}
+    
+    return l:include_files
+endfunction"}}}
 
 function! s:load_from_tags(filename, filetype)"{{{
     " Initialize include list from tags.
 
     let l:keyword_lists = s:load_from_cache(a:filename)
-    if !empty(l:keyword_lists)
+    if !empty(l:keyword_lists) || getfsize(neocomplcache#cache#encode_name('include_cache', a:filename)) == 0
         return l:keyword_lists
     endif
 
@@ -303,7 +317,7 @@ function! s:load_from_tags(filename, filetype)"{{{
 
     let l:keyword_lists = {}
     
-    for l:keyword in neocomplcache#cache#load_from_tags('include_cache', a:filename, l:lines, 'I')
+    for l:keyword in neocomplcache#cache#load_from_tags('include_cache', a:filename, l:lines, 'I', a:filetype)
         let l:key = tolower(l:keyword.word[: s:completion_length-1])
         if !has_key(l:keyword_lists, l:key)
             let l:keyword_lists[l:key] = []
@@ -312,12 +326,10 @@ function! s:load_from_tags(filename, filetype)"{{{
         call add(l:keyword_lists[l:key], l:keyword)
     endfor 
     
+    call neocomplcache#cache#save_cache('include_cache', a:filename, neocomplcache#unpack_dictionary(l:keyword_lists))
+    
     if empty(l:keyword_lists)
         return s:load_from_file(a:filename, a:filetype)
-    endif
-    
-    if !empty(l:keyword_lists)
-        call neocomplcache#cache#save_cache('include_cache', a:filename, neocomplcache#unpack_dictionary(l:keyword_lists))
     endif
     
     return l:keyword_lists
@@ -326,7 +338,7 @@ function! s:load_from_file(filename, filetype)"{{{
     " Initialize include list from file.
 
     let l:keyword_lists = {}
-    let l:loaded_list = neocomplcache#cache#load_from_file(a:filename, neocomplcache#get_keyword_pattern(), 'I', 1, '$')
+    let l:loaded_list = neocomplcache#cache#load_from_file(a:filename, neocomplcache#get_keyword_pattern(), 'I')
     if len(l:loaded_list) > 300
         call neocomplcache#cache#save_cache('include_cache', a:filename, l:loaded_list)
     endif
@@ -344,14 +356,12 @@ endfunction"}}}
 function! s:load_from_cache(filename)"{{{
     let l:keyword_lists = {}
     
-    for l:keyword in neocomplcache#cache#load_from_cache('buffer_cache', a:filename)
+    for l:keyword in neocomplcache#cache#load_from_cache('include_cache', a:filename)
         let l:key = tolower(l:keyword.word[: s:completion_length-1])
         if !has_key(l:keyword_lists, l:key)
             let l:keyword_lists[l:key] = []
         endif
         call add(l:keyword_lists[l:key], l:keyword)
-
-        let l:keyword_lists[l:keyword.word] = 1
     endfor 
     
     return l:keyword_lists
