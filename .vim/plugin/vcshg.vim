@@ -111,27 +111,23 @@ endfunction
 " Function: s:hgFunctions.Annotate(argList) {{{2
 function! s:hgFunctions.Annotate(argList)
 	if len(a:argList) == 0
-		if &filetype == 'HGAnnotate'
+		if &filetype == 'HGannotate'
 			" Perform annotation of the version indicated by the current line.
 			let caption = matchstr(getline('.'),'\v^\s+\zs\d+')
 			let options = ' -r' . caption
 		else
 			let caption = ''
-			let options = ''
+			let options = ' -un'
 		endif
 	elseif len(a:argList) == 1 && a:argList[0] !~ '^-'
 		let caption = a:argList[0]
-		let options = ' -r' . caption
+		let options = ' -un -r' . caption
 	else
 		let caption = join(a:argList, ' ')
 		let options = ' ' . caption
 	endif
 
-	let resultBuffer = s:DoCommand('blame' . options, 'annotate', caption, {})
-	if resultBuffer > 0
-		set filetype=HGAnnotate
-	endif
-	return resultBuffer
+	return s:DoCommand('blame' . options, 'annotate', caption, {})
 endfunction
 
 " Function: s:hgFunctions.Commit(argList) {{{2
@@ -175,15 +171,7 @@ function! s:hgFunctions.Diff(argList)
 		let diffOptions = ['-x -' . hgDiffOpt]
 	endif
 
-	let resultBuffer = s:DoCommand(join(['diff'] + diffExt + diffOptions + revOptions), 'diff', caption, {})
-	if resultBuffer > 0
-		set filetype=diff
-	else
-		if hgDiffExt == ''
-			echomsg 'No differences found'
-		endif
-	endif
-	return resultBuffer
+	return s:DoCommand(join(['diff'] + diffExt + diffOptions + revOptions), 'diff', caption, {})
 endfunction
 
 " Function: s:hgFunctions.Info(argList) {{{2
@@ -211,10 +199,10 @@ function! s:hgFunctions.GetBufferInfo()
 	endif
 
 	let parentsText = s:VCSCommandUtility.system(s:Executable() . ' parents -- "' . fileName . '"')
-	let [revision] = matchlist(parentsText, '^changeset:\s\+\(\S\+\)\n')[1]
+	let revision = matchlist(parentsText, '^changeset:\s\+\(\S\+\)\n')[1]
 
 	let logText = s:VCSCommandUtility.system(s:Executable() . ' log -- "' . fileName . '"')
-	let [repository] = matchlist(logText, '^changeset:\s\+\(\S\+\)\n')[1]
+	let repository = matchlist(logText, '^changeset:\s\+\(\S\+\)\n')[1]
 
 	if revision == ''
 		" Error
@@ -259,12 +247,7 @@ function! s:hgFunctions.Review(argList)
 		let versionOption = ' -r ' . versiontag . ' '
 	endif
 
-"	let resultBuffer = s:DoCommand('cat --non-interactive' . versionOption, 'review', versiontag, {})
-	let resultBuffer = s:DoCommand('cat' . versionOption, 'review', versiontag, {})
-	if resultBuffer > 0
-		let &filetype = getbufvar(b:VCSCommandOriginalBuffer, '&filetype')
-	endif
-	return resultBuffer
+	return s:DoCommand('cat' . versionOption, 'review', versiontag, {})
 endfunction
 
 " Function: s:hgFunctions.Status(argList) {{{2
@@ -280,6 +263,9 @@ endfunction
 function! s:hgFunctions.Update(argList)
 	return s:DoCommand('update', 'update', '', {})
 endfunction
+
+" Annotate setting {{{2
+let s:hgFunctions.AnnotateSplitRegex = '\d\+: '
 
 " Section: Plugin Registration {{{1
 let s:VCSCommandUtility = VCSCommandRegisterModule('HG', expand('<sfile>'), s:hgFunctions, [])
