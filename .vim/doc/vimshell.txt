@@ -1,6 +1,6 @@
-*vimshell.txt*	Powerful shell implemented by Vim
+*vimshell.txt*	Powerful shell implemented by VimScript
 
-Version: 5.37
+Version: 6.50
 Author : Shougo <Shougo.Matsu@gmail.com>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
@@ -117,6 +117,172 @@ ability of vimshell will spread by creating plugin by yourself.
 ==============================================================================
 CHANGELOG					*vimshell-changelog*
 
+2010-03-02
+    * Fixed interactive_command_complete error.
+    * Fixed vimshell#interactive#get_cur_text().
+
+ChangeLog 6.00-: {{{
+2010-02-26
+    * Print lines if one screen in view.
+    * Fixed nomodifiable error in view.
+    * Revised internal vim command.
+    * Marked As Ver.6.05.
+
+2010-02-24
+    * Fixed interactive filetype.
+    * Ignore .gitignore in vcs_git.
+    * Added g:VimShell_RightPrompt variable.
+    * Improved parse in argument complete.
+    * Fixed command parse.
+    * Implemented history output execution.
+
+2010-02-18
+    * Fixed "E121: Undefined variable: b:prompt_history" error.
+    * Fixed args_complete compltion pos bug.
+    * Fixed filename pattern.
+    * Fixed s:hist_size error.
+    * Renamed interactive_complete.vim.
+
+2010-02-17
+    * Added vimshrc syntax file.
+    * setlocal nolist in vimshell buffer.
+
+    6.05 : *Supported vimproc Ver.3 or later*
+    - Improved update timing in iexe and bg.
+    - Optimized history completion.
+    - Changed history completion keymappings.
+    - Improved execute line in iexe.
+    - Fixed <Plug>(vimshell_interactive_previous_prompt).
+    - Fixed no prompt behaivior bug in iexe.
+    - Improved interactive in Windows.
+    - Fixed interactive option bug in iexe.
+    - Improved prompt in iexe.
+    - Improved prompt syntax.
+    - Fixed parse filename modifier bug.
+    - Improved split nicely.
+    - Fixed hang up bug.
+    - Implemented background execution and interrupt in exe.
+    - Fixed paste prompt bug in iexe.
+    - Implemented --encoding in exe and bg and iexe.
+    - Added :VimShellSendString command.
+    - Implemented vimshell#interactive#send_string().
+    - Fixed convert encoding in redirecting.
+    - Improved terminal compatiblity.
+    - Deleted g:VimShell_UsePopen2 option.
+    - Improved redraw in executing.
+    
+    6.04 :
+    - Fixed history_complete bug.
+    - Trunk many candidates in history_complete.
+    - Changed g:VimShell_SplitHeight default value.
+    - Optimized complete file.
+    - Improved autocmd.
+    - Changed buffer name.
+    - Improved enter directory.
+    - Improved move to drive.
+    - Implemented auto update.
+    - Fixed multibyte input bug.
+    - Improved termtter syntax.
+    - Fixed sexe error.
+    - Implemented interactive mappings.
+    - Improved prompt move.
+    - Changed omni complete keymappings.
+    - Improved close popup.
+    - Improved buffer search in <Plug>(vimshell_split_create).
+    - Improved detect for mac in open.
+    - Improved filtype and update in bg.
+    - Reimplemented vimshell#internal#iexe#vimshell_iexe().
+    - Added :VimShellExecute and :VimShellInteractive commands.
+    - Implemented bg and iexe and sudo completions.
+    - Improved execute line in Normal mode.
+    - Improved keymappings.
+    - Implemented CursorHold event in iexe.
+    
+    6.03 :
+    - Refactoringed.
+    - Improved environment detect in open.
+    - Fixed delete escape sequence bug.
+    - Improved interactive print.
+    - Implemented execute line in iexe buffer.
+    - Open URI when press <Enter>.
+    - Improved password input.
+    - Implemented interactive termtter syntax.
+    - Fixed syntax error.
+    - Fixed alias parse.
+    - Improved start in Windows.
+    - Improved irb option in iexe.
+    - Improved vimshell split switch.
+    - Added :VimShellPop command.
+    
+    6.02 :
+    - Improved autocommand in iexe.
+    - Improved completion in iexe.
+    - Improved highlight escape sequence.
+    - Fixed echo in iexe.
+    - Improved password input.
+    - Fixed timer.
+    - Added powershell.exe and cmd.exe support.
+    - Improved vimshell buffer settings.
+    - Fixed <Plug>(vimshell_delete_previous_output) error.
+    - Delete control sequences.
+    - Improved complete pattern.
+    - Set completion timeout.
+    - Fixed interactive prompt bug.
+    - Deleted syntax keyword.
+    - Improved interactive print.
+    - Renamed interactive_complete.
+    - Fixed interactive process error.
+    - Fixed expand tilde bug.
+    
+    6.01 :
+     - Improved error handling.
+     - Improved head match.
+     - Use completefunc_complete if available.
+     - Fixed trunk string.
+     - Escape complete candidates.
+     - Improved Windows pty support.
+     - Improved password input.
+     - Improved echo back.
+     - Improved encoding.
+     - Implemented next_prompt() in iexe.
+     - Implemented arguments completion.
+     - Set interactive option in Windows iexe.
+     - Fixed force exit error.
+
+    6.00 :
+     - Deleted plugin/interactive.vim.
+     - Deleted ftplugin/vimshell.vim.
+     - Implemented vimshell#system().
+     - Implemented VCS information support.
+     - Deleted pipe inout.
+     - Implemented completion helper.
+     - Improved command completion.
+     - Implemented argument completion.
+     - Implemented expand wildcard.
+     - Improved get prompt.
+
+     }}}
+ChangeLog 5.30-: {{{
+    5.38 :
+     - Fixed stdout flush bug.
+     - Append last line when interactive error.
+     - Syntax clear in clear command. 
+     - Ignore interactive exit error.
+     - Use vimproc.vim.
+     - Fixed error in readonly buffer.
+     - Deleted interactive pty code.
+     - Use updatetime in iexe.
+     - Deleted CursorHold event in iexe.
+     - Deleted echo in iexe.
+     - Fixed iexe for echoback.
+     - Improved filetype in iexe.
+     - Improved read time.
+     - Improved iexe wait.
+     - Implemented bcd internal command.
+     - Implemented Windows pty support.
+     - Fixed popd.
+     - Improved completion.
+
     5.37 :
      - Added g:VimShell_NoDefaultKeyMappings option.
      - Unique key mappings.
@@ -127,7 +293,6 @@ CHANGELOG					*vimshell-changelog*
      - Implemented mkcd internal command.
      - Append last line.
 
-ChangeLog 5.30-: {{{
     5.36 :
      - Added syntax keywords.
      - Echo error when you use old Vim.
@@ -199,7 +364,8 @@ ChangeLog 5.30-: {{{
      - Improved command search.
      - Close window in exit.
      - Implemented delete line.
-     - Implemented delete line and move head in iexe.}}}
+     - Implemented delete line and move head in iexe.
+     }}}
 ChangeLog 5.10-5.29 {{{
      5.29 :
      - Implemented filename expantion.
