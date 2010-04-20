@@ -1,8 +1,7 @@
 "=============================================================================
-" FILE: alias.vim
+" FILE: galias.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
 " Last Modified: 13 Apr 2010
-" Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -25,37 +24,25 @@
 " }}}
 "=============================================================================
 
-function! vimshell#special#alias#execute(program, args, fd, other_info)
+function! vimshell#special#galias#execute(program, args, fd, other_info)
   if empty(a:args)
-    " View all aliases.
-    for alias in keys(b:vimshell.alias_table)
+    " View all global aliases.
+    for alias in keys(b:vimshell.galias_table)
       call vimshell#print_line(a:fd, printf('%s=%s', alias, b:vimshell.alias_table[alias]))
     endfor
   elseif join(a:args) =~ '^\h\w*$'
-    if has_key(b:vimshell.alias_table, a:args[0])
-      " View alias.
-      call vimshell#print_line(a:fd, b:vimshell.alias_table[a:args[0]])
+    if has_key(b:vimshell.galias_table, a:args[0])
+      " View global alias.
+      call vimshell#print_line(a:fd, b:vimshell.galias_table[a:args[0]])
     endif
   else
-    " Define alias.
+    " Define global alias.
     let l:args = join(a:args)
 
-    " Parse command line.
-    let l:alias_name = matchstr(l:args, '^\h\w*')
-
-    " Next.
-    let l:args = l:args[matchend(l:args, '^\h\w*') :]
-    if l:alias_name == '' || l:args !~ '^\s*=\s*'
+    if l:args !~ '^\h\w*\s*=\s*'
       throw 'Wrong syntax: ' . l:args
     endif
-
-    " Skip =.
-    let l:expression = l:args[matchend(l:args, '^\s*=\s*') :]
-
-    try
-      execute printf('let b:vimshell.alias_table[%s] = %s', string(l:alias_name),  string(l:expression))
-    catch
-      throw 'Wrong syntax: ' . l:args
-    endtry
+    let l:expression = l:args[matchend(l:args, '^\h\w*\s*=\s*') :]
+    execute 'let ' . printf("b:vimshell.galias_table['%s'] = '%s'", matchstr(l:args, '^\h\w*'),  substitute(l:expression, "'", "''", 'g'))
   endif
 endfunction

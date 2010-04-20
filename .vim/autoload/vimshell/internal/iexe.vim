@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: iexe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 24 Feb 2010
+" Last Modified: 16 Apr 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -22,113 +22,6 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.23, for Vim 7.0
-"-----------------------------------------------------------------------------
-" ChangeLog: "{{{
-"   1.23: 
-"     - Supported vimproc Ver.3.
-"     - Fixed interactive filetype.
-"
-"   1.22: 
-"     - Reimplemented vimshell#internal#iexe#vimshell_iexe().
-"     - Improved keymappings.
-"     - Implemented CursorHold event.
-"     - Fixed update timing.
-"     - Fixed no prompt behavior bug.
-"     - Fixed interactive option bug.
-"     - Improved prompt. 
-"     - Improved syntax.
-"     - Supported encoding.
-"
-"   1.21: 
-"     - Implemented auto update.
-"     - Splited mappings functions.
-"
-"   1.20: 
-"     - Implemented execute line.
-"     - Improved irb option.
-"
-"   1.19: 
-"     - Improved autocommand.
-"     - Improved completion.
-"     - Added powershell.exe and cmd.exe support.
-"
-"   1.18: 
-"     - Implemented Windows pty support.
-"     - Improved CursorHoldI event.
-"     - Set interactive option in Windows.
-"
-"   1.17: 
-"     - Use updatetime.
-"     - Deleted CursorHold event.
-"     - Deleted echo.
-"     - Improved filetype.
-"
-"   1.16: 
-"     - Improved kill processes.
-
-"     - Send interrupt when press <C-c>.
-"     - Improved tab completion.
-"     - Use vimproc.vim.
-"
-"   1.15: 
-"     - Implemented delete line and move head.
-"     - Deleted normal iexe.
-"
-"   1.14: 
-"     - Use plugin Key-mappings.
-"     - Improved execute message.
-"     - Use sexe.
-"     - Setfiletype iexe.
-"
-"   1.13: 
-"     - Improved error message.
-"     - Set syntax.
-"
-"   1.12: 
-"     - Applyed backspace patch(Thanks Nico!).
-"     - Implemented paste prompt.
-"     - Implemented move to prompt.
-"
-"   1.11: 
-"     - Improved completion.
-"     - Set filetype.
-"     - Improved initialize on pty.
-"
-"   1.10: 
-"     - Improved behavior.
-"     - Kill zombee process.
-"     - Supported completion on pty.
-"     - Improved initialize program.
-"     - Implemented command history on pty.
-"     - <C-c> as <C-v><C-d>.
-"
-"   1.9: 
-"     - Fixed error when file not found.
-"     - Improved in console.
-"
-"   1.8: 
-"     - Supported pipe.
-"
-"   1.7: Refactoringed.
-"     - Get status. 
-"
-"   1.6: Use interactive.
-"
-"   1.5: Improved autocmd.
-"
-"   1.4: Split nicely.
-"
-"   1.3:
-"     - Use g:VimShell_EnableInteractive option.
-"     - Use utls/process.vim.
-"
-"   1.2: Implemented background execution.
-"
-"   1.1: Use vimproc.
-"
-"   1.0: Initial version.
-""}}}
 "=============================================================================
 
 function! vimshell#internal#iexe#execute(program, args, fd, other_info)"{{{
@@ -188,7 +81,7 @@ function! vimshell#internal#iexe#execute(program, args, fd, other_info)"{{{
     call vimshell#interactive#force_exit()
   endif
 
-  call s:init_bg(l:sub, l:args, a:other_info.is_interactive)
+  call s:init_bg(l:sub, l:args, a:fd, a:other_info)
 
   " Set variables.
   let b:interactive = {
@@ -197,7 +90,10 @@ function! vimshell#internal#iexe#execute(program, args, fd, other_info)"{{{
         \ 'encoding' : l:options['--encoding'],
         \ 'is_secret': 0, 
         \ 'prompt_history' : {}, 
-        \ 'command_history' : []
+        \ 'command_history' : [], 
+        \ 'is_pty' : (!vimshell#iswin() || (l:args[0] == 'fakecygpty')),
+        \ 'is_background': 0, 
+        \ 'cached_output' : '', 
         \}
 
   " Input from stdin.
@@ -217,7 +113,7 @@ function! vimshell#internal#iexe#execute(program, args, fd, other_info)"{{{
 endfunction"}}}
 
 function! vimshell#internal#iexe#vimshell_iexe(args)"{{{
-  call vimshell#internal#iexe#execute('iexe', vimshell#parser#split_args(a:args), {'stdin' : '', 'stdout' : '', 'stderr' : ''}, {'is_interactive' : 0, 'is_background' : 1})
+  call vimshell#internal#iexe#execute('iexe', vimshell#parser#split_args(a:args), {'stdin' : '', 'stdout' : '', 'stderr' : ''}, {'is_interactive' : 0})
 endfunction"}}}
 
 function! vimshell#internal#iexe#default_settings()"{{{
@@ -250,6 +146,7 @@ function! vimshell#internal#iexe#default_settings()"{{{
   inoremap <buffer><expr> <Plug>(vimshell_interactive_close_popup)  vimshell#int_mappings#close_popup()
   inoremap <buffer><silent> <Plug>(vimshell_interactive_execute_line)       <ESC>:<C-u>call vimshell#int_mappings#execute_line(1)<CR>
   inoremap <buffer><silent> <Plug>(vimshell_interactive_interrupt)       <C-o>:<C-u>call vimshell#interactive#interrupt()<CR>
+  inoremap <buffer><expr> <Plug>(vimshell_interactive_dummy_enter) pumvisible()? "\<C-y>\<CR>\<BS>" : "\<CR>\<BS>"
 
   imap <buffer><C-h>     <Plug>(vimshell_interactive_delete_backword_char)
   imap <buffer><BS>     <Plug>(vimshell_interactive_delete_backword_char)
@@ -257,7 +154,9 @@ function! vimshell#internal#iexe#default_settings()"{{{
   imap <buffer><C-a>     <Plug>(vimshell_interactive_move_head)
   imap <buffer><C-u>     <Plug>(vimshell_interactive_delete_line)
   imap <buffer><C-e>     <Plug>(vimshell_interactive_close_popup)
-  imap <buffer><CR>      <Plug>(vimshell_interactive_execute_line)
+  inoremap <expr> <SID>(bs-ctrl-])    getline('.')[-1:] ==# "\<C-]>" ? "\<BS>" : ''
+  imap <buffer> <C-]>               <C-]><SID>(bs-ctrl-])
+  imap <buffer><CR>      <C-]><Plug>(vimshell_interactive_execute_line)
   imap <buffer><C-c>     <Plug>(vimshell_interactive_interrupt)
 
   nnoremap <buffer><silent> <Plug>(vimshell_interactive_previous_prompt)  :<C-u>call vimshell#int_mappings#previous_prompt()<CR>
@@ -282,13 +181,15 @@ function! vimshell#internal#iexe#default_settings()"{{{
   augroup END
 endfunction"}}}
 
-function! s:init_bg(sub, args, is_interactive)"{{{
+function! s:init_bg(sub, args, fd, other_info)"{{{
   " Save current directiory.
   let l:cwd = getcwd()
 
   " Init buffer.
-  if a:is_interactive
-    call vimshell#print_prompt()
+  if a:other_info.is_interactive
+    let l:context = a:other_info
+    let l:context.fd = a:fd
+    call vimshell#print_prompt(l:context)
   endif
   " Split nicely.
   call vimshell#split_nicely()
@@ -314,12 +215,17 @@ function! s:on_insert_leave()
 endfunction
 
 function! s:on_hold_i()
-  call vimshell#interactive#execute_pty_out(1)
+  let l:cur_text = vimshell#interactive#get_cur_text()
+  if l:cur_text != '' && l:cur_text !~# '*\%(Killed\|Exit\)*'
+    return
+  endif
+  
+  call vimshell#interactive#check_output(b:interactive, bufnr('%'), bufnr('%'))
 
   if !b:interactive.process.is_valid
     stopinsert
   else
-    call feedkeys("\<C-l>\<BS>", 'n')
+    call feedkeys("\<C-r>\<ESC>", 'n')
 
     if pumvisible()
       call feedkeys("\<C-y>", 'n')
@@ -328,10 +234,10 @@ function! s:on_hold_i()
 endfunction
 
 function! s:on_hold()
-  call vimshell#interactive#execute_pty_out(0)
+  call vimshell#interactive#check_output(b:interactive, bufnr('%'), bufnr('%'))
 
   if b:interactive.process.is_valid
-    normal! hl
+    call feedkeys("g\<ESC>", 'n')
   endif
 endfunction
 
@@ -355,11 +261,12 @@ if vimshell#iswin()
         \ 'bash' : '-i', 'bc' : '-i', 'irb' : '--inf-ruby-mode', 
         \ 'gosh' : '-i', 'python' : '-i', 'zsh' : '-i', 
         \ 'powershell' : '-Command -', 
-        \ 'termtter'   : '--monochrome'
+        \ 'termtter'   : '--monochrome', 
+        \ 'scala'   : '--Xnojline', 'nyaos' : '-t',
         \}
 else
   let s:interactive_option = {
-        \'termtter' : '--monochrome'
+        \'termtter' : '--monochrome', 
         \}
 endif
 

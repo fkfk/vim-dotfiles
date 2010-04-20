@@ -1,8 +1,7 @@
 "=============================================================================
-" FILE: alias.vim
+" FILE: eval.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
 " Last Modified: 13 Apr 2010
-" Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -25,37 +24,27 @@
 " }}}
 "=============================================================================
 
-function! vimshell#special#alias#execute(program, args, fd, other_info)
-  if empty(a:args)
-    " View all aliases.
-    for alias in keys(b:vimshell.alias_table)
-      call vimshell#print_line(a:fd, printf('%s=%s', alias, b:vimshell.alias_table[alias]))
-    endfor
-  elseif join(a:args) =~ '^\h\w*$'
-    if has_key(b:vimshell.alias_table, a:args[0])
-      " View alias.
-      call vimshell#print_line(a:fd, b:vimshell.alias_table[a:args[0]])
-    endif
-  else
-    " Define alias.
-    let l:args = join(a:args)
+function! vimshell#internal#eval#execute(program, args, fd, other_info)
+  " Evaluate arguments.
 
-    " Parse command line.
-    let l:alias_name = matchstr(l:args, '^\h\w*')
+  let l:line = join(a:args)
+  let l:context = {
+        \ 'has_head_spaces' : l:line =~ '^\s\+',
+        \ 'is_interactive' : a:other_info.is_interactive, 
+        \ 'is_insert' : a:other_info.is_insert, 
+        \ 'fd' : { 'stdin' : '', 'stdout': '', 'stderr': ''}, 
+        \}
 
-    " Next.
-    let l:args = l:args[matchend(l:args, '^\h\w*') :]
-    if l:alias_name == '' || l:args !~ '^\s*=\s*'
-      throw 'Wrong syntax: ' . l:args
-    endif
+  try
+    let l:skip_prompt = vimshell#parser#eval_script(l:line, l:context)
+  catch /.*/
+    let l:message = v:exception . ' ' . v:throwpoint
+    call vimshell#error_line({}, l:message)
+    return
+  endtry
 
-    " Skip =.
-    let l:expression = l:args[matchend(l:args, '^\s*=\s*') :]
-
-    try
-      execute printf('let b:vimshell.alias_table[%s] = %s', string(l:alias_name),  string(l:expression))
-    catch
-      throw 'Wrong syntax: ' . l:args
-    endtry
+  if l:skip_prompt
+    " Skip prompt.
+    return 1
   endif
 endfunction

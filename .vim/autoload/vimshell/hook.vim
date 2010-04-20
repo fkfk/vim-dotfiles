@@ -1,8 +1,7 @@
 "=============================================================================
-" FILE: alias.vim
-" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
+" FILE: hook.vim
+" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
 " Last Modified: 13 Apr 2010
-" Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -25,37 +24,30 @@
 " }}}
 "=============================================================================
 
-function! vimshell#special#alias#execute(program, args, fd, other_info)
-  if empty(a:args)
-    " View all aliases.
-    for alias in keys(b:vimshell.alias_table)
-      call vimshell#print_line(a:fd, printf('%s=%s', alias, b:vimshell.alias_table[alias]))
-    endfor
-  elseif join(a:args) =~ '^\h\w*$'
-    if has_key(b:vimshell.alias_table, a:args[0])
-      " View alias.
-      call vimshell#print_line(a:fd, b:vimshell.alias_table[a:args[0]])
-    endif
-  else
-    " Define alias.
-    let l:args = join(a:args)
-
-    " Parse command line.
-    let l:alias_name = matchstr(l:args, '^\h\w*')
-
-    " Next.
-    let l:args = l:args[matchend(l:args, '^\h\w*') :]
-    if l:alias_name == '' || l:args !~ '^\s*=\s*'
-      throw 'Wrong syntax: ' . l:args
-    endif
-
-    " Skip =.
-    let l:expression = l:args[matchend(l:args, '^\s*=\s*') :]
-
-    try
-      execute printf('let b:vimshell.alias_table[%s] = %s', string(l:alias_name),  string(l:expression))
-    catch
-      throw 'Wrong syntax: ' . l:args
-    endtry
+function! vimshell#hook#add(hook_point, func_name)"{{{
+  if !has_key(b:vimshell.hook_functions_table, a:hook_point)
+    throw 'Hook point "' . a:hook_point . '" is not supported.'
   endif
-endfunction
+  
+  let b:vimshell.hook_functions_table[a:hook_point][a:func_name] = a:func_name
+endfunction"}}}
+function! vimshell#hook#call(hook_point, context)"{{{
+  call vimshell#set_context(a:context)
+
+  " Call hook function.
+  for l:func_name in values(b:vimshell.hook_functions_table[a:hook_point])
+    call call(l:func_name, [])
+  endfor
+endfunction"}}}
+function! vimshell#hook#del(hook_point, func_name)"{{{
+  if !has_key(b:vimshell.hook_functions_table, a:hook_point)
+    throw 'Hook point "' . a:hook_point . '" is not supported.'
+  endif
+  if !has_key(b:vimshell.hook_functions_table[a:hook_point], a:func_name)
+    throw 'Hook function "' . a:func_name . '" is not found.'
+  endif
+  
+  call remove(b:vimshell.hook_functions_table[a:hook_point], a:func_name)
+endfunction"}}}
+
+" vim: foldmethod=marker

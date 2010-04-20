@@ -22,7 +22,7 @@ License: MIT license  {{{
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 }}}
 
-CONTENTS					*vimshell-contents*
+CONTENTS						*vimshell-contents*
 
 Introduction		|vimshell-introduction|
 Install			|vimshell-install|
@@ -33,16 +33,18 @@ Interface		|vimshell-interface|
 Examples		|vimshell-examples|
 Internal Commands	|vimshell-internal-commands|
 Special Commands	|vimshell-special-commands|
+Alter Command		|vimshell-alter-command|
+Hook			|vimshell-hook|
 Create plugin		|vimshell-create-plugin|
 ToDo			|vimshell-todo|
 Bugs			|vimshell-bugs|
 Changelog		|vimshell-changelog|
 
 ==============================================================================
-INTRODUCTION					*vimshell-introduction*
+INTRODUCTION						*vimshell-introduction*
 
 ==============================================================================
-USAGE						*vimshell-usage*
+USAGE							*vimshell-usage*
 
 You can start vimshell in ":VimShell".  Because vimshell works similar with
 a common shell, you may operate it intuitively.  But vimshell perform the
@@ -50,25 +52,31 @@ path appointment in '/'. Vimshell is misunderstood with escape sequence when
 you use '\' by Windows for a path and do not work.
 
 ==============================================================================
-INSTALL						*vimshell-install*
+INSTALL							*vimshell-install*
 
 ==============================================================================
-INTERFACE					*vimshell-interface*
+INTERFACE						*vimshell-interface*
 
 ------------------------------------------------------------------------------
-COMMANDS 					*vimshell-commands*
+COMMANDS 						*vimshell-commands*
 
 :VimShell                                       *:VimShell*
 		Run vimshell.
 
 ------------------------------------------------------------------------------
-KEY MAPPINGS 					*vimshell-key-mappings*
+VARIABLES 						*vimshell-variables*
 
-<Plug>(vimshell_)				*<Plug>(vimshell_)*
-		
+g:VimShell_IgnoreCase					*g:VimShell_IgnoreCase*
+			
+
+------------------------------------------------------------------------------
+KEY MAPPINGS 						*vimshell-key-mappings*
+
+<Plug>(vimshell_)					*<Plug>(vimshell_)*
+			
 
 ==============================================================================
-EXAMPLES					*vimshell-examples*
+EXAMPLES						*vimshell-examples*
 >
 	" Initialize execute file list.
 	let g:VimShell_ExecuteFileList = {}
@@ -78,9 +86,10 @@ EXAMPLES					*vimshell-examples*
 	let g:VimShell_ExecuteFileList['py'] = 'python'
 	call vimshell#set_execute_file('html,xhtml', 'gexe firefox')
 	
+	let g:VimShell_UserPrompt = 'fnamemodify(getcwd(), ":~")'
+	let g:VimShell_RightPrompt = 'vimshell#vcs#info("(%s)-[%b]", "(%s)-[%b|%a]")'
 	let g:VimShell_EnableInteractive = 1
 	let g:VimShell_EnableSmartCase = 1
-	let g:VimShell_EnableAutoLs = 1
 	
 	if has('win32') || has('win64') 
 	    " Display user name on Windows.
@@ -95,27 +104,148 @@ EXAMPLES					*vimshell-examples*
 	    call vimshell#set_execute_file('tgz,gz', 'gzcat')
 	    call vimshell#set_execute_file('tbz,bz2', 'bzcat')
 	endif
+	
+	autocmd FileType vimshell
+	\ call vimshell#altercmd#define('g', 'git')
+	\| call vimshell#altercmd#define('i', 'iexe')
+	\| call vimshell#altercmd#define('l', 'll')
+	\| call vimshell#altercmd#define('ll', 'ls -l')
+	\| call vimshell#hook#add('chpwd', 'g:my_chpwd')
+	
+	function! g:my_chpwd()
+		call vimshell#execute('ls')
+	endfunction
 <
 ==============================================================================
-INTERNAL COMMANDS				*vimshell-internal-commands*
+INTERNAL COMMANDS					*vimshell-internal-commands*
 
 ==============================================================================
-SPECIAL COMMANDS				*vimshell-special-commands*
+SPECIAL COMMANDS					*vimshell-special-commands*
 
 ==============================================================================
-TODO						*vimshell-todo*
-
+ALTER COMMAND						*vimshell-alter-command*
+>
+	autocmd FileType vimshell
+	\ call vimshell#altercmd#define('g', 'git')
+<
 ==============================================================================
-BUGS						*vimshell-bugs*
-
+HOOK							*vimshell-hook*
+>
+	autocmd FileType vimshell
+	\ call vimshell#hook#add('chpwd', 'g:my_chpwd')
+	
+	function! g:my_chpwd(context)
+		call vimshell#execute('ls', a:context)
+	endfunction
+<
 ==============================================================================
-CREATE PLUGIN					*vimshell-create-plugin*
+CREATE PLUGIN						*vimshell-create-plugin*
 
 In this clause, I comment on a method to make plugin of vimshell.  The
 ability of vimshell will spread by creating plugin by yourself.
 
 ==============================================================================
-CHANGELOG					*vimshell-changelog*
+TODO							*vimshell-todo*
+
+==============================================================================
+BUGS							*vimshell-bugs*
+
+==============================================================================
+CHANGELOG						*vimshell-changelog*
+
+2010-04-20
+    * Marked as ver.6.50.
+    * Implemented .vimshrc quote.
+    * Revised Japanese help.
+
+2010-04-18
+    * Implemented include Vim Script syntax.
+
+2010-04-17
+    * Improved update behaivior on insert mode.
+    * Fixed g:VimShell_IgnoreCase default value.
+    * Improved g:VimShell_IgnoreCase behaivior.
+    * Detect head matches each prompt pattern.
+    * Fixed searchpos() bug.
+    * Improved prompt syntax highlight.
+
+2010-04-16
+    * Improved iexe update.
+    * Add history when parse passed.
+    * Improved vimshell exception and error mechanism.
+    * Improved auto update behaivior.
+    * Improved directory completion.
+    * Improved error catch.
+
+2010-04-14
+    * Improved vimshell#start_insert().
+    * Implemented multiline quote.
+    * Improved echo.
+    * Improved syntax of string.
+    * Fixed print and vexe split <CR> bugs.
+
+2010-04-13
+    * Improved quote parser.
+    * Revised Japanese help.
+    * Improved output check.
+    * Changed vexe as special command.
+    * Added eval internal command.
+    * Deleted ev internal command.
+    * Fixed vimshell#print_line().
+    * Improved alias and gailias error message.
+    * Improved alias parse.
+    * Changed hook specification.
+    * Improved context.
+
+2010-04-12
+    * Fixed command_complete bug.
+    * Improved expand wildcard.
+
+2010-04-08
+    * Fixed output check when program exited.
+    * Call hook functions if interactive only.
+    * Implemented emptycmd, precmd, preexec hooks.
+    * Deleted g:VimShell_EnableAutoLs option.
+    * Fixed s:check_output() error.
+    * Improved vimshell#print_prompt().
+
+2010-04-06
+    * Fixed help file.
+    * Changed gailias as special command.
+    * Fixed popd error.
+    * Disable output when inputing in iexe.
+    * Implemented hook.
+    * Added chpwd hook.
+
+2010-04-03
+    * Fixed autocd.
+    * Refactoringed.
+    * Implemented recursive altercmd and alias.
+    * Fixed auto complete bug when path contains blanks.
+    * Added execute option description.
+    * Improved bg.
+    * Fixed :VimShellSendString bug.
+
+2010-04-02
+    * Fixed vimshell#altercmd.
+
+2010-04-01
+    * Interpret escape sequence(experimental).
+    * Added internal command description.
+    * Fixed escape color.
+
+2010-03-19
+    * Fixed interrupt error.
+    * Supported comment in .vimshrc.
+    * Implemented altercmd.
+
+2010-03-03
+    * Improved restore current directory.
+    * Added scala support in iexe.
+    * Improved gcd command.
+    * Supported fakecygpty.
+    * Fixed error message in interactive.vim.
+    * Improved cd.
 
 2010-03-02
     * Fixed interactive_command_complete error.
@@ -728,4 +858,4 @@ ChangeLog 3.9-1.0{{{
      - Initial version.}}}
 
 ==============================================================================
-vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:fdm=marker:
+vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:fdm=marker:isk+=-:

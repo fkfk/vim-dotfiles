@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: bg.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 13 Feb 2010
+" Last Modified: 13 Apr 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -22,65 +22,6 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.17, for Vim 7.0
-"-----------------------------------------------------------------------------
-" ChangeLog: "{{{
-"   1.17:
-"     - Supported vimproc Ver.3.
-"     - Subsitute redirection.
-"
-"   1.16:
-"     - Improved filetype.
-"     - Improved update.
-"     - Improved syntax.
-"     - Supported encoding.
-"
-"   1.15:
-"     - Improved kill processes.
-"     - Use vimproc.vim.
-"
-"   1.14:
-"     - Improved error message.
-"     - Set syntax.
-"     - Improved execute message.
-"
-"   1.13:
-"     - Extend current directory.
-"
-"   1.12:
-"     - Set filetype.
-"
-"   1.11:
-"     - Kill zombee process.
-"
-"   1.10: Improved CursorHold event.
-"
-"   1.9: Fixed error on Linux.
-"
-"   1.8: Supported pipe.
-"
-"   1.7: Improved error catch.
-"     - Get status. 
-"
-"   1.6: Use interactive.
-"
-"   1.5: Improved autocmd.
-"
-"   1.4: Split nicely.
-"
-"   1.3:
-"     - Use g:VimShell_EnableInteractive option.
-"     - Use utls/process.vim.
-"
-"   1.2:
-"     - Use vimproc.
-"
-"   1.1:
-"     - Fixed in *nix.
-"
-"   1.0:
-"     - Initial version.
-""}}}
 "=============================================================================
 
 augroup vimshell_bg
@@ -90,10 +31,13 @@ augroup END
 function! vimshell#internal#bg#execute(program, args, fd, other_info)"{{{
   " Execute program in background.
   let [l:args, l:options] = vimshell#parser#getopt(a:args, 
-        \{ 'arg=' : ['--encoding']
+        \{ 'arg=' : ['--encoding', '--filetype']
         \})
   if !has_key(l:options, '--encoding')
     let l:options['--encoding'] = &termencoding
+  endif
+  if !has_key(l:options, '--filetype')
+    let l:options['--filetype'] = 'background'
   endif
 
   if empty(l:args)
@@ -132,19 +76,22 @@ function! vimshell#internal#bg#execute(program, args, fd, other_info)"{{{
     endtry
 
     " Set variables.
-    let b:interactive = {
+    let l:interactive = {
           \ 'process' : l:sub, 
           \ 'fd' : a:fd, 
-          \ 'encoding' : l:options['--encoding']
+          \ 'encoding' : l:options['--encoding'], 
+          \ 'is_pty' : !vimshell#iswin(), 
+          \ 'is_background' : 1, 
+          \ 'cached_output' : '', 
           \}
 
     " Input from stdin.
-    if b:interactive.fd.stdin != ''
-      call b:interactive.process.stdin.write(vimshell#read(a:fd))
+    if l:interactive.fd.stdin != ''
+      call l:interactive.process.stdin.write(vimshell#read(a:fd))
     endif
-    call b:interactive.process.stdin.close()
+    call l:interactive.process.stdin.close()
     
-    return vimshell#internal#bg#init(l:args, a:other_info.is_interactive)
+    return vimshell#internal#bg#init(l:args, a:fd, a:other_info, l:options['--filetype'], interactive)
   else
     " Execute in screen.
     let l:other_info = a:other_info
@@ -153,15 +100,15 @@ function! vimshell#internal#bg#execute(program, args, fd, other_info)"{{{
 endfunction"}}}
 
 function! vimshell#internal#bg#vimshell_bg(args)"{{{
-  call vimshell#internal#bg#execute('bg', vimshell#parser#split_args(a:args), {'stdin' : '', 'stdout' : '', 'stderr' : ''}, {'is_interactive' : 0, 'is_background' : 1})
+  call vimshell#internal#bg#execute('bg', vimshell#parser#split_args(a:args), {'stdin' : '', 'stdout' : '', 'stderr' : ''}, {'is_interactive' : 0})
 endfunction"}}}
 
-function! vimshell#internal#bg#init(args, is_interactive)"{{{
-  let l:vimproc = b:interactive
-  
+function! vimshell#internal#bg#init(args, fd, other_info, filetype, interactive)"{{{
   " Init buffer.
-  if a:is_interactive
-    call vimshell#print_prompt()
+  if a:other_info.is_interactive
+    let l:context = a:other_info
+    let l:context.fd = a:fd
+    call vimshell#print_prompt(l:context)
   endif
 
   " Save current directiory.
@@ -175,8 +122,8 @@ function! vimshell#internal#bg#init(args, is_interactive)"{{{
   setlocal buftype=nofile
   setlocal noswapfile
   setlocal nowrap
-  setfiletype background
-  let b:interactive = l:vimproc
+  let &filetype = a:filetype
+  let b:interactive = a:interactive
 
   " Set syntax.
   syn region   InteractiveError   start=+!!!+ end=+!!!+ contains=InteractiveErrorHidden oneline
@@ -194,6 +141,11 @@ function! vimshell#internal#bg#init(args, is_interactive)"{{{
   nnoremap <buffer><silent><CR>       :<C-u>call <SID>on_execute()<CR>
   call s:on_execute()
 
+  wincmd w
+  if has_key(a:other_info, 'is_insert') && a:other_info.is_insert
+    call vimshell#start_insert()
+  endif
+
   return 1
 endfunction"}}}
 
@@ -205,10 +157,10 @@ function! s:on_execute()
 endfunction
 
 function! s:on_hold()
-  call vimshell#interactive#execute_pipe_out()
+  call vimshell#interactive#check_output(b:interactive, bufnr('%'), bufnr('%'))
 
   if b:interactive.process.is_valid
-    normal! hl
+    call feedkeys("\<C-r>\<ESC>", 'n')
   endif
 endfunction
 

@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: exe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 15 Feb 2010
+" Last Modified: 02 Apr 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -22,47 +22,6 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.10, for Vim 7.0
-"-----------------------------------------------------------------------------
-" ChangeLog: "{{{
-"   1.10:
-"     - Supported vimproc Ver.3.
-"     - Improved redraw in executing.
-"
-"   1.9:
-"     - Fixed indent.
-"     - Implemented background execution and interrupt.
-"     - Supported encoding.
-"
-"   1.8:
-"     - Improved echo.
-"     - Use vimproc.vim.
-"
-"   1.7:
-"     - Improved kill processes.
-"
-"   1.6:
-"     - Improved error message.
-"     - Improved execute message.
-"     - Use sexe.
-"
-"   1.5:
-"     - Fixed stdin bug when g:VimShell_EnableInteractive is 0.
-"
-"   1.4:
-"     - Kill zombee process.
-"
-"   1.3:
-"     - Supported pipe.
-"     - Improved in console.
-"
-"   1.2: Improved error catch.
-"     - Get status. 
-"
-"   1.1: Use interactive.
-"
-"   1.0: Initial version.
-""}}}
 "=============================================================================
 
 function! vimshell#internal#exe#execute(program, args, fd, other_info)"{{{
@@ -113,7 +72,7 @@ function! vimshell#internal#exe#execute(program, args, fd, other_info)"{{{
     redraw
     echo ''
     
-    let b:vimshell_system_variables['status'] = b:interactive.status
+    let b:vimshell.system_variables['status'] = b:interactive.status
   else
     let l:fd = a:fd
     " Null input.
@@ -146,7 +105,9 @@ function! s:init_process(fd, args, options)
   let b:interactive = {
         \ 'process' : l:sub, 
         \ 'fd' : a:fd, 
-        \ 'encoding' : a:options['--encoding']
+        \ 'encoding' : a:options['--encoding'], 
+        \ 'is_pty' : !vimshell#iswin(), 
+        \ 'is_background': 0, 
         \}
 
   " Input from stdin.

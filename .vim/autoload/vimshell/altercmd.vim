@@ -1,8 +1,7 @@
 "=============================================================================
-" FILE: alias.vim
-" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
+" FILE: altercmd.vim
+" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
 " Last Modified: 13 Apr 2010
-" Usage: Just source this file.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -25,37 +24,32 @@
 " }}}
 "=============================================================================
 
-function! vimshell#special#alias#execute(program, args, fd, other_info)
-  if empty(a:args)
-    " View all aliases.
-    for alias in keys(b:vimshell.alias_table)
-      call vimshell#print_line(a:fd, printf('%s=%s', alias, b:vimshell.alias_table[alias]))
-    endfor
-  elseif join(a:args) =~ '^\h\w*$'
-    if has_key(b:vimshell.alias_table, a:args[0])
-      " View alias.
-      call vimshell#print_line(a:fd, b:vimshell.alias_table[a:args[0]])
-    endif
-  else
-    " Define alias.
-    let l:args = join(a:args)
+function! vimshell#altercmd#define(original, alternative)"{{{
+  execute 'inoreabbrev <buffer><expr>' a:original
+        \ '(join(vimshell#get_current_args()) ==# "' . a:original  . '")?' 
+        \ s:SID_PREFIX().'recursive_expand_altercmd('.string(a:original).')' ':' string(a:original)
+  let b:vimshell.altercmd_table[a:original] = a:alternative
+endfunction"}}}
 
-    " Parse command line.
-    let l:alias_name = matchstr(l:args, '^\h\w*')
-
-    " Next.
-    let l:args = l:args[matchend(l:args, '^\h\w*') :]
-    if l:alias_name == '' || l:args !~ '^\s*=\s*'
-      throw 'Wrong syntax: ' . l:args
-    endif
-
-    " Skip =.
-    let l:expression = l:args[matchend(l:args, '^\s*=\s*') :]
-
-    try
-      execute printf('let b:vimshell.alias_table[%s] = %s', string(l:alias_name),  string(l:expression))
-    catch
-      throw 'Wrong syntax: ' . l:args
-    endtry
-  endif
+function! s:SID_PREFIX()
+  return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID_PREFIX$')
 endfunction
+
+function! s:recursive_expand_altercmd(string)
+  " Recursive expand altercmd.
+  let l:abbrev = b:vimshell.altercmd_table[a:string]
+  let l:expanded = {}
+  while 1
+    let l:key = vimshell#parser#split_args(l:abbrev)[-1]
+    if has_key(l:expanded, l:abbrev) || !has_key(b:vimshell.altercmd_table, l:abbrev)
+      break
+    endif
+    
+    let l:expanded[l:abbrev] = 1
+    let l:abbrev = b:vimshell.altercmd_table[l:abbrev]
+  endwhile
+
+  return l:abbrev
+endfunction
+
+" vim: foldmethod=marker
