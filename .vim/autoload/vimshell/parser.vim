@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: parser.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 13 Apr 2010
+" Last Modified: 02 May 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -37,15 +37,8 @@ function! vimshell#parser#eval_script(script, context)"{{{
   let l:skip_prompt = 0
   " Split statements.
   for l:statement in vimshell#parser#split_statements(a:script)
-    let l:args = vimshell#parser#split_args(l:statement)
+    let l:statement = s:parse_galias(l:statement)
 
-    " Expand global alias.
-    for l:arg in l:args
-      if has_key(b:vimshell.galias_table, l:arg)
-        let l:arg = b:vimshell.galias_table[l:arg]
-      endif
-    endfor
-    
     " Get program.
     let l:program = matchstr(l:statement, vimshell#get_program_pattern())
     if l:program  == ''
@@ -56,7 +49,9 @@ function! vimshell#parser#eval_script(script, context)"{{{
     if has_key(b:vimshell.alias_table, l:program) && !empty(b:vimshell.alias_table[l:program])
       " Expand alias.
       let l:alias = s:recursive_expand_alias(l:program)
-      let l:program = l:alias
+      let l:script = join(vimshell#parser#split_args(l:alias)) . l:script
+      let l:program = matchstr(l:script, vimshell#get_program_pattern())
+      let l:script = l:script[len(l:program) :]
     endif
     if l:program != '' && l:program[0] == '~'
       " Parse tilde.
@@ -98,11 +93,6 @@ function! vimshell#parser#eval_script(script, context)"{{{
         let [l:fd, l:script] = s:parse_redirection(l:script)
       else
         let l:fd = { 'stdin' : '', 'stdout' : '', 'stderr' : '' }
-      endif
-
-      " Parse pipe.
-      if l:script =~ '|'
-        let l:script = s:parse_pipe(l:script)
       endif
 
       " Split args.
@@ -203,10 +193,10 @@ function! vimshell#parser#execute_command(program, args, fd, other_info)"{{{
 
     " Suffix execution.
     let l:ext = fnamemodify(l:program, ':e')
-    if !empty(l:ext) && has_key(g:VimShell_ExecuteFileList, l:ext)
+    if !empty(l:ext) && has_key(g:vimshell_execute_file_list, l:ext)
       " Execute file.
-      let l:execute = split(g:VimShell_ExecuteFileList[l:ext])[0]
-      let l:arguments = extend(split(g:VimShell_ExecuteFileList[l:ext])[1:], insert(l:arguments, l:program))
+      let l:execute = split(g:vimshell_execute_file_list[l:ext])[0]
+      let l:arguments = extend(split(g:vimshell_execute_file_list[l:ext])[1:], insert(l:arguments, l:program))
       return vimshell#parser#execute_command(l:execute, l:arguments, a:fd, a:other_info)
     endif
 
@@ -376,6 +366,46 @@ function! vimshell#parser#split_args(script)"{{{
 
   return l:ret
 endfunction"}}}
+function! vimshell#parser#split_pipe(script)"{{{
+  let l:script = ''
+
+  let l:i = 0
+  let l:max = len(a:script)
+  let l:commands = []
+  while l:i < l:max
+    if a:script[l:i] == '|'
+      " Pipe.
+      call add(l:commands, l:script)
+
+      " Search next command.
+      let l:script = ''
+      let l:i += 1
+    elseif a:script[l:i] == "'"
+      " Single quote.
+      let [l:string, l:i] = s:skip_quote(a:script, l:i)
+      let l:script .= l:string
+    elseif a:script[l:i] == '"'
+      " Double quote.
+      let [l:string, l:i] = s:skip_double_quote(a:script, l:i)
+      let l:script .= l:string
+    elseif a:script[l:i] == '`'
+      " Back quote.
+      let [l:string, l:i] = s:skip_back_quote(a:script, l:i)
+      let l:script .= l:string
+    elseif a:script[l:i] == '\' && l:i + 1 < l:max
+      " Escape.
+      let l:script .= '\' . a:script[l:i+1]
+      let l:i += 2
+    else
+      let l:script .= a:script[l:i]
+      let l:i += 1
+    endif
+  endwhile
+
+  call add(l:commands, l:script)
+
+  return l:commands
+endfunction"}}}
 function! vimshell#parser#split_commands(script)"{{{
   let l:script = a:script
   let l:max = len(l:script)
@@ -499,6 +529,54 @@ function! vimshell#parser#getopt(args, optsyntax)"{{{
 endfunction"}}}
 
 " Parse helper.
+function! s:parse_galias(script)"{{{
+  let l:script = a:script
+  let l:max = len(l:script)
+  let l:args = []
+  let l:arg = ''
+  let l:i = 0
+  while l:i < l:max
+    if l:script[i] == '\'
+      " Escape.
+      let l:i += 1
+
+      if l:i > l:max
+        throw 'Exception: Join to next line (\).'
+      endif
+
+      let l:arg .= l:script[i]
+      let l:i += 1
+    elseif l:script[l:i] != ' '
+      let l:arg .= l:script[l:i]
+      let l:i += 1
+    else
+      " Space.
+      if l:arg != ''
+        call add(l:args, l:arg)
+      endif
+
+      let l:arg = ''
+
+      let l:i += 1
+    endif
+  endwhile
+
+  if l:arg != ''
+    call add(l:args, l:arg)
+  endif
+  
+  " Expand global alias.
+  let i = 0
+  for l:arg in l:args
+    if has_key(b:vimshell.galias_table, l:arg)
+      let l:args[i] = b:vimshell.galias_table[l:arg]
+    endif
+
+    let i += 1
+  endfor
+
+  return join(l:args)
+endfunction"}}}
 function! s:parse_block(script)"{{{
   let l:script = ''
 
@@ -623,7 +701,7 @@ function! s:parse_wildcard(script)"{{{
       let l:head = matchstr(a:script[: l:i-1], '[^[:blank:]]*$')
       let l:wildcard = l:head . matchstr(a:script, '^[^[:blank:]]*', l:i)
       " Trunk l:script.
-      let l:script = l:script[: -len(l:wildcard)+1]
+      let l:script = l:script[: -len(l:wildcard)]
 
       let l:script .= join(vimshell#parser#expand_wildcard(l:wildcard))
       let l:i = matchend(a:script, '^[^[:blank:]]*', l:i)
@@ -663,23 +741,6 @@ function! s:parse_redirection(script)"{{{
   endwhile
 
   return [l:fd, l:script]
-endfunction"}}}
-function! s:parse_pipe(script)"{{{
-  let l:script = ''
-
-  let l:i = 0
-  let l:max = len(a:script)
-  while l:i < l:max
-    if a:script[l:i] == '|'
-      " Pipe.
-      let l:script .= ' | '
-      let l:i += 1
-    else
-      let [l:script, l:i] = s:skip_else(l:script, a:script, l:i)
-    endif
-  endwhile
-
-  return l:script
 endfunction"}}}
 
 function! s:parse_single_quote(script, i)"{{{
@@ -823,7 +884,7 @@ function! s:skip_else(args, script, i)"{{{
   return [l:script, l:i]
 endfunction"}}}
 
-function! s:recursive_expand_alias(string)
+function! s:recursive_expand_alias(string)"{{{
   " Recursive expand alias.
   let l:alias = b:vimshell.alias_table[a:string]
   let l:expanded = {}
@@ -838,6 +899,6 @@ function! s:recursive_expand_alias(string)
   endwhile
 
   return l:alias
-endfunction
+endfunction"}}}
 
 " vim: foldmethod=marker

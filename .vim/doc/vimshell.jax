@@ -1,6 +1,6 @@
 *vimshell.txt*	Vim Scriptで実装された強力なシェル
 
-Version: 6.50
+Version: 7.0
 Author : Shougo <Shougo.Matsu@gmail.com>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
@@ -98,14 +98,11 @@ Make方法
 
         $ make -f make_msvc.mak
 
-コンパイルが通ったら、autoloadにあるproc.vimとproc.soを.vimのautoloadディレクトリにコピーします。
+* Cygwin:
 
-あとは.vimrc上で
->
-    let g:VimShell_EnableInteractive = 1
-<
-とすると、非同期実行が有効になります。
-vimshellは非同期実行のとき、Vimのシェル設定を利用しません。
+        $ make -f make_cygwin.mak
+
+コンパイルが通ったら、autoloadにあるproc.vimとproc.soを.vimのautoloadディレクトリにコピーします。
 
 ==============================================================================
 INTERFACE						*vimshell-interface*
@@ -142,33 +139,71 @@ COMMANDS 						*vimshell-commands*
 ------------------------------------------------------------------------------
 VARIABLES 						*vimshell-variables*
 
-g:VimShell_IgnoreCase					*g:VimShell_IgnoreCase*
+g:vimshell_no_default_keymappings			*g:vimshell_no_default_keymappings*
+			vimshellのデフォルトマッピングをすべて無効化します。
+			新しくマッピングしない限り、vimshellの機能が使えなく
+			なるので、初心者にはお勧めできません。内部動作を知
+			り尽くしている上級者向けのオプションです。
+
+g:vimshell_ignore_case					*g:vimshell_ignore_case*
+			
+
+g:vimshell_smart_case					*g:vimshell_smart_case*
+			
+
+g:vimshell_max_list					*g:vimshell_max_list*
+			
+
+g:vimshell_use_ckw					*g:vimshell_use_ckw*
+			
+
+g:vimshell_split_height					*g:vimshell_split_height*
+			
+
+g:vimshell_temporary_directory				*g:vimshell_temporary_directory*
+			
+
+g:vimshell_history_max_size				*g:vimshell_history_max_size*
+			
+
+g:vimshell_vimshrc_path					*g:vimshell_vimshrc_path*
+			
+
+g:vimshell_escape_colors				*g:vimshell_escape_colors*
 			
 
 ------------------------------------------------------------------------------
 KEY MAPPINGS 						*vimshell-key-mappings*
 
-<Plug>(vimshell_)					*<Plug>(vimshell_)*
+<Plug>(vimshell_split_switch)				*<Plug>(vimshell_split_switch)*
+			
+
+<Plug>(vimshell_split_create)				*<Plug>(vimshell_split_create)*
+			
+
+<Plug>(vimshell_switch)					*<Plug>(vimshell_switch)*
+			
+
+<Plug>(vimshell_create)					*<Plug>(vimshell_create)*
 			
 
 ==============================================================================
 EXAMPLES						*vimshell-examples*
 >
-	let g:VimShell_UserPrompt = 'fnamemodify(getcwd(), ":~")'
-	let g:VimShell_RightPrompt = 'vimshell#vcs#info("(%s)-[%b]", "(%s)-[%b|%a]")'
-	let g:VimShell_EnableInteractive = 1
-	let g:VimShell_EnableSmartCase = 1
+	let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
+	let g:vimshell_right_prompt = 'vimshell#vcs#info("(%s)-[%b]", "(%s)-[%b|%a]")'
+	let g:vimshell_enable_smart_case = 1
 	
 	if has('win32') || has('win64') 
 	    " Display user name on Windows.
-	    let g:VimShell_Prompt = $USERNAME."% "
+	    let g:vimshell_prompt = $USERNAME."% "
 	else
 	    " Display user name on Linux.
-	    let g:VimShell_Prompt = $USER."% "
+	    let g:vimshell_prompt = $USER."% "
 	
 	    call vimshell#set_execute_file('bmp,jpg,png,gif', 'gexe eog')
 	    call vimshell#set_execute_file('mp3,m4a,ogg', 'gexe amarok')
-	    let g:VimShell_ExecuteFileList['zip'] = 'zipinfo'
+	    let g:vimshell_execute_file_list['zip'] = 'zipinfo'
 	    call vimshell#set_execute_file('tgz,gz', 'gzcat')
 	    call vimshell#set_execute_file('tbz,bz2', 'bzcat')
 	endif
@@ -334,15 +369,9 @@ screen {command}					*vimshell-internal-screen*
 		{command}をscreen上で実行します。端末の機能を用いるプログラ
 		ムを起動したいときに便利です。当然Windows上では動作しません。
 
-sexe {command}						*vimshell-internal-sexe*
-		{command}を'shell'上で実行します。 vimshellでの起動に不具合
-		があるときに使用します。 'shell'が適切に設定されていないと動
-		作がおかしくなります。Windows環境では一瞬DOS窓が表示されてし
-		まいます。
-
 shell 							*vimshell-internal-shell*
 		|:shell|を用いて'shell'を起動します。Windows上のGVimでかつ
-		|g:VimShell_UseCkw| が設定されている場合、DOSプロンプトでは
+		|g:vimshell_use_ckw| が設定されている場合、DOSプロンプトでは
 		なく、ckw上でシェルを起動します。
 
 sudo {command}						*vimshell-internal-sudo*
@@ -392,6 +421,12 @@ galias {global-alias-name} = {command}			*vimshell-internal-galias*
 let ${var-name} = {expression}				*vimshell-special-let*
 		{var-name}の変数へ{expression}を代入します。
 		{var-name}の先頭には$を付加しなければなりません。
+
+sexe {command}						*vimshell-special-sexe*
+		{command}を'shell'上で実行します。 vimshellでの起動に不具合
+		があるときに使用します。 'shell'が適切に設定されていないと動
+		作がおかしくなります。Windows環境では一瞬DOS窓が表示されてし
+		まいます。
 
 ==============================================================================
 ALTER COMMAND						*vimshell-alter-command*

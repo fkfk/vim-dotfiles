@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: mappings.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 16 Apr 2010
+" Last Modified: 05 May 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -140,9 +140,10 @@ function! vimshell#mappings#execute_line(is_insert)"{{{
     call vimshell#start_insert(a:is_insert)
   endtry
 
-  if exists('vimshell#hist_size') && getfsize(g:VimShell_HistoryPath) != vimshell#hist_size
+  let l:history_path = g:vimshell_temporary_directory . '/command_history'
+  if exists('vimshell#hist_size') && getfsize(l:history_path) != vimshell#hist_size
     " Reload.
-    let g:vimshell#hist_buffer = readfile(g:VimShell_HistoryPath)
+    let g:vimshell#hist_buffer = readfile(l:history_path)
   endif
   " Not append history if starts spaces or dups.
   if l:line !~ '^\s'
@@ -324,6 +325,16 @@ function! vimshell#mappings#expand_wildcard()"{{{
 
   return (pumvisible() ? "\<C-e>" : '')
         \ . repeat("\<BS>", len(l:wildcard)) . join(l:expanded)
+endfunction"}}}
+function! vimshell#mappings#exit()"{{{
+  let l:vimsh_buf = bufnr('%')
+  " Switch buffer.
+  if winnr('$') != 1
+    close
+  else
+    call vimshell#alternate_buffer()
+  endif
+  execute 'bdelete!'. l:vimsh_buf
 endfunction"}}}
 
 " vim: foldmethod=marker

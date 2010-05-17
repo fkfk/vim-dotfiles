@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: int_mappings.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 11 Feb 2010
+" Last Modified: 13 May 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -26,11 +26,12 @@
 
 " vimshell interactive key-mappings functions.
 function! vimshell#int_mappings#delete_backword_char()"{{{
+  let l:prefix = pumvisible() ? "\<C-y>" : ""
   " Prevent backspace over prompt
   if !has_key(b:interactive.prompt_history, line('.')) || getline(line('.')) != b:interactive.prompt_history[line('.')]
-    return "\<BS>"
+    return l:prefix . "\<BS>"
   else
-    return ""
+    return l:prefix
   endif
 endfunction"}}}
 function! vimshell#int_mappings#execute_history(is_insert)"{{{
@@ -99,27 +100,15 @@ function! vimshell#int_mappings#execute_line(is_insert)"{{{
     return
   endif
 
+  if &termencoding != '' && &encoding != &termencoding
+    " Convert encoding.
+    let l:filename = iconv(l:filename, &encoding, &termencoding)
+  endif
+
   " Execute cursor file.
   if l:filename =~ '^\%(https\?\|ftp\)://'
     " Open uri.
-
-    " Detect desktop environment.
-    if vimshell#iswin()
-      execute printf('silent ! start "" "%s"', l:filename)
-    elseif has('mac')
-      call system('open ' . l:filename . '&')
-    elseif exists('$KDE_FULL_SESSION') && $KDE_FULL_SESSION ==# 'true'
-      " KDE.
-      call system('kfmclient exec ' . l:filename . '&')
-    elseif exists('$GNOME_DESKTOP_SESSION_ID')
-      " GNOME.
-      call system('gnome-open ' . l:filename . '&')
-    elseif executable(vimshell#getfilename('exo-open'))
-      " Xfce.
-      call system('exo-open ' . l:filename . '&')
-    else
-      throw 'Not supported.'
-    endif
+    call vimshell#open(l:filename)
   endif
 endfunction"}}}
 function! vimshell#int_mappings#paste_prompt()"{{{
@@ -145,6 +134,39 @@ function! vimshell#int_mappings#close_popup()"{{{
   let l:ret .= "\<C-l>\<BS>"
 
   return l:ret
+endfunction"}}}
+function! vimshell#int_mappings#restart_command()"{{{
+  if exists('b:interactive') && b:interactive.process.is_valid
+    " Delete zombee process.
+    call vimshell#interactive#force_exit()
+  endif
+  
+  set modifiable
+  " Clean up the screen.
+  % delete _
+  call vimshell#terminal#clear_highlight()
+  
+  " Initialize.
+  let l:sub = vimproc#ptyopen(b:interactive.args)
+  
+  call vimshell#internal#iexe#default_settings()
+
+  " Set variables.
+  call extend(b:interactive, {
+        \ 'process' : l:sub, 
+        \ 'is_secret': 0, 
+        \ 'prompt_history' : {}, 
+        \ 'command_history' : [], 
+        \ 'cached_output' : '', 
+        \}, 'force')
+
+  call vimshell#interactive#execute_pty_out(1)
+  if getline(line('$')) =~ '^\s*$'
+    let b:interactive.prompt_history[line('$')] = ''
+    call setline(line('$'), '...')
+  endif
+
+  startinsert!
 endfunction"}}}
 
 " vim: foldmethod=marker
