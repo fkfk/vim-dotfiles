@@ -185,6 +185,24 @@ BUGS							*vimshell-bugs*
 ==============================================================================
 CHANGELOG						*vimshell-changelog*
 
+2010-05-23
+- Fixed cd error.
+- Fixed <C-e> behaivior in iexe.
+- Improved interactive complete.
+- Improved alias parse.
+- Added :VimShellRead command.
+
+2010-05-19
+- Fixed error in output check.
+- Fixed output.
+- Improved error line.
+
+2010-05-18
+- Added :VimShellBang command.
+- Fixed output check error.
+- Improved output check.
+- Improved autocmd.
+
 2010-05-15
 * Improved output check.
 * Improved Cygwin detect.

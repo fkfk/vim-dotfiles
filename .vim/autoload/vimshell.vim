@@ -1,8 +1,7 @@
 "=============================================================================
 " FILE: vimshell.vim
-" AUTHOR: Janakiraman .S <prince@india.ti.com>(Original)
-"         Shougo Matsushita <Shougo.Matsu@gmail.com>(Modified)
-" Last Modified: 15 May 2010
+" AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
+" Last Modified: 23 May 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -74,11 +73,10 @@ elseif vimshell#head_match('[%] ', s:secondary_prompt) || vimshell#head_match(s:
   finish
 endif"}}}
 
-augroup VimShellAutoCmd"{{{
+augroup vimshell
   autocmd!
-  autocmd BufWinEnter \[*]vimshell call s:restore_current_dir()
   autocmd GUIEnter * set vb t_vb=
-augroup end"}}}
+augroup end
 
 " User utility functions."{{{
 function! vimshell#default_settings()"{{{
@@ -89,6 +87,11 @@ function! vimshell#default_settings()"{{{
   setlocal nolist
   setlocal tabstop=8
   setlocal omnifunc=vimshell#complete#auto_complete#omnifunc
+  
+  " Set autocommands.
+  augroup vimshell
+    autocmd BufWinEnter <buffer> call s:restore_current_dir()
+  augroup end
 
   " Plugin keymappings"{{{
   nnoremap <buffer><silent> <Plug>(vimshell_enter)  :<C-u>call vimshell#mappings#execute_line(0)<CR><ESC>
@@ -447,7 +450,7 @@ function! vimshell#error_line(fd, string)"{{{
     return
   endif
 
-  let l:string = '!!! ' . a:string . ' !!!'
+  let l:string = '!!!' . a:string . '!!!'
 
   if line('$') == 1 && getline('$') == ''
     call setline('$', l:string)
@@ -708,7 +711,7 @@ function! vimshell#open(filename)"{{{
     call vimshell#system('cygstart ''' . l:filename . '''')
   elseif executable('xdg-open')
     " Linux.
-    call vimshell#system('xdg-open ''' . l:filename . '''')
+    call vimshell#system('xdg-open ''' . l:filename . ''' &')
   elseif exists('$KDE_FULL_SESSION') && $KDE_FULL_SESSION ==# 'true'
     " KDE.
     call vimshell#system('kioclient exec ''' . l:filename . '''')
@@ -800,6 +803,13 @@ function! vimshell#get_context()"{{{
   return s:context
 endfunction"}}}
 function! vimshell#set_alias(name, value)"{{{
+  if !exists('b:vimshell')
+    let b:vimshell = {}
+  endif
+  if !has_key(b:vimshell, 'alias_table')
+    let b:vimshell.alias_table = {}
+  endif
+  
   if a:value == ''
     " Delete alias.
     call remove(b:vimshell.alias_table, a:name)
@@ -811,6 +821,13 @@ function! vimshell#get_alias(name)"{{{
   return get(b:vimshell.alias_table, a:name, '')
 endfunction"}}}
 function! vimshell#set_galias(name, value)"{{{
+  if !exists('b:vimshell')
+    let b:vimshell = {}
+  endif
+  if !has_key(b:vimshell, 'galias_table')
+    let b:vimshell.galias_table = {}
+  endif
+  
   if a:value == ''
     " Delete alias.
     call remove(b:vimshell.galias_table, a:name)
@@ -860,10 +877,6 @@ endfunction"}}}
 
 
 function! s:restore_current_dir()"{{{
-  if !exists('b:vimshell')
-    return
-  endif
-
   lcd `=fnamemodify(b:vimshell.save_dir, ':p')`
 endfunction"}}}
 
