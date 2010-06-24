@@ -2,7 +2,7 @@
 " FILE: vimproc.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com> (Modified)
 "          Yukihiro Nakadaira <yukihiro.nakadaira at gmail.com> (Original)
-" Last Modified: 22 May 2010
+" Last Modified: 24 Jun 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -23,23 +23,26 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 4.0, for Vim 7.0
+" Version: 4.1, for Vim 7.0
 "=============================================================================
 
-" Dummy declaration."{{{
-function! vimproc#system()
-endfunction
 function! vimproc#version()
-endfunction"}}}
+  return str2nr(printf('%2d%02d', 4, 1))
+endfunction
 
 let s:is_win = has('win32') || has('win64')
 let s:last_status = 0
-let s:is_vimshell = exists('*vimshell#version')
+let s:exists_vimshell = exists('*vimshell#version')
 
 if exists('g:vimproc_dll_path')
   let s:dll_path = g:vimproc_dll_path
 else
-  let s:dll_path = expand("<sfile>:p:h") . (s:is_win || exists('$WINDIR')? '/proc.dll' : '/proc.so')
+  let s:dll_path = expand("<sfile>:p:h") . ((s:is_win || has('win32unix'))? '/proc.dll' : '/proc.so')
+endif
+
+if !filereadable(s:dll_path)
+  execute 'echoerr' printf('"%s" is not found. Please make it.', s:dll_path)
+  finish
 endif
 
 if has('iconv')
@@ -51,16 +54,111 @@ endif
 "-----------------------------------------------------------
 " API
 
-function! vimproc#version()"{{{
-  return '4.0'
+function! vimproc#open(filename)"{{{
+  let l:filename = a:filename
+  if &termencoding != '' && &encoding != &termencoding
+    " Convert encoding.
+    let l:filename = iconv(l:filename, &encoding, &termencoding)
+  endif
+
+  " Detect desktop environment.
+  if vimshell#iswin()
+    " For URI only.
+    "execute '!start rundll32 url.dll,FileProtocolHandler' l:filename
+    
+    call s:libcall('vp_open', [fnamemodify(a:filename, ':p')])
+  elseif has('win32unix')
+    " Cygwin.
+    call vimproc#system(['cygstart', l:filename])
+  elseif executable('xdg-open')
+    " Linux.
+    call vimproc#system_bg(['xdg-open', l:filename])
+  elseif exists('$KDE_FULL_SESSION') && $KDE_FULL_SESSION ==# 'true'
+    " KDE.
+    call vimproc#system_bg(['kioclient', 'exec', l:filename])
+  elseif exists('$GNOME_DESKTOP_SESSION_ID')
+    " GNOME.
+    call vimproc#system_bg(['gnome-open', l:filename])
+  elseif executable('exo-open')
+    " Xfce.
+    call vimproc#system_bg(['exo-open', l:filename])
+  elseif (has('macunix') || system('uname') =~? '^darwin') && executable('open')
+    " Mac OS.
+    call vimproc#system_bg(['open', l:filename])
+  else
+    " Give up.
+    throw 'vimproc#open: Not supported.'
+  endif
+endfunction"}}}
+
+function! vimproc#get_command_name(command, ...)"{{{
+  if a:0 > 2
+    throw 'vimproc#get_command_name: Invalid argument.'
+  endif
+  
+  if a:0 >= 1
+    let l:path = a:1
+  elseif s:is_win 
+    let l:path = substitute(substitute($PATH, ';', ',', 'g'), '\s', '\\\\ ', 'g')
+  else
+    let l:path = substitute(substitute($PATH, ':', ',', 'g'), '\s', '\\\\ ', 'g')
+  endif
+
+  let l:count = a:0 < 2 ? 1 : a:2
+  
+  let l:command = expand(a:command)
+  
+  let l:pattern = printf('[/~]\?\f\+[%s]\f*$', s:is_win ? '/\\' : '/')
+  if l:command =~ l:pattern
+    if (s:is_win && fnamemodify(l:command, ':e') ==? 'lnk')
+          \|| getftype(l:file) ==# "link"
+      let l:command = resolve(l:command)
+    endif
+
+    if !filereadable(l:command)
+      throw printf('vimproc#get_command_name: File "%s" is not found.', l:command)
+    elseif !executable(l:command)
+      throw printf('vimproc#get_command_name: File "%s" is not executable.', l:command)
+    endif
+
+    return l:command
+  endif
+
+  " Command search.
+  let l:suffixesadd_save = &l:suffixesadd
+  let &l:suffixesadd = s:is_win ? substitute($PATHEXT.';.LNK', ';', ',', 'g') : ''
+  let l:file = findfile(l:command, l:path, l:count)
+  let &l:suffixesadd = l:suffixesadd_save
+
+  if l:count < 0
+    return filter(l:file, 'executable(v:val)')
+  else
+    if (s:is_win && fnamemodify(l:file, ':e') ==? 'lnk')
+          \|| getftype(l:file) ==# "link"
+      let l:file = resolve(l:file)
+    endif
+
+    if l:file == ''
+      throw printf('vimproc#get_command_name: File "%s" is not found.', l:command)
+    elseif !executable(l:file)
+      throw printf('vimproc#get_command_name: File "%s" is not executable.', l:file)
+    endif
+  endif
+
+  return l:file
 endfunction"}}}
 
 function! vimproc#system(cmdline, ...)"{{{
   if type(a:cmdline) == type('')
-    if s:is_vimshell
+    if a:cmdline =~ '&\s*$'
+      return vimproc#system_bg(a:cmdline)
+    elseif (!has('unix') || a:cmdline !~ '^\s*man ') && s:exists_vimshell
       return (a:0 == 0) ? vimproc#parser#system(a:cmdline) : vimproc#parser#system(a:cmdline, join(a:000))
     else
-      return (a:0 == 0) ? system(a:cmdline) : system(a:cmdline, join(a:000))
+      let l:output = (a:0 == 0) ? system(a:cmdline) : system(a:cmdline, join(a:000))
+      let s:last_status = v:shell_error
+      let s:last_errmsg = ''
+      return l:output
     endif
   endif
   
@@ -101,6 +199,41 @@ function! vimproc#system(cmdline, ...)"{{{
 
   return l:output
 endfunction"}}}
+function! vimproc#system_bg(cmdline)"{{{
+  if type(a:cmdline) == type('')
+    if s:is_win
+      let l:cmdline = (a:cmdline =~ '&\s*$')? a:cmdline[: match(a:cmdline, '&\s*$') - 1] : a:cmdline
+      silent execute '!start' l:cmdline
+      return ''
+    elseif (!has('unix') || a:cmdline !~ '^\s*man ') && s:exists_vimshell
+      return vimproc#parser#system_bg(a:cmdline)
+    else
+      let l:output = system(a:cmdline)
+      let s:last_status = v:shell_error
+      let s:last_errmsg = ''
+      return l:output
+    endif
+  endif
+  
+  if s:is_win
+    silent execute '!start' join(map(a:cmdline, '"\"".v:val."\""'))
+  else
+    if !exists('s:bg_processes')"{{{
+      let s:bg_processes = {}
+
+      augroup vimproc
+        autocmd CursorHold * call s:garbage_collect()
+      augroup END
+    endif"}}}
+    
+    " Open pipe.
+    let l:subproc = vimproc#popen3(a:cmdline)
+    let s:bg_processes[l:subproc.pid] = l:subproc
+  endif
+  
+  return ''
+endfunction"}}}
+
 function! vimproc#get_last_status()"{{{
   return s:last_status
 endfunction"}}}
@@ -108,7 +241,7 @@ function! vimproc#get_last_errmsg()"{{{
   return s:last_errmsg
 endfunction"}}}
 
-function! vimproc#open(path, flags, ...)"{{{
+function! vimproc#fopen(path, flags, ...)"{{{
   let l:mode = get(a:000, 0, 0)
   let l:fd = s:vp_file_open(a:path, a:flags, l:mode)
   return s:fdopen(l:fd, 'vp_file_close', 'vp_file_read', 'vp_file_write')
@@ -289,6 +422,36 @@ function! s:fdopen_pipes(fd, f_close, f_read, f_write)"{{{
         \}
 endfunction"}}}
 
+function! s:garbage_collect()"{{{
+  for l:proc in values(s:bg_processes)
+    " Check processes.
+    if !l:proc.stdout.eof
+      call l:proc.stdout.read(-1, 0)
+      continue
+    endif
+    
+    let [l:cond, s:last_status] = l:proc.waitpid()
+    if l:cond != 'exit'
+      try
+        " Kill process.
+        " 15 == SIGTERM
+        call l:proc.kill(15)
+      catch
+        " Ignore error.
+      endtry
+    endif
+
+    call remove(s:bg_processes, l:proc.pid)
+    if empty(s:bg_processes)
+      unlet s:bg_processes
+
+      augroup vimproc
+        autocmd!
+      augroup END
+    endif
+  endfor
+endfunction"}}}
+
 "-----------------------------------------------------------
 " UTILS
 
@@ -324,51 +487,30 @@ function! s:convert_args(args)"{{{
     return []
   endif
 
-  let l:args = insert(a:args[1:], s:getfilename(a:args[0]))
-
-  return l:args
+  return s:analyze_shebang(vimproc#get_command_name(a:args[0])) + a:args[1:]
 endfunction"}}}
 
-function! s:getfilename(command)"{{{
-  let l:PATH_SEPARATOR = s:is_win ? '/\\' : '/'
-  let l:pattern = printf('[/~]\?\f\+[%s]\f*$', l:PATH_SEPARATOR)
-  if a:command =~ l:pattern
-    let l:file = (s:is_win && fnamemodify(a:command, ':e') ==? 'lnk')? 
-          \ resolve(l:files[0]) : a:command 
-    if !executable(l:file)
-      throw printf('File: "%s" is not found.', a:command)
-    endif
-    
-    return a:command
+function! s:analyze_shebang(filename)"{{{
+  if !s:is_win || '.'.fnamemodify(a:filename, ':e') !~? 
+        \ '^' . substitute($PATHEXT, ';', '$\\|^', 'g') . '$'
+    return [a:filename]
   endif
 
-  " Command search.
-  if s:is_win
-    let l:path = substitute($PATH, '\\\?;', ',', 'g')
-    if fnamemodify(a:command, ':e') != ''
-      let l:files = globpath(l:path, a:command)
-    else
-      for l:ext in split($PATHEXT . ';.LNK', ';')
-        let l:files = globpath(l:path, a:command . l:ext)
-        if !empty(l:files)
-          break
-        endif
-      endfor
-    endif
-
-    if !empty(l:files) && fnamemodify(l:files[0], ':e') ==? 'lnk'
-      let l:files = resolve(l:files[0])
-    endif
-  else
-    let l:path = substitute($PATH, '/\?:', ',', 'g')
-    let l:files = globpath(l:path, a:command)
+  let l:lines = readfile(a:filename)
+  if empty(l:lines) || l:lines[0] !~ '^#!.\+'
+    " Not found.
+    return [a:filename]
   endif
 
-  if empty(l:files)
-    throw printf('File: "%s" is not found.', a:command)
+  " Get shebang line.
+  let l:shebang = split(matchstr(l:lines[0], '^#!\zs.\+'))
+
+  " Convert command name.
+  if l:shebang[0] =~ '^/'
+    let l:shebang[0] = vimproc#get_command_name(fnamemodify(l:shebang[0], ':t'))
   endif
 
-  return split(l:files, '\n')[0]
+  return l:shebang + [a:filename]
 endfunction"}}}
 
 "-----------------------------------------------------------
@@ -419,12 +561,12 @@ function! s:finalize()
 endfunction
 
 function! s:vp_dlopen(path)
-  let [handle] = s:libcall("vp_dlopen", [a:path])
+  let [handle] = s:libcall('vp_dlopen', [a:path])
   return handle
 endfunction
 
 function! s:vp_dlclose(handle)
-  call s:libcall("vp_dlclose", [a:handle])
+  call s:libcall('vp_dlclose', [a:handle])
 endfunction
 
 function! s:vp_file_open(path, flags, mode)
@@ -563,7 +705,7 @@ if s:is_win
     for arg in a:argv
       let l:cmdline .= '"' . substitute(arg, '"', '\\"', 'g') . '" '
     endfor
-    let [l:pid, l:fd_stdin, l:fd_stdout, l:ttyname] = s:libcall("vp_pty_open",
+    let [l:pid, l:fd_stdin, l:fd_stdout, l:ttyname] = s:libcall('vp_pty_open',
           \ [a:width, a:height, l:cmdline])
     return [l:pid, l:fd_stdin, l:fd_stdout, l:ttyname]
   endfunction
@@ -594,7 +736,7 @@ if s:is_win
 
 else
   function! s:vp_pty_open(width, height, argv)
-    let [l:pid, l:fd, l:ttyname] = s:libcall("vp_pty_open",
+    let [l:pid, l:fd, l:ttyname] = s:libcall('vp_pty_open',
           \ [a:width, a:height, len(a:argv)] + a:argv)
     return [l:pid, l:fd, l:ttyname]
   endfunction
