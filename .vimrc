@@ -42,8 +42,9 @@ let g:rubycomplete_rails = 1
 let g:AutoComplPop_NotEnableAtStartup = 1
 
 "neocomplcacheの設定
-let g:NeoComplCache_EnableAtStartup = 1
-let g:NeoComplCache_KeywordCompletionStartLength = 1
+"現バージョンでは動かないらしいのでコメントアウト
+"let g:NeoComplCache_EnableAtStartup = 1
+"let g:NeoComplCache_KeywordCompletionStartLength = 1
 let g:NeoComplCache_MinKeywordLength = 3
 let g:NeoComplCache_MinSyntaxLength = 3
 let g:NeoComplCache_SmartCase = 1
@@ -52,7 +53,8 @@ let g:NeoComplCache_TryKeywordCompletion = 1
 let g:NeoComplCache_FilenameCompletionSkipItems = 20
 
 "VimShellの設定
-let g:VimShell_EnableInteractive = 1
+"現バージョンでは動かないらしいのでコメントアウト
+"let g:VimShell_EnableInteractive = 1
 
 "ref.vimの設定
 let g:ref_refe_cmd = "refe187"
