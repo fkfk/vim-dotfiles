@@ -184,6 +184,17 @@ BUGS							*vimshell-bugs*
 ==============================================================================
 CHANGELOG						*vimshell-changelog*
 
+2010-06-25
+- Improved mappings.
+- Changed background filetype.
+- Implemented change title escape sequence.
+- Improved terminal information.
+- Added g:vimshell_interactive_no_save_history_commands option.
+- Fixed append history.
+
+2010-06-24
+- Fixed auto update.
+
 2010-06-22
 - Improved gexe.
 - Improved iexe filetype.

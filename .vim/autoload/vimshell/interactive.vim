@@ -39,6 +39,8 @@ let s:character_regex = ''
 augroup vimshell_interactive
   autocmd!
   autocmd CursorHold * call s:check_all_output()
+  autocmd BufWinEnter,WinEnter * call vimshell#terminal#set_title()
+  autocmd BufWinLeave,WinLeave * call vimshell#terminal#restore_title()
 augroup END
 
 function! vimshell#interactive#get_cur_text()"{{{
@@ -439,8 +441,8 @@ function! vimshell#interactive#load_history()"{{{
   endif
 endfunction"}}}
 function! s:append_history(command)"{{{
-  if has_key(g:vimshell_no_save_history_commands, &filetype[4:])
-        \ && g:vimshell_no_save_history_commands[&filetype[4:]]
+  if has_key(g:vimshell_interactive_no_save_history_commands, &filetype[4:])
+        \ && g:vimshell_interactive_no_save_history_commands[&filetype[4:]]
     return
   endif
   " Reduce blanks.
@@ -488,6 +490,9 @@ function! vimshell#interactive#check_output(interactive, bufnr, bufnr_save)"{{{
 
   if mode() !=# 'i'
     let l:intbuffer_pos = getpos('.')
+    
+    $
+    normal! $
   endif
 
   if a:interactive.is_background
