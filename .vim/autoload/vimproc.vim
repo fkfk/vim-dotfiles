@@ -2,7 +2,7 @@
 " FILE: vimproc.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com> (Modified)
 "          Yukihiro Nakadaira <yukihiro.nakadaira at gmail.com> (Original)
-" Last Modified: 24 Jun 2010
+" Last Modified: 02 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -110,8 +110,7 @@ function! vimproc#get_command_name(command, ...)"{{{
   
   let l:pattern = printf('[/~]\?\f\+[%s]\f*$', s:is_win ? '/\\' : '/')
   if l:command =~ l:pattern
-    if (s:is_win && fnamemodify(l:command, ':e') ==? 'lnk')
-          \|| getftype(l:file) ==# "link"
+    if s:is_win && fnamemodify(l:command, ':e') ==? 'lnk'
       let l:command = resolve(l:command)
     endif
 
@@ -127,14 +126,13 @@ function! vimproc#get_command_name(command, ...)"{{{
   " Command search.
   let l:suffixesadd_save = &l:suffixesadd
   let &l:suffixesadd = s:is_win ? substitute($PATHEXT.';.LNK', ';', ',', 'g') : ''
-  let l:file = findfile(l:command, l:path, l:count)
+  let l:file = fnamemodify(findfile(l:command, l:path, l:count), ':p')
   let &l:suffixesadd = l:suffixesadd_save
 
   if l:count < 0
     return filter(l:file, 'executable(v:val)')
   else
     if (s:is_win && fnamemodify(l:file, ':e') ==? 'lnk')
-          \|| getftype(l:file) ==# "link"
       let l:file = resolve(l:file)
     endif
 
@@ -174,10 +172,12 @@ function! vimproc#system(cmdline, ...)"{{{
   while !l:subproc.stdout.eof
     let l:output .= l:subproc.stdout.read(-1, 40)
   endwhile
+  call l:subproc.stdout.close()
   let s:last_errmsg = ''
   while !l:subproc.stderr.eof
     let s:last_errmsg .= l:subproc.stderr.read(-1, 40)
   endwhile
+  call l:subproc.stderr.close()
 
   let [l:cond, s:last_status] = l:subproc.waitpid()
   if l:cond != 'exit'
@@ -361,7 +361,7 @@ function! vimproc#ptyopen(args)"{{{
 
     let l:proc = s:fdopen_pty(l:fd_stdin, l:fd_stdout, 'vp_pty_close', 'vp_pty_read', 'vp_pty_write')
   else
-    let [l:pid, l:fd, l:ttyname] = s:vp_pty_open(&winwidth, &winheight, s:convert_args(a:args))
+    let [l:pid, l:fd, l:ttyname] = s:vp_pty_open(winwidth(0)-5, winheight(0), s:convert_args(a:args))
 
     let l:proc = s:fdopen(l:fd, 'vp_pty_close', 'vp_pty_read', 'vp_pty_write')
   endif
@@ -382,7 +382,10 @@ function! vimproc#kill(pid, sig)"{{{
 endfunction"}}}
 
 function! s:close() dict"{{{
-  call self.f_close()
+  if self.is_valid
+    call self.f_close()
+  endif
+  
   let self.is_valid = 0
   let self.eof = 1
   let self.fd = -1
@@ -430,16 +433,16 @@ function! s:garbage_collect()"{{{
       continue
     endif
     
-    let [l:cond, s:last_status] = l:proc.waitpid()
-    if l:cond != 'exit'
-      try
+    try
+      let [l:cond, s:last_status] = l:proc.waitpid()
+      if l:cond != 'exit'
         " Kill process.
         " 15 == SIGTERM
         call l:proc.kill(15)
-      catch
-        " Ignore error.
-      endtry
-    endif
+      endif
+    catch
+      " Ignore error.
+    endtry
 
     call remove(s:bg_processes, l:proc.pid)
     if empty(s:bg_processes)
@@ -491,14 +494,21 @@ function! s:convert_args(args)"{{{
 endfunction"}}}
 
 function! s:analyze_shebang(filename)"{{{
-  if !s:is_win || '.'.fnamemodify(a:filename, ':e') !~? 
+  if (has('macunix') || system('uname') =~? '^darwin')
+    " Mac OS X's shebang support is imcomplete. :-(
+    if getfsize(a:filename) > 100000
+
+      " Maybe binary file.
+      return [a:filename]
+    endif
+  elseif !s:is_win || '.'.fnamemodify(a:filename, ':e') !~? 
         \ '^' . substitute($PATHEXT, ';', '$\\|^', 'g') . '$'
     return [a:filename]
   endif
-
-  let l:lines = readfile(a:filename)
+  
+  let l:lines = readfile(a:filename, '', 1)
   if empty(l:lines) || l:lines[0] !~ '^#!.\+'
-    " Not found.
+    " Not found shebang.
     return [a:filename]
   endif
 
@@ -506,7 +516,7 @@ function! s:analyze_shebang(filename)"{{{
   let l:shebang = split(matchstr(l:lines[0], '^#!\zs.\+'))
 
   " Convert command name.
-  if l:shebang[0] =~ '^/'
+  if s:is_win && l:shebang[0] =~ '^/'
     let l:shebang[0] = vimproc#get_command_name(fnamemodify(l:shebang[0], ':t'))
   endif
 
@@ -726,14 +736,16 @@ if s:is_win
   endfunction
 
   function! s:vp_pty_get_winsize() dict
-    let [width, height] = s:libcall('vp_pty_get_winsize', [self.fd_stdout])
+    " Not implemented.
+    "let [width, height] = s:libcall('vp_pty_get_winsize', [self.fd_stdout])
+    let [width, height] = [winwidth(0)-5, winheight(0)]
     return [width, height]
   endfunction
 
   function! s:vp_pty_set_winsize(width, height) dict
-    call s:libcall('vp_pty_set_winsize', [self.fd_stdout, a:width, a:height])
+    " Not implemented.
+    "call s:libcall('vp_pty_set_winsize', [self.fd_stdout, a:width, a:height])
   endfunction
-
 else
   function! s:vp_pty_open(width, height, argv)
     let [l:pid, l:fd, l:ttyname] = s:libcall('vp_pty_open',
@@ -761,17 +773,45 @@ else
   endfunction
 
   function! s:vp_pty_set_winsize(width, height) dict
-    call s:libcall('vp_pty_set_winsize', [self.fd, a:width, a:height])
+    call s:libcall('vp_pty_set_winsize', [self.fd, a:width-5, a:height])
+    
+    " Send SIGWINCH = 28 signal.
+    call vimproc#kill(self.pid, 28)
   endfunction
-
 endif
 
 function! s:vp_kill(sig) dict
+  if has_key(self, 'stdin')
+    call self.stdin.close()
+  endif
+  if has_key(self, 'stdout')
+    call self.stdout.close()
+  endif
+  if has_key(self, 'stderr')
+    call self.stdout.close()
+  endif
+  if has_key(self, 'ttyname')
+    call self.close()
+  endif
+  
   call s:libcall('vp_kill', [self.pid, a:sig])
   let self.is_valid = 0
 endfunction
 
 function! s:vp_pipes_kill(sig) dict
+  if has_key(self, 'stdin')
+    call self.stdin.close()
+  endif
+  if has_key(self, 'stdout')
+    call self.stdout.close()
+  endif
+  if has_key(self, 'stderr')
+    call self.stdout.close()
+  endif
+  if has_key(self, 'ttyname')
+    call self.close()
+  endif
+  
   for l:pid in self.pid_list
     call s:libcall('vp_kill', [l:pid, a:sig])
   endfor
@@ -779,6 +819,19 @@ function! s:vp_pipes_kill(sig) dict
 endfunction
 
 function! s:vp_waitpid() dict
+  if has_key(self, 'stdin')
+    call self.stdin.close()
+  endif
+  if has_key(self, 'stdout')
+    call self.stdout.close()
+  endif
+  if has_key(self, 'stderr')
+    call self.stdout.close()
+  endif
+  if has_key(self, 'ttyname')
+    call self.close()
+  endif
+  
   let [l:cond, l:status] = s:libcall('vp_waitpid', [self.pid])
   let self.is_valid = 0
   return [l:cond, l:status]
