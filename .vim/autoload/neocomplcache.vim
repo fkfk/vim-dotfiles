@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: neocomplcache.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 24 Jun 2010
+" Last Modified: 28 Jun 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -22,7 +22,7 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 5.0, for Vim 7.0
+" Version: 5.1, for Vim 7.0
 "=============================================================================
 
 " Check vimproc.
@@ -57,6 +57,8 @@ function! neocomplcache#enable() "{{{
   let s:changedtick = b:changedtick
   let s:used_match_filter = 0
   let s:context_filetype = ''
+  let s:is_text_mode = 0
+  let s:within_comment = 0
   let s:skip_next_complete = 0
   "}}}
 
@@ -265,6 +267,13 @@ function! neocomplcache#enable() "{{{
   call neocomplcache#set_variable_pattern('g:neocomplcache_ctags_arguments_list', 'cpp',
         \'--c++-kinds=+p --fields=+iaS --extra=+q')
   "}}}
+  
+  " Initialize text mode filetypes."{{{
+  if !exists('g:neocomplcache_text_mode_filetypes')
+    let g:neocomplcache_text_mode_filetypes = {}
+  endif
+  call neocomplcache#set_variable_pattern('g:neocomplcache_text_mode_filetypes', 'text,help,tex,gitcommit,nothing', 1)
+  "}}}
 
   " Initialize quick match patterns."{{{
   if !exists('g:neocomplcache_quick_match_patterns')
@@ -286,7 +295,7 @@ function! neocomplcache#enable() "{{{
   command! -nargs=0 Neco call s:display_neco()
   command! -nargs=0 NeoComplCacheLock call s:lock()
   command! -nargs=0 NeoComplCacheUnlock call s:unlock()
-  command! -nargs=0 NeoComplCacheToggle call s:toggle()
+  command! -nargs=0 NeoComplCacheToggle call s:toggle_lock()
   command! -nargs=1 NeoComplCacheAutoCompletionLength let g:neocomplcache_auto_completion_start_length = <args>
   "}}}
 
@@ -347,7 +356,7 @@ function! neocomplcache#manual_complete(findstart, base)"{{{
     " Clear flag.
     let s:used_match_filter = 0
     
-    let [l:cur_keyword_pos, l:cur_keyword_str, l:complete_words] = s:integrate_completion(s:get_complete_result(s:get_cur_text()))
+    let [l:cur_keyword_pos, l:cur_keyword_str, l:complete_words] = s:integrate_completion(s:get_complete_result(s:get_cur_text()), 1)
     if empty(l:complete_words)
       return -1
     endif
@@ -690,6 +699,12 @@ endfunction"}}}
 function! neocomplcache#is_eskk_enabled()"{{{
   return exists('*eskk#is_enabled') && eskk#is_enabled()
 endfunction"}}}
+function! neocomplcache#is_text_mode()"{{{
+  return s:is_text_mode || s:within_comment
+endfunction"}}}
+function! neocomplcache#within_comment()"{{{
+  return s:within_comment
+endfunction"}}}
 function! neocomplcache#print_caching(string)"{{{
   redraw
   echo a:string
@@ -785,7 +800,7 @@ endfunction"}}}
 "}}}
 
 " Command functions."{{{
-function! s:toggle()"{{{
+function! s:toggle_lock()"{{{
   if !has_key(s:complete_lock, bufnr('%')) || !s:complete_lock[bufnr('%')]
     call s:lock()
   else
@@ -871,7 +886,7 @@ function! neocomplcache#start_manual_complete(complfunc_name)"{{{
   let l:dict[a:complfunc_name] = s:global_complfuncs[a:complfunc_name]
   " Get complete result.
   let [l:cur_keyword_pos, l:cur_keyword_str, l:complete_words] = 
-        \ s:integrate_completion(s:get_complete_result(s:get_cur_text(), l:dict))
+        \ s:integrate_completion(s:get_complete_result(s:get_cur_text(), l:dict), 0)
   
   " Restore function.
   let &l:completefunc = 'neocomplcache#auto_complete'
@@ -916,7 +931,9 @@ function! neocomplcache#complete_common_string()"{{{
   " Save options.
   let l:ignorecase_save = &ignorecase
 
-  if g:neocomplcache_enable_smart_case && l:cur_keyword_str =~ '\u'
+  if neocomplcache#is_text_mode()
+    let &ignorecase = 1
+  elseif g:neocomplcache_enable_smart_case && l:cur_keyword_str =~ '\u'
     let &ignorecase = 0
   else
     let &ignorecase = g:neocomplcache_enable_ignore_case
@@ -1047,7 +1064,7 @@ function! s:do_complete(is_moved)"{{{
   let &l:completefunc = 'neocomplcache#auto_complete'
 
   " Get complete result.
-  let [l:cur_keyword_pos, l:cur_keyword_str, l:complete_words] = s:integrate_completion(s:get_complete_result(l:cur_text))
+  let [l:cur_keyword_pos, l:cur_keyword_str, l:complete_words] = s:integrate_completion(s:get_complete_result(l:cur_text), 1)
 
   if empty(l:complete_words)
     let &l:completefunc = 'neocomplcache#manual_complete'
@@ -1088,7 +1105,9 @@ function! s:get_complete_result(cur_text, ...)"{{{
       " Save options.
       let l:ignorecase_save = &ignorecase
 
-      if g:neocomplcache_enable_smart_case && l:cur_keyword_str =~ '\u'
+      if neocomplcache#is_text_mode()
+        let &ignorecase = 1
+      elseif g:neocomplcache_enable_smart_case && l:cur_keyword_str =~ '\u'
         let &ignorecase = 0
       else
         let &ignorecase = g:neocomplcache_enable_ignore_case
@@ -1111,7 +1130,7 @@ function! s:get_complete_result(cur_text, ...)"{{{
   
   return l:complete_result
 endfunction"}}}
-function! s:integrate_completion(complete_result)"{{{
+function! s:integrate_completion(complete_result, is_sort)"{{{
   if empty(a:complete_result)
     if neocomplcache#get_cur_text() =~ '\s\+$'
       " Caching current cache line.
@@ -1155,7 +1174,7 @@ function! s:integrate_completion(complete_result)"{{{
   endfor
 
   " Sort.
-  if !neocomplcache#is_eskk_enabled()
+  if !neocomplcache#is_eskk_enabled() && a:is_sort
     call sort(l:complete_words, 'neocomplcache#compare_rank')
   endif
   let l:complete_words = filter(l:complete_words[: g:neocomplcache_max_list], 'v:val.word !=# '.string(l:cur_keyword_str))
@@ -1199,6 +1218,26 @@ function! s:integrate_completion(complete_result)"{{{
     endfor
   endif"}}}
   
+  " Convert words.
+  if neocomplcache#is_text_mode()"{{{
+    if l:cur_keyword_str =~ '^\l\+$'
+      for l:keyword in l:complete_words
+        let l:keyword.word = tolower(l:keyword.word)
+        let l:keyword.abbr = tolower(l:keyword.abbr)
+      endfor
+    elseif l:cur_keyword_str =~ '^\u\+$'
+      for l:keyword in l:complete_words
+        let l:keyword.word = toupper(l:keyword.word)
+        let l:keyword.abbr = toupper(l:keyword.abbr)
+      endfor
+    elseif l:cur_keyword_str =~ '^\u\l\+$'
+      for l:keyword in l:complete_words
+        let l:keyword.word = toupper(l:keyword.word[0]).tolower(l:keyword.word[1:])
+        let l:keyword.abbr = toupper(l:keyword.abbr[0]).tolower(l:keyword.abbr[1:])
+      endfor
+    endif
+  endif"}}}
+
   " Abbr check.
   let l:abbr_pattern = printf('%%.%ds..%%s', g:neocomplcache_max_keyword_width-15)
   for l:keyword in l:complete_words
@@ -1222,6 +1261,7 @@ function! s:on_insert_leave()"{{{
   let s:complete_words = []
   let s:used_match_filter = 0
   let s:context_filetype = ''
+  let s:is_text_mode = 0
   let s:skip_next_complete = 0
 
   if &updatetime < s:update_time_save
@@ -1278,7 +1318,9 @@ function! s:make_quickmatch_list(list, cur_keyword_str)"{{{
   " Save options.
   let l:ignorecase_save = &ignorecase
 
-  if g:neocomplcache_enable_smart_case && a:cur_keyword_str =~ '\u'
+  if neocomplcache#is_text_mode()
+    let &ignorecase = 1
+  elseif g:neocomplcache_enable_smart_case && l:cur_keyword_str =~ '\u'
     let &ignorecase = 0
   else
     let &ignorecase = g:neocomplcache_enable_ignore_case
@@ -1340,39 +1382,43 @@ function! s:set_context_filetype()"{{{
     let l:filetype = 'nothing'
   endif
   
-  if !has_key(g:neocomplcache_filetype_include_lists, l:filetype)
-        \|| empty(g:neocomplcache_filetype_include_lists[l:filetype])
-    let s:context_filetype = l:filetype
-    return
+  " Default.
+  let s:context_filetype = l:filetype
+  if has_key(g:neocomplcache_filetype_include_lists, l:filetype)
+        \ && !empty(g:neocomplcache_filetype_include_lists[l:filetype])
+
+    let l:pos = [line('.'), col('.')]
+    for l:include in g:neocomplcache_filetype_include_lists[l:filetype]
+      let l:start_backward = searchpos(l:include.start, 'bnW')
+
+      " Check start <= line <= end.
+      if l:start_backward[0] == 0 || s:compare_pos(l:start_backward, l:pos) > 0
+        continue
+      endif
+
+      let l:end_pattern = l:include.end
+      if l:end_pattern =~ '\\1'
+        let l:match_list = matchlist(getline(l:start_backward[0]), l:include.start)
+        let l:end_pattern = substitute(l:end_pattern, '\\1', '\=l:match_list[1]', 'g')
+      endif
+      let l:end_forward = searchpos(l:end_pattern, 'nW')
+
+      if l:end_forward[0] == 0 || s:compare_pos(l:pos, l:end_forward) < 0
+        let l:end_backward = searchpos(l:end_pattern, 'bnW')
+
+        if l:end_backward[0] == 0 || s:compare_pos(l:start_backward, l:end_backward) > 0
+          let s:context_filetype = l:include.filetype
+          break 
+        endif
+      endif
+    endfor
   endif
 
-  let l:pos = [line('.'), col('.')]
-  for l:include in g:neocomplcache_filetype_include_lists[l:filetype]
-    let l:start_backward = searchpos(l:include.start, 'bnW')
-
-    " Check start <= line <= end.
-    if l:start_backward[0] == 0 || s:compare_pos(l:start_backward, l:pos) > 0
-      continue
-    endif
-    
-    let l:end_pattern = l:include.end
-    if l:end_pattern =~ '\\1'
-      let l:match_list = matchlist(getline(l:start_backward[0]), l:include.start)
-      let l:end_pattern = substitute(l:end_pattern, '\\1', '\=l:match_list[1]', 'g')
-    endif
-    let l:end_forward = searchpos(l:end_pattern, 'nW')
-
-    if l:end_forward[0] == 0 || s:compare_pos(l:pos, l:end_forward) < 0
-      let l:end_backward = searchpos(l:end_pattern, 'bnW')
-
-      if l:end_backward[0] == 0 || s:compare_pos(l:start_backward, l:end_backward) > 0
-        let s:context_filetype = l:include.filetype
-        return 
-      endif
-    endif
-  endfor
-
-  let s:context_filetype = l:filetype
+  " Set text mode or not.
+  let l:attr = synIDattr(synIDtrans(synID(line('.'), col('.')-1, 1)), 'name')
+  let s:is_text_mode = (has_key(g:neocomplcache_text_mode_filetypes, s:context_filetype) && g:neocomplcache_text_mode_filetypes[s:context_filetype])
+        \ || l:attr ==# 'Constant'
+  let s:within_comment = (l:attr ==# 'Comment')
 endfunction"}}}
 
 " vim: foldmethod=marker
