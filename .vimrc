@@ -42,15 +42,11 @@ let g:rubycomplete_rails = 1
 let g:AutoComplPop_NotEnableAtStartup = 1
 
 "neocomplcacheの設定
-"現バージョンでは動かないらしいのでコメントアウト
-"let g:NeoComplCache_EnableAtStartup = 1
-"let g:NeoComplCache_KeywordCompletionStartLength = 1
-let g:NeoComplCache_MinKeywordLength = 3
-let g:NeoComplCache_MinSyntaxLength = 3
-let g:NeoComplCache_SmartCase = 1
-let g:NeoComplCache_TagsAutoUpdate = 1
-let g:NeoComplCache_TryKeywordCompletion = 1
-let g:NeoComplCache_FilenameCompletionSkipItems = 20
+let g:neocomplcache_enable_at_startup = 1
+let g:neocomplcache_auto_completion_start_length = 1
+let g:neocomplcache_min_keyword_length = 3
+let g:neocomplcache_min_syntax_length = 3
+let g:neocomplcache_enable_smart_case = 1
 
 "VimShellの設定
 "現バージョンでは動かないらしいのでコメントアウト
