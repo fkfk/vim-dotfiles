@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: bg.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 25 Jun 2010
+" Last Modified: 01 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,7 +24,7 @@
 " }}}
 "=============================================================================
 
-augroup vimshell_bg
+augroup vimshell-bg
   autocmd!
 augroup END
 
@@ -115,6 +115,13 @@ function! vimshell#internal#bg#init(args, fd, other_info, filetype, interactive)
   let &filetype = a:filetype
   let b:interactive = a:interactive
 
+  " Set environment variables.
+  let $TERMCAP = 'COLUMNS=' . winwidth(0)
+  let $VIMSHELL = 1
+  let $COLUMNS = winwidth(0)-5
+  let $LINES = winheight(0)
+  let $VIMSHELL_TERM = 'background'
+
   " Set syntax.
   syn region   InteractiveError   start=+!!!+ end=+!!!+ contains=InteractiveErrorHidden oneline
   syn match   InteractiveErrorHidden            '!!!' contained
@@ -124,12 +131,12 @@ function! vimshell#internal#bg#init(args, fd, other_info, filetype, interactive)
   hi def link InteractiveError Error
   hi def link InteractiveErrorHidden Ignore
 
-  augroup vimshell_bg
+  augroup vimshell-bg
     autocmd BufUnload <buffer>       call s:on_interrupt(expand('<afile>'))
   augroup END
   
   nnoremap <buffer><silent> <Plug>(vimshell_interactive_execute_line)  :<C-u>call <SID>on_execute()<CR>
-  nnoremap <buffer><silent> <Plug>(vimshell_interactive_interrupt)       :<C-u>call <SID>on_interrupt(bufname('%'))<CR>
+  nnoremap <buffer><silent> <Plug>(vimshell_interactive_interrupt)       :<C-u>call vimshell#interactive#hang_up(a:afile)
   nnoremap <buffer><silent> <Plug>(vimshell_interactive_exit)       :<C-u>call <SID>on_exit()<CR>
   
   nmap <buffer><CR>      <Plug>(vimshell_interactive_execute_line)
@@ -148,9 +155,6 @@ function! s:on_execute()"{{{
   redraw
   echo ''
   setlocal nomodifiable
-endfunction"}}}
-function! s:on_interrupt(afile)"{{{
-  call vimshell#interactive#hang_up(a:afile)
 endfunction"}}}
 function! s:on_exit()"{{{
   if !b:interactive.process.is_valid
