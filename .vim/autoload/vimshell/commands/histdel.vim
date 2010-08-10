@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: histdel.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 07 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,34 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
-  endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
-    endif
-  endfor
+let s:command = {
+      \ 'name' : 'histdel',
+      \ 'kind' : 'internal',
+      \ 'description' : 'histdel {history-number}',
+      \}
+function! s:command.execute(command, args, fd, other_info)"{{{
+  " Delete from history.
 
-  return keys(l:complete_words)
+  if !empty(a:args)
+    let l:del_hist = {}
+    for d in a:args
+      let l:del_hist[d] = 1
+    endfor
+
+    let l:new_hist = []
+    let l:cnt = 0
+    for h in g:vimshell#hist_buffer
+      if !has_key(l:del_hist, l:cnt)
+        call add(l:new_hist, h)
+      endif
+      let l:cnt += 1
+    endfor
+    let g:vimshell#hist_buffer = l:new_hist
+  else
+    call vimshell#error_line(a:fd, 'histdel: Arguments required.')
+  endif
 endfunction"}}}
-" vim: foldmethod=marker
+
+function! vimshell#commands#histdel#define()
+  return s:command
+endfunction

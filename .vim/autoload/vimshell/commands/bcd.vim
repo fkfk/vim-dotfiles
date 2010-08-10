@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: bcd.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 09 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,43 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
-  endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
-    endif
-  endfor
+let s:command = {
+      \ 'name' : 'bcd',
+      \ 'kind' : 'internal',
+      \ 'description' : 'bcd {buffer-name}',
+      \}
+function! s:command.execute(command, args, fd, other_info)"{{{
+  " Change working directory with buffer directory.
 
-  return keys(l:complete_words)
+  if empty(a:args)
+    " Move to alternate buffer directory.
+    let l:bufname = bufnr('#')
+  elseif len(a:args) > 2
+    call vimshell#error_line(a:fd, 'bcd: Too many arguments.')
+    return
+  else
+    let l:bufname = bufnr(a:args[0])
+  endif
+
+  let l:bufnumber = bufnr(l:bufname)
+
+  if l:bufnumber >= 0
+    let l:bufdir = fnamemodify(bufname(l:bufnumber), ':p:h')
+    return vimshell#execute_internal_command('cd', [ l:bufdir ], a:fd, a:other_info)
+  else
+    call vimshell#error_line(a:fd, printf('bcd: Buffer "%s" is not found.', l:arguments))
+  endif
 endfunction"}}}
-" vim: foldmethod=marker
+function! s:command.complete(args)"{{{
+    let l:ret = vimshell#complete#helper#buffers(a:args[-1])
+    for l:keyword in l:ret
+        let l:keyword.menu .= ' ' . fnamemodify(l:keyword.word, ':p:h')
+        let l:keyword.abbr = fnamemodify(l:keyword.word, ':t')
+    endfor
+    
+    return l:ret
+endfunction"}}}
+
+function! vimshell#commands#bcd#define()
+  return s:command
+endfunction

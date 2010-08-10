@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: parser.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 18 Jun 2010
+" Last Modified: 08 Aug 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -35,55 +35,100 @@ function! vimshell#parser#check_script(script)"{{{
 endfunction"}}}
 function! vimshell#parser#eval_script(script, context)"{{{
   " Split statements.
-  for l:statement in vimshell#parser#split_statements(a:script)
-    let l:statement = vimshell#parser#parse_alias(l:statement)
+  let l:statements = vimshell#parser#parse_statements(a:script)
+  let l:max = len(l:statements)
+  let i = 0
+
+  while i < l:max
+    try
+      let l:ret =  s:execute_statement(l:statements[i].statement, a:context)
+    catch /^exe: Process started./
+      " Change continuation.
+      let b:vimshell.continuation = {
+            \ 'statements' : l:statements[i : ], 'context' : a:context
+            \ }
+      return 1
+    endtry
     
-    " Call preexec filter.
-    let l:statement = vimshell#hook#call_filter('preexec', a:context, l:statement)
+    let l:condition = l:statements[i].condition
+    if (l:condition ==# 'true' && l:ret)
+          \ || (l:condition ==# 'false' && !l:ret)
+      break
+    endif
+    
+    let i += 1
+  endwhile
 
-    let [l:program, l:script] = vimshell#parser#parse_program(l:statement)
+  return 0
+endfunction"}}}
+function! vimshell#parser#parse_alias(statement)"{{{
+  " Get program.
+  let l:program = matchstr(s:parse_galias(a:statement), vimshell#get_program_pattern())
+  if l:program  == ''
+    throw 'Error: Invalid command name.'
+  endif
+  
+  let l:statement = a:statement
 
-    if has_key(g:vimshell#special_func_table, l:program)
-      " Special commands.
-      let l:fd = { 'stdin' : '', 'stdout' : '', 'stderr' : '' }
-      let l:args = split(l:script)
-    else
-      " Expand block.
-      if l:script =~ '{'
-        let l:script = s:parse_block(l:script)
-      endif
+  if exists('b:vimshell') && has_key(b:vimshell.alias_table, l:program) && !empty(b:vimshell.alias_table[l:program])
+    " Expand alias.
+    let l:statement = join(vimshell#parser#split_args(s:recursive_expand_alias(l:program))) . a:statement[len(l:program) :]
+  endif
+  
+  return l:statement
+endfunction"}}}
+function! vimshell#parser#parse_program(statement)"{{{
+  " Get program.
+  let l:program = matchstr(a:statement, vimshell#get_program_pattern())
+  if l:program  == ''
+    throw 'Error: Invalid command name.'
+  endif
 
-      " Expand tilde.
-      if l:script =~ '\~'
-        let l:script = s:parse_tilde(l:script)
-      endif
-
-      " Expand filename.
-      if l:script =~ ' ='
-        let l:script = s:parse_equal(l:script)
-      endif
-
-      " Expand variables.
-      if l:script =~ '\$'
-        let l:script = s:parse_variables(l:script)
-      endif
-
-      " Expand wildcard.
-      if l:script =~ '[[*?]\|\\[()|]'
-        let l:script = s:parse_wildcard(l:script)
-      endif
-
-      " Parse redirection.
-      if l:script =~ '[<>]'
-        let [l:fd, l:script] = s:parse_redirection(l:script)
-      else
-        let l:fd = { 'stdin' : '', 'stdout' : '', 'stderr' : '' }
-      endif
-
-      " Split args.
-      let l:args = vimshell#parser#split_args(l:script)
+  if l:program != '' && l:program[0] == '~'
+    " Parse tilde.
+    let l:program = substitute($HOME, '\\', '/', 'g') . l:program[1:]
+  endif
+  
+  return l:program
+endfunction"}}}
+function! vimshell#parser#parse_pipe(statement)"{{{
+  let l:commands = []
+  for l:cmdline in vimshell#parser#split_pipe(a:statement)
+    " Expand block.
+    if l:cmdline =~ '{'
+      let l:cmdline = s:parse_block(l:cmdline)
     endif
 
+    " Expand tilde.
+    if l:cmdline =~ '\~'
+      let l:cmdline = s:parse_tilde(l:cmdline)
+    endif
+
+    " Expand filename.
+    if l:cmdline =~ ' ='
+      let l:cmdline = s:parse_equal(l:cmdline)
+    endif
+
+    " Expand variables.
+    if l:cmdline =~ '\$'
+      let l:cmdline = s:parse_variables(l:cmdline)
+    endif
+
+    " Expand wildcard.
+    if l:cmdline =~ '[[*?]\|\\[()|]'
+      let l:cmdline = s:parse_wildcard(l:cmdline)
+    endif
+
+    " Split args.
+    let l:args = vimshell#parser#split_args(l:cmdline)
+
+    " Parse redirection.
+    if l:cmdline =~ '[<>]'
+      let [l:fd, l:cmdline] = s:parse_redirection(l:cmdline)
+    else
+      let l:fd = { 'stdin' : '', 'stdout' : '', 'stderr' : '' }
+    endif
+    
     if l:fd.stdout != ''
       if l:fd.stdout =~ '^>'
         let l:fd.stdout = l:fd.stdout[1:]
@@ -98,88 +143,255 @@ function! vimshell#parser#eval_script(script, context)"{{{
       endif
     endif
 
-    call vimshell#parser#execute_command(l:program, l:args, l:fd, a:context)
-    redraw
+    call add(l:commands, {
+          \ 'args' : vimshell#parser#split_args(l:cmdline), 
+          \ 'fd' : l:fd
+          \})
   endfor
+
+  return l:commands
 endfunction"}}}
-function! vimshell#parser#parse_alias(statement)"{{{
-  " Get program.
-  let l:program = matchstr(s:parse_galias(a:statement), vimshell#get_program_pattern())
-  if l:program  == ''
-    throw 'Error: Invalid command name.'
-  endif
-  let l:script = a:statement[len(l:program) :]
+function! vimshell#parser#parse_statements(script)"{{{
+  let l:max = len(a:script)
+  let l:statements = []
+  let l:statement = ''
+  let i = 0
+  while i < l:max
+    if a:script[i] == ';'
+      if l:statement != ''
+        call add(l:statements,
+              \ { 'statement' : l:statement,
+              \   'condition' : 'always',
+              \})
+      endif
+      let l:statement = ''
+      let i += 1
+    elseif a:script[i] == '&'
+      if i+1 < len(a:script) && a:script[i+1] == '&'
+        if l:statement != ''
+          call add(l:statements,
+                \ { 'statement' : l:statement,
+                \   'condition' : 'true',
+                \})
+        endif
+        let l:statement = ''
+        let i += 2
+      else
+        let l:statement .= a:script[i]
+        
+        let i += 1
+      endif
+    elseif a:script[i] == '|'
+      if i+1 < len(a:script) && a:script[i+1] == '|'
+        if l:statement != ''
+          call add(l:statements,
+                \ { 'statement' : l:statement,
+                \   'condition' : 'false',
+                \})
+        endif
+        let l:statement = ''
+        let i += 2
+      else
+        let l:statement .= a:script[i]
+        
+        let i += 1
+      endif
+    elseif a:script[i] == "'"
+      " Single quote.
+      let [l:string, i] = s:skip_single_quote(a:script, i)
+      let l:statement .= l:string
+    elseif a:script[i] == '"'
+      " Double quote.
+      let [l:string, i] = s:skip_double_quote(a:script, i)
+      let l:statement .= l:string
+    elseif a:script[i] == '`'
+      " Back quote.
+      let [l:string, i] = s:skip_back_quote(a:script, i)
+      let l:statement .= l:string
+    elseif a:script[i] == '\'
+      " Escape.
+      let i += 1
 
-  if exists('b:vimshell') && has_key(b:vimshell.alias_table, l:program) && !empty(b:vimshell.alias_table[l:program])
-    " Expand alias.
-    let l:program = s:recursive_expand_alias(l:program)
-  endif
-  
-  return l:program . l:script
-endfunction"}}}
-function! vimshell#parser#parse_program(statement)"{{{
-  " Get program.
-  let l:program = matchstr(a:statement, vimshell#get_program_pattern())
-  if l:program  == ''
-    throw 'Error: Invalid command name.'
-  endif
-  let l:script = a:statement[len(l:program) :]
+      if i >= len(a:script)
+        throw 'Exception: Join to next line (\).'
+      endif
 
-  if l:program != '' && l:program[0] == '~'
-    " Parse tilde.
-    let l:program = substitute($HOME, '\\', '/', 'g') . l:program[1:]
-  endif
-  
-  return [l:program, l:script]
-endfunction"}}}
-
-function! vimshell#parser#execute_command(program, args, fd, other_info)"{{{
-  if empty(a:args)
-    let l:line = a:program
-  else
-    let l:line = printf('%s %s', a:program, join(a:args, ' '))
-  endif
-  let l:program = a:program
-  let l:dir = substitute(substitute(l:line, '^\~\ze[/\\]', substitute($HOME, '\\', '/', 'g'), ''), '\\\(.\)', '\1', 'g')
-  let l:command = vimshell#getfilename(program)
-
-  " Special commands.
-  if l:line =~ '&\s*$'"{{{
-    " Background execution.
-    return vimshell#execute_internal_command('bg', split(substitute(l:line, '&\s*$', '', '')), a:fd, a:other_info)
-    "}}}
-  elseif has_key(g:vimshell#special_func_table, l:program)"{{{
-    " Other special commands.
-    return call(g:vimshell#special_func_table[l:program], [l:program, a:args, a:fd, a:other_info])
-    "}}}
-  elseif has_key(g:vimshell#internal_func_table, l:program)"{{{
-    " Internal commands.
-    return call(g:vimshell#internal_func_table[l:program], [l:program, a:args, a:fd, a:other_info])
-    "}}}
-  elseif isdirectory(l:dir)"{{{
-    " Directory.
-    " Change the working directory like zsh.
-
-    " Call internal cd command.
-    return vimshell#execute_internal_command('cd', [l:dir], a:fd, a:other_info)
-    "}}}
-  elseif l:command != '' || executable(l:program)"{{{
-    " Execute external commands.
-
-    " Suffix execution.
-    let l:ext = fnamemodify(l:program, ':e')
-    if !empty(l:ext) && has_key(g:vimshell_execute_file_list, l:ext)
-      " Execute file.
-      let l:execute = split(g:vimshell_execute_file_list[l:ext])[0]
-      let l:args = extend(split(g:vimshell_execute_file_list[l:ext])[1:], insert(a:args, l:program))
-      return vimshell#parser#execute_command(l:execute, l:args, a:fd, a:other_info)
+      let l:statement .= '\' . a:script[i]
+      let i += 1
+    elseif a:script[i] == '#'
+      " Comment.
+      break
     else
-      return vimshell#execute_internal_command('exe', insert(a:args, l:program), a:fd, a:other_info)
+      let l:statement .= a:script[i]
+      let i += 1
     endif
-  else
-    throw printf('Error: File "%s" is not found.', l:program)
+  endwhile
+
+  if l:statement != ''
+    call add(l:statements,
+          \ { 'statement' : l:statement,
+          \   'condition' : 'always',
+          \})
   endif
-  "}}}
+
+  return l:statements
+endfunction"}}}
+
+function! vimshell#parser#execute_command(commands, context)"{{{
+  if empty(a:commands)
+    return 0
+  endif
+  
+  let l:internal_commands = vimshell#available_commands()
+  let l:program = a:commands[0].args[0]
+  let l:args = a:commands[0].args[1:]
+  let l:fd = a:commands[0].fd
+  let l:line = join(a:commands[0].args)
+  
+  " Check pipeline.
+  if has_key(l:internal_commands, l:program)
+        \ && l:internal_commands[l:program].kind ==# 'execute'
+    " Execute execute commands.
+    let l:context = a:context
+    let l:context.fd = l:fd
+    let l:commands = a:commands
+    let l:commands[0].args = l:args
+    return l:internal_commands[l:program].execute(l:commands, l:context)
+  elseif len(a:commands) > 1
+    let l:context = a:context
+    let l:context.fd = l:fd
+    
+    if a:commands[-1].args[0] == 'less'
+      " Execute less(Syntax sugar).
+      let l:commands = a:commands[: -2]
+      if !empty(a:commands[-1].args[1:])
+        let l:commands[0].args = insert(l:commands[0].args, a:commands[-1].args[1:])
+      endif
+      return l:internal_commands['less'].execute(l:commands, l:context)
+    else
+      " Execute external commands.
+      return l:internal_commands['exe'].execute(a:commands, l:context)
+    endif
+  else"{{{
+    let l:dir = substitute(substitute(l:line, '^\~\ze[/\\]', substitute($HOME, '\\', '/', 'g'), ''), '\\\(.\)', '\1', 'g')
+    let l:command = vimshell#getfilename(program)
+    let l:ext = fnamemodify(l:program, ':e')
+    
+    " Check internal commands.
+    if has_key(l:internal_commands, l:program)"{{{
+      " Internal commands.
+      return l:internal_commands[l:program].execute(l:program, l:args, l:fd, a:context)
+      "}}}
+    elseif isdirectory(l:dir)"{{{
+      " Directory.
+      " Change the working directory like zsh.
+
+      " Call internal cd command.
+      return vimshell#execute_internal_command('cd', [l:dir], l:fd, a:context)
+      "}}}
+    elseif !empty(l:ext) && has_key(g:vimshell_execute_file_list, l:ext)
+      " Suffix execution.
+      let l:args = extend(split(g:vimshell_execute_file_list[l:ext]), a:commands[0].args)
+      let l:commands = [ { 'args' : l:args, 'fd' : l:fd } ]
+      return vimshell#parser#execute_command(l:commands, a:context)
+    elseif l:command != '' || executable(l:program)
+      " Execute external commands.
+      return vimshell#execute_internal_command('exe', insert(l:args, l:program), l:fd, a:context)
+    else
+      throw printf('Error: File "%s" is not found.', l:program)
+    endif
+  endif"}}}
+
+endfunction
+"}}}
+function! vimshell#parser#execute_continuation(is_insert)"{{{
+  if empty(b:vimshell.continuation)
+    return
+  endif
+  
+  " Execute pipe.
+  call vimshell#interactive#execute_pipe_out()
+
+  if b:interactive.process.is_valid
+    return 1
+  endif
+
+  let b:vimshell.system_variables['status'] = b:interactive.status
+  let l:ret = b:interactive.status
+
+  let l:statements = b:vimshell.continuation.statements
+  let l:condition = l:statements[0].condition
+  if (l:condition ==# 'true' && l:ret)
+        \ || (l:condition ==# 'false' && !l:ret)
+    " Exit.
+    let b:vimshell.continuation.statements = []
+  endif
+
+  if l:ret != 0
+    " Print exit value.
+    let l:context = b:vimshell.continuation.context
+    if b:interactive.cond ==# 'signal'
+      let l:message = printf('vimshell: %s %d(%s) "%s"', b:interactive.cond, b:interactive.status,
+            \ vimshell#interactive#decode_signal(b:interactive.status), b:interactive.cmdline)
+    else
+      let l:message = printf('vimshell: %s %d "%s"', b:interactive.cond, b:interactive.status, b:interactive.cmdline)
+    endif
+    
+    call vimshell#error_line(l:context.fd, l:message)
+  endif
+
+  " Execute rest commands.
+  let l:statements = l:statements[1:]
+  let l:max = len(l:statements)
+  let l:context = b:vimshell.continuation.context
+  
+  let i = 0
+
+  while i < l:max
+    try
+      let l:ret = s:execute_statement(l:statements[i].statement, l:context)
+    catch /^exe: Process started./
+      " Change continuation.
+      let b:vimshell.continuation = {
+            \ 'statements' : l:statements[i : ], 'context' : l:context
+            \ }
+      return 1
+    endtry
+    
+    let l:condition = l:statements[i].condition
+    if (l:condition ==# 'true' && l:ret)
+          \ || (l:condition ==# 'false' && !l:ret)
+      break
+    endif
+    
+    let i += 1
+  endwhile
+
+  let b:vimshell.continuation = {}
+  call vimshell#print_prompt(l:context)
+  call vimshell#start_insert(a:is_insert)
+  return 0
+endfunction
+"}}}
+function! s:execute_statement(statement, context)"{{{
+  let l:statement = vimshell#parser#parse_alias(a:statement)
+
+  " Call preexec filter.
+  let l:statement = vimshell#hook#call_filter('preexec', a:context, l:statement)
+
+  let l:program = vimshell#parser#parse_program(l:statement)
+
+  let l:internal_commands = vimshell#available_commands()
+  if has_key(l:internal_commands, l:program)
+        \ && l:internal_commands[l:program].kind ==# 'special'
+    " Special commands.
+    let l:fd = { 'stdin' : '', 'stdout' : '', 'stderr' : '' }
+    let l:commands = [ { 'args' : split(l:statement), 'fd' : l:fd } ]
+  else
+    let l:commands = vimshell#parser#parse_pipe(l:statement)
+  endif
+
+  return vimshell#parser#execute_command(l:commands, a:context)
 endfunction
 "}}}
 
@@ -195,6 +407,24 @@ function! vimshell#parser#split_statements(script)"{{{
       endif
       let l:statement = ''
       let i += 1
+    elseif a:script[i] == '&'
+      if i+1 < len(a:script) && a:script[i+1] == '&'
+        if l:statement != ''
+          call add(l:statements, l:statement)
+        endif
+        let i += 2
+      else
+        let i += 1
+      endif
+    elseif a:script[i] == '|'
+      if i+1 < len(a:script) && a:script[i+1] == '|'
+        if l:statement != ''
+          call add(l:statements, l:statement)
+        endif
+        let i += 2
+      else
+        let i += 1
+      endif
     elseif a:script[i] == "'"
       " Single quote.
       let [l:string, i] = s:skip_single_quote(a:script, i)
@@ -380,7 +610,7 @@ function! vimshell#parser#split_pipe(script)"{{{
       let i += 1
     elseif a:script[i] == "'"
       " Single quote.
-      let [l:string, i] = s:skip_quote(a:script, i)
+      let [l:string, i] = s:skip_single_quote(a:script, i)
       let l:script .= l:string
     elseif a:script[i] == '"'
       " Double quote.
@@ -670,6 +900,10 @@ function! s:parse_equal(script)"{{{
   return l:script
 endfunction"}}}
 function! s:parse_variables(script)"{{{
+  if !exists('b:vimshell')
+    return a:script
+  endif
+  
   let l:script = ''
 
   let i = 0
@@ -725,18 +959,33 @@ function! s:parse_redirection(script)"{{{
       " Input redirection.
       let l:fd.stdin = matchstr(a:script, '<\s*\zs\f*', i)
       let i = matchend(a:script, '<\s*\zs\f*', i)
+    elseif a:script[i] =~ '^[12]' && a:script[i :] =~ '^[12]>' 
+      " Output redirection.
+      let i += 2
+      if a:script[i-2] == 1
+        let l:fd.stdout = matchstr(a:script, '^\s*\zs\f*', i)
+      else
+        let l:fd.stderr = matchstr(a:script, '^\s*\zs\f*', i)
+      endif
+
+      let i = matchend(a:script, '^\s*\zs\f*', i)
     elseif a:script[i] == '>'
       " Output redirection.
       if a:script[i :] =~ '^>&'
-        let l:fd.stderr = matchstr(a:script, '>&\s*\zs\f*', i)
-        let i = matchend(a:script, '>&\s*\zs\f*', i)
+        " Output stderr.
+        let i += 2
+        let l:fd.stderr = matchstr(a:script, '^\s*\zs\f*', i)
       elseif a:script[i :] =~ '^>>'
-        let l:fd.stdout = '>' . matchstr(a:script, '>>\s*\zs\f*', i)
-        let i = matchend(a:script, '>>\s*\zs\f*', i)
+        " Append stdout.
+        let i += 2
+        let l:fd.stdout = '>' . matchstr(a:script, '^\s*\zs\f*', i)
       else
-        let l:fd.stdout = matchstr(a:script, '>\s*\zs\f*', i)
-        let i = matchend(a:script, '>\s*\zs\f*', i)
+        " Output stdout.
+        let i += 1
+        let l:fd.stdout = matchstr(a:script, '^\s*\zs\f*', i)
       endif
+
+      let i = matchend(a:script, '^\s*\zs\f*', i)
     else
       let [l:script, i] = s:skip_else(l:script, a:script, i)
     endif

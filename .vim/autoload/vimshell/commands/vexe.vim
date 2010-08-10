@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: vexe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 08 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,35 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
-  endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
-    endif
-  endfor
+let s:command = {
+      \ 'name' : 'vexe',
+      \ 'kind' : 'special',
+      \ 'description' : 'vexe {expression}',
+      \}
+function! s:command.execute(program, args, fd, other_info)"{{{
+  " Execute vim command.
 
-  return keys(l:complete_words)
+  let l:context = a:other_info
+  let l:context.fd = a:fd
+  call vimshell#set_context(l:context)
+  
+  let l:temp = tempname()
+  let l:save_vfile = &verbosefile
+  let &verbosefile = l:temp
+  for l:command in split(join(a:args), '\n')
+    silent execute l:command
+  endfor
+  if &verbosefile == l:temp
+    let &verbosefile = l:save_vfile
+  endif
+  let l:output = readfile(l:temp)
+  call delete(l:temp)
+
+  for l:line in l:output
+    call vimshell#print_line(a:fd, l:line)
+  endfor
 endfunction"}}}
-" vim: foldmethod=marker
+
+function! vimshell#commands#vexe#define()
+  return s:command
+endfunction

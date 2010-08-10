@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: popd.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 09 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,46 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
-  endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
-    endif
-  endfor
+let s:command = {
+      \ 'name' : 'popd',
+      \ 'kind' : 'internal',
+      \ 'description' : 'popd [{directory-stack-number}]',
+      \}
+function! s:command.execute(program, args, fd, other_info)"{{{
+  " Pop directory.
 
-  return keys(l:complete_words)
+  if empty(b:vimshell.directory_stack)
+    " Error.
+    call vimshell#error_line(a:fd, 'popd: Directory stack is empty.')
+    return
+  endif
+
+  let l:cnt = 0
+  let l:arguments = join(a:args)
+  if l:arguments =~ '^\d\+$'
+    let l:pop = str2nr(l:arguments)
+  elseif empty(l:arguments)
+    " Default pop value.
+    let l:pop = 0
+  else
+    " Error.
+    call vimshell#error_line(a:fd, 'popd: Arguments error.')
+    return
+  endif
+
+  if l:pop >= len(b:vimshell.directory_stack)
+    " Overflow.
+    call vimshell#error_line(a:fd, printf("popd: Not found '%d' in directory stack.", l:pop))
+    return
+  endif
+
+  return vimshell#execute_internal_command('cd', [ b:vimshell.directory_stack[l:pop] ], 
+        \ a:fd, a:other_info)
 endfunction"}}}
-" vim: foldmethod=marker
+function! s:command.complete(args)"{{{
+  return vimshell#complete#helper#directory_stack(a:args[-1])
+endfunction"}}}
+
+function! vimshell#commands#popd#define()
+  return s:command
+endfunction

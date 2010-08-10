@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: args_complete.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 18 Jun 2010
+" Last Modified: 12 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,26 +24,6 @@
 " }}}
 "=============================================================================
 
-" Initialize funcs table."{{{
-let s:special_funcs = {}
-for list in split(globpath(&runtimepath, 'autoload/vimshell/complete/special/*.vim'), '\n')
-  let func_name = fnamemodify(list, ':t:r')
-  let s:special_funcs[func_name] = 'vimshell#complete#special#' . func_name . '#'
-endfor
-let s:internal_funcs = {}
-for list in split(globpath(&runtimepath, 'autoload/vimshell/complete/internal/*.vim'), '\n')
-  let func_name = fnamemodify(list, ':t:r')
-  let s:internal_funcs[func_name] = 'vimshell#complete#internal#' . func_name . '#'
-endfor
-let s:command_funcs = {}
-for list in split(globpath(&runtimepath, 'autoload/vimshell/complete/command/*.vim'), '\n')
-  let func_name = fnamemodify(list, ':t:r')
-  let s:command_funcs[func_name] = 'vimshell#complete#command#' . func_name . '#'
-endfor
-unlet func_name
-unlet list
-"}}}
-
 function! vimshell#complete#args_complete#complete()"{{{
   call vimshell#imdisable()
 
@@ -52,8 +32,8 @@ function! vimshell#complete#args_complete#complete()"{{{
     return ''
   endif
 
-  if exists(':NeoComplCacheDisable') && exists('*neocomplcache#complfunc#completefunc_complete#call_completefunc')
-    return neocomplcache#complfunc#completefunc_complete#call_completefunc('vimshell#complete#args_complete#omnifunc')
+  if exists(':NeoComplCacheDisable')
+    return neocomplcache#sources#completefunc_complete#call_completefunc('vimshell#complete#args_complete#omnifunc')
   else
     " Set complete function.
     let &l:omnifunc = 'vimshell#complete#args_complete#omnifunc'
@@ -112,16 +92,21 @@ function! vimshell#complete#args_complete#omnifunc(findstart, base)"{{{
 endfunction"}}}
 
 function! vimshell#complete#args_complete#get_complete_words(command, args)"{{{
+  let l:commands = vimshell#available_commands()
+  
   " Get complete words.
-  if has_key(s:special_funcs, a:command)
-    let l:complete_words = call(s:special_funcs[a:command] . 'get_complete_words', [a:args])
-  elseif has_key(s:internal_funcs, a:command)
-    let l:complete_words = call(s:internal_funcs[a:command] . 'get_complete_words', [a:args])
-  elseif has_key(s:command_funcs, a:command)
-    let l:complete_words = call(s:command_funcs[a:command] . 'get_complete_words', [a:args])
-  else
-    let l:complete_words = vimshell#complete#helper#files(a:args[-1])
+  let l:complete_words = has_key(l:commands, a:command) && has_key(l:commands[a:command], 'complete') ?
+        \ l:commands[a:command].complete(a:args) : vimshell#complete#helper#files(a:args[-1])
+
+  if a:args[-1] =~ '^--[[:alnum:]._-]\+=\f*$'
+    " Complete file.
+    let l:prefix = matchstr(a:args[-1], '^--[[:alnum:]._-]\+=')
+    for keyword in vimshell#complete#helper#files(a:args[-1][len(l:prefix): ])
+      let keyword.word = l:prefix . keyword.word
+      call add(l:complete_words, keyword)
+    endfor
   endif
+  
   return l:complete_words
 endfunction"}}}
 " vim: foldmethod=marker

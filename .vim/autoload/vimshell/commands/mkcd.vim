@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: mkcd.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 07 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,36 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
-  endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
-    endif
-  endfor
+let s:command = {
+      \ 'name' : 'mkcd',
+      \ 'kind' : 'internal',
+      \ 'description' : 'mkcd {directory-name}',
+      \}
+function! s:command.execute(command, args, fd, other_info)"{{{
+  " Make directory and change the working directory.
 
-  return keys(l:complete_words)
+  if empty(a:args)
+    " Move to HOME directory.
+    let l:arguments = $HOME
+  elseif len(a:args) == 2
+    " Substitute current directory.
+    let l:arguments = substitute(getcwd(), a:args[0], a:args[1], 'g')
+  elseif len(a:args) > 2
+    call vimshell#error_line(a:fd, 'mkcd: Too many arguments.')
+    return
+  else
+    " Filename escape.
+    let l:arguments = substitute(a:args[0], '^\~\ze[/\\]', substitute($HOME, '\\', '/', 'g'), '')
+  endif
+
+  if !isdirectory(l:arguments) && !filereadable(l:arguments)
+    " Make directory.
+    call mkdir(l:arguments)
+  endif
+
+  return vimshell#execute_internal_command('cd', a:args, a:fd, a:other_info)
 endfunction"}}}
-" vim: foldmethod=marker
+
+function! vimshell#commands#mkcd#define()
+  return s:command
+endfunction

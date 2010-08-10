@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: sudo.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 09 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,28 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
+let s:command = {
+      \ 'name' : 'sudo',
+      \ 'kind' : 'internal',
+      \ 'description' : 'sudo {command}',
+      \}
+function! s:command.execute(program, args, fd, other_info)"{{{
+  " Execute GUI program.
+  if empty(a:args)
+    call vimshell#error_line(a:fd, 'sudo: Arguments required.')
+    return
+  elseif a:args[0] == 'vim'
+    let l:args = a:args[1:]
+    let l:args[0] = 'sudo:' . l:args[0]
+    call vimshell#execute_internal_command('vim', l:args, a:fd, a:other_info)
+  else
+    call vimshell#execute_internal_command('iexe', insert(a:args, 'sudo'), a:fd, a:other_info)
   endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
-    endif
-  endfor
-
-  return keys(l:complete_words)
 endfunction"}}}
-" vim: foldmethod=marker
+function! s:command.complete(args)"{{{
+    return vimshell#complete#helper#command_args(a:args)
+endfunction"}}}
+
+function! vimshell#commands#sudo#define()
+  return s:command
+endfunction

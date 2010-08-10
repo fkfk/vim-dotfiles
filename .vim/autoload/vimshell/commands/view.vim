@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: view.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 07 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,59 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
-  endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
-    endif
-  endfor
+let s:command = {
+      \ 'name' : 'view',
+      \ 'kind' : 'internal',
+      \ 'description' : 'view [{filename}]',
+      \}
+function! s:command.execute(program, args, fd, other_info)"{{{
+  " View file.
 
-  return keys(l:complete_words)
+  if empty(a:args)
+    if a:fd.stdin == ''
+      vimshell#error_line(a:fd, 'view: Filename required.')
+      return
+    endif
+    
+    " Read from stdin.
+    let l:filename = a:fd.stdin
+  else
+    let l:filename = a:args[0]
+  endif
+
+  if !isdirectory(l:filename)
+    let l:lines = readfile(l:filename)
+    if len(l:lines) < winheight(0)
+      " Print lines if one screen.
+      for l:line in l:lines
+        call vimshell#print_line(a:fd, l:line)
+      endfor
+
+      return
+    endif
+  endif
+  
+  " Save current directiory.
+  let l:cwd = getcwd()
+
+  " Split nicely.
+  call vimshell#split_nicely()
+
+  try
+    edit `=l:filename`
+  catch
+    echohl Error | echomsg v:errmsg | echohl None
+  endtry
+  
+  " Call explorer.
+  doautocmd BufEnter
+
+  lcd `=l:cwd`
+  setlocal nomodifiable
+
+  wincmd p
 endfunction"}}}
-" vim: foldmethod=marker
+
+function! vimshell#commands#view#define()
+  return s:command
+endfunction

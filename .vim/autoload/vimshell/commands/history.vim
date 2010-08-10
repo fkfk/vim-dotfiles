@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: history.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 12 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,45 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
+let s:command = {
+      \ 'name' : 'history',
+      \ 'kind' : 'internal',
+      \ 'description' : 'history [{search-string}]',
+      \}
+function! s:command.execute(command, args, fd, other_info)"{{{
+  let l:arguments = join(a:args, ' ')
+  if l:arguments =~ '^\d\+$'
+    let l:search = ''
+    let l:max = str2nr(l:arguments)
+  elseif empty(l:arguments)
+    " Default max value.
+    let l:search = ''
+    let l:max = 20
+  else
+    let l:search = l:arguments
+    let l:max = len(g:vimshell#hist_buffer)
   endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
+  
+  if l:max <=0 || l:max >= len(g:vimshell#hist_buffer)
+    " Overflow.
+    let l:max = len(g:vimshell#hist_buffer)
+  endif
+  
+  let l:list = []
+  let l:cnt = 0
+  for l:hist in g:vimshell#hist_buffer
+    if vimshell#head_match(l:hist, l:search)
+      call add(l:list, [l:cnt, l:hist])
     endif
-  endfor
 
-  return keys(l:complete_words)
+    let l:cnt += 1
+  endfor
+  
+  for [l:cnt, l:hist] in l:list[: l:max-1]
+    call vimshell#print_line(a:fd, printf('%3d: %s', l:cnt, l:hist))
+  endfor
 endfunction"}}}
-" vim: foldmethod=marker
+
+function! vimshell#commands#history#define()
+  return s:command
+endfunction

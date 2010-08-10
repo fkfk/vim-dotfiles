@@ -1,7 +1,7 @@
 "=============================================================================
-" FILE: vimshell_execute_complete.vim
+" FILE: alias.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 12 Apr 2010
+" Last Modified: 07 Jul 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,21 +24,40 @@
 " }}}
 "=============================================================================
 
-function! vimshell#complete#vimshell_execute_complete#completefunc(arglead, cmdline, cursorpos)"{{{
-  " Get complete words.
-  let l:complete_words = {}
-  " Get command name.
-  let l:args = vimshell#parser#split_args(a:cmdline)
-  if a:cmdline =~ '\s\+$'
-    " Add blank argument.
-    call add(l:args, '')
-  endif
-  for l:dict in vimshell#complete#internal#iexe#get_complete_words(l:args)
-    if !has_key(l:complete_words, l:dict.word)
-      let l:complete_words[l:dict.word] = 1
-    endif
-  endfor
+let s:command = {
+      \ 'name' : 'alias',
+      \ 'kind' : 'special',
+      \ 'description' : 'alias {alias-name} = {command}',
+      \}
+function! s:command.execute(program, args, fd, other_info)"{{{
+  let l:args = join(a:args)
+  
+  if empty(a:args)
+    " View all aliases.
+    for alias in keys(b:vimshell.alias_table)
+      call vimshell#print_line(a:fd, printf('%s=%s', alias, vimshell#get_alias(alias)))
+    endfor
+  elseif l:args =~ vimshell#get_alias_pattern().'$'
+    " View alias.
+    call vimshell#print_line(a:fd, printf('%s=%s', a:args[0], vimshell#get_alias(a:args[0])))
+  else
+    " Define alias.
 
-  return keys(l:complete_words)
+    " Parse command line.
+    let l:alias_name = matchstr(l:args, vimshell#get_alias_pattern().'\ze\s*=\s*')
+
+    " Next.
+    if l:alias_name == ''
+      throw 'Wrong syntax: ' . l:args
+    endif
+
+    " Skip =.
+    let l:expression = l:args[matchend(l:args, '\s*=\s*') :]
+
+    call vimshell#set_alias(l:alias_name, l:expression)
+  endif
 endfunction"}}}
-" vim: foldmethod=marker
+
+function! vimshell#commands#alias#define()
+  return s:command
+endfunction
