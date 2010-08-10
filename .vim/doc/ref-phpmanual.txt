@@ -1,9 +1,17 @@
 *ref-phpmanual.txt*	A ref source for PHP manual.
 
-Version: 0.0.2
-Author : thinca <http://d.hatena.ne.jp/thinca/>
+Version: 0.3.1
+Author : thinca <thinca+vim@gmail.com>
 License: Creative Commons Attribution 2.1 Japan License
          <http://creativecommons.org/licenses/by/2.1/jp/deed.en>
+
+==============================================================================
+CONTENTS					*ref-phpmanual-contents*
+
+INTRODUCTION			|ref-phpmanual-introduction|
+CUSTOMIZING			|ref-phpmanual-customizing|
+CHANGELOG			|ref-phpmanual-changelog|
+
 
 ==============================================================================
 INTRODUCTION					*ref-phpmanual-introduction*
@@ -12,7 +20,9 @@ INTRODUCTION					*ref-phpmanual-introduction*
 
 
 Requirements:
+- |ref| 0.3.2 or later
 - PHP Manual (Many HTML files) (http://php.benscom.com/download-docs.php)
+
 
 
 ==============================================================================
@@ -24,7 +34,8 @@ g:ref_phpmanual_path				*g:ref_phpmanual_path*
 
 g:ref_phpmanual_cmd				*g:ref_phpmanual_cmd*
 			A command to view the html file.  %s is replaced by
-			the html file name.
+			the html file name.  This allows a |List| that
+			includes command and arguments.
 			The default value is the executable one of the
 			following:
 			- 'elinks -dump -no-numbering -no-references %s'
@@ -33,8 +44,27 @@ g:ref_phpmanual_cmd				*g:ref_phpmanual_cmd*
 			- 'lynx -dump -nonumbers %s'
 
 
+
 ==============================================================================
 CHANGELOG					*ref-phpmanual-changelog*
+
+0.3.1	2010-05-07
+	- Updated for |ref| 0.3.2.
+
+0.3.0	2010-04-18
+	- Updated for |ref| 0.3.0.
+
+0.2.0	2010-01-28
+	- Updated for |ref| 0.2.0.
+	- Fixed a bug that doesn't work when |g:ref_phpmanual_cmd| is a
+	  |List|.
+	- Show the list when query is empty.
+	- Fixed a bug to which the execution of the command might not work.
+	- The encoding of the output was converted.
+
+0.1.0	2010-01-21
+	- Uisng |ref#cache()|.
+	- Uisng |ref#system()|.
 
 0.0.2	2009-08-20
 	- It was made to cache to for the completion.

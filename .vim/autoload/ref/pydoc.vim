@@ -1,6 +1,6 @@
 " A ref source for pydoc.
-" Version: 0.1.0
-" Author : thinca <http://d.hatena.ne.jp/thinca/>
+" Version: 0.4.1
+" Author : thinca <thinca+vim@gmail.com>
 " License: Creative Commons Attribution 2.1 Japan License
 "          <http://creativecommons.org/licenses/by/2.1/jp/deed.en>
 
@@ -9,81 +9,100 @@ set cpo&vim
 
 
 
-if !exists('g:ref_pydoc_cmd')
-  let g:ref_pydoc_cmd = 'pydoc'
+" options. {{{1
+if !exists('g:ref_pydoc_cmd')  " {{{2
+  let g:ref_pydoc_cmd = executable('pydoc') ? 'pydoc' : ''
+endif
+
+if !exists('g:ref_pydoc_complete_head')  " {{{2
+  let g:ref_pydoc_complete_head = 0
 endif
 
 
 
-function! ref#pydoc#available()  " {{{2
-  return executable(g:ref_pydoc_cmd)
+let s:source = {'name': 'pydoc'}  " {{{1
+
+function! s:source.available()  " {{{2
+  return !empty(g:ref_pydoc_cmd)
 endfunction
 
 
 
-function! ref#pydoc#get_body(query)  " {{{2
-  let args = join(map(split(a:query), 'shellescape(v:val)'), ' ')
-  let content = system(g:ref_pydoc_cmd . ' ' . args)
-  if content =~ 'no Python documentation found'
-    let list = ref#pydoc#complete(a:query)
-    if list == []
-      throw split(content, "\n")[0]
+function! s:source.get_body(query)  " {{{2
+  if a:query != ''
+    let content = ref#system(ref#to_list(g:ref_pydoc_cmd, a:query)).stdout
+    if content !~# '^no Python documentation found'
+      return content
     endif
-    if len(list) == 1
-      return system(g:ref_pydoc_cmd . ' ' . shellescape(list[0]))
-    endif
-    return list
   endif
 
-  return content
+  let list = self.complete(a:query)
+  if list == []
+    throw split(content, "\n")[0]
+  endif
+  if len(list) == 1
+    return ref#system(ref#to_list(g:ref_pydoc_cmd, list)).stdout
+  endif
+  return list
 endfunction
 
 
 
-function! ref#pydoc#opened(query)  " {{{2
+function! s:source.opened(query)  " {{{2
   call s:syntax(s:get_info()[0])
 endfunction
 
 
 
-function! ref#pydoc#complete(query)  " {{{2
-  if a:query == ''
-    return []
+function! s:source.complete(query)  " {{{2
+  let cmd = ref#to_list(g:ref_pydoc_cmd, '-k .')
+  let mapexpr = 'matchstr(v:val, "^[[:alnum:]._]*")'
+  let all_list = self.cache('list',
+  \                    printf('map(split(ref#system(%s).stdout, "\n"), %s)',
+  \                           string(cmd), string(mapexpr)))
+
+  if g:ref_pydoc_complete_head
+    let q = a:query == '' || a:query =~ '\s$' ? '' : split(a:query)[-1]
+    let all_list = s:head(all_list, q)
   endif
-  return map(split(system(g:ref_pydoc_cmd . ' -k ' . a:query), "\n"),
-  \          'matchstr(v:val, "^\\S*")')
+
+  let list = filter(copy(all_list), 'v:val =~# "^\\V" . a:query')
+  if !empty(list)
+    return list
+  endif
+  return filter(copy(all_list), 'v:val =~# "\\V" . a:query')
 endfunction
 
 
 
-function! ref#pydoc#get_keyword()  " {{{2
-  if &l:filetype == 'ref'
+function! s:source.get_keyword()  " {{{2
+  if &l:filetype ==# 'ref-pydoc'
     let [type, name, scope] = s:get_info()
 
-    if type == 'package' || type == 'module'
+    if type ==# 'package' || type ==# 'module'
       let line = getline('.')
 
       let secline = search('^\u[A-Z ]*\u$', 'bnW')
       let section = secline == 0 ? '' : getline(secline)
 
-      if section == 'PACKAGE CONTENTS'
+      if section ==# 'PACKAGE CONTENTS'
         let package = matchstr(line, '^\s*\zs\S\+')
         if package != ''
           return name . '.' . package
         endif
       endif
 
-      if section == 'CLASSES'
-        let class = matchstr(line, '^\s*\zs\S\+$')
+      if section ==# 'CLASSES'
+        let class = matchstr(line, '^\s*class \zs\k\+')
         if class != ''
-          if type == 'package'
-            return class
-          endif
           return printf('%s.%s', name, class)
         endif
 
-        let class = matchstr(line, '^\s*class \zs\k\+')
+        let class = matchstr(line, '^\s*\zs[[:alnum:].]\+')
         if class != ''
+          if type ==# 'package'
+            return class
+          endif
           return printf('%s.%s', name, class)
         endif
 
@@ -104,7 +123,7 @@ function! ref#pydoc#get_keyword()  " {{{2
         return name . '.' . func
       endif
 
-    elseif type == 'class'
+    elseif type ==# 'class'
       let m = matchstr(getline('.'), '^ |  \zs\k\+\ze(.*)$')
       if m != ''
         return printf('%s.%s.%s', scope, name, m)
@@ -112,7 +131,7 @@ function! ref#pydoc#get_keyword()  " {{{2
 
     endif
 
-    if type != 'list'
+    if type !=# 'list'
       " xxx.yy*y.zzzClass -> xxx.yyy (* means cursor)
       let line = getline('.')
       let [pre, post] = [line[: col('.') - 2], line[col('.') - 1 :]]
@@ -125,21 +144,12 @@ function! ref#pydoc#get_keyword()  " {{{2
     " TODO: In a Python code.
   endif
 
-  let isk = &l:isk
-  setlocal isk& isk+=.
-  let kwd = expand('<cword>')
-  let &l:isk = isk
-  return kwd
+  return ref#get_text_on_cursor('[[:alnum:].]\+')
 endfunction
 
 
 
-function! ref#pydoc#leave()
-  syntax clear
-  unlet! b:current_syntax
-endfunction
-
-
+" functions {{{1
 
 " Get informations of current document.
 " [type, name, scope]
@@ -170,17 +180,16 @@ endfunction
 
 
 
-function! s:syntax(type)
-  if exists('b:current_syntax') && b:current_syntax == 'ref-pydoc'
-    " return
+function! s:syntax(type)  " {{{2
+  if a:type ==# 'list'
+    syntax clear
+    return
+  elseif exists('b:current_syntax') && b:current_syntax ==# 'ref-pydoc'
+    return
   endif
 
   syntax clear
-  unlet! b:current_syntax
 
-  if a:type == 'list'
-    return
-  endif
 
   syntax match refPydocHeader '^[[:upper:][:space:]]\+$'
   syntax match refPydocClass '^    class\>' nextgroup=refPydocClassName skipwhite
@@ -201,7 +210,19 @@ endfunction
 
 
 
-call ref#detect#register('python', 'pydoc')
+function! s:head(list, query)  " {{{2
+  let pat = '^\V' . a:query . '\v\w*(\.)?\zs.*$'
+  return ref#uniq(map(filter(copy(a:list), 'v:val =~# pat'),
+  \             'substitute(v:val, pat, "", "")'))
+endfunction
+
+
+
+function! ref#pydoc#define()  " {{{2
+  return copy(s:source)
+endfunction
+
+call ref#register_detection('python', 'pydoc')
 
 
 
