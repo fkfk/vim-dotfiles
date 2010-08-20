@@ -265,7 +265,7 @@ function! vimshell#parser#execute_command(commands, context)"{{{
       " Execute less(Syntax sugar).
       let l:commands = a:commands[: -2]
       if !empty(a:commands[-1].args[1:])
-        let l:commands[0].args = insert(l:commands[0].args, a:commands[-1].args[1:])
+        let l:commands[0].args = a:commands[-1].args[1:] + l:commands[0].args
       endif
       return l:internal_commands['less'].execute(l:commands, l:context)
     else
@@ -274,7 +274,7 @@ function! vimshell#parser#execute_command(commands, context)"{{{
     endif
   else"{{{
     let l:dir = substitute(substitute(l:line, '^\~\ze[/\\]', substitute($HOME, '\\', '/', 'g'), ''), '\\\(.\)', '\1', 'g')
-    let l:command = vimshell#getfilename(program)
+    let l:command = vimshell#get_command_path(program)
     let l:ext = fnamemodify(l:program, ':e')
     
     " Check internal commands.
@@ -366,6 +366,16 @@ function! vimshell#parser#execute_continuation(is_insert)"{{{
     
     let i += 1
   endwhile
+
+  if b:interactive.syntax !=# &filetype
+    " Set highlight.
+    let l:start = searchpos('^' . vimshell#escape_match(vimshell#get_prompt()), 'bWen')[0]
+    if l:start > 0
+      call s:highlight_with(l:start + 1, line('$'), b:interactive.syntax)
+    endif
+
+    let b:interactive.syntax = &filetype
+  endif
 
   let b:vimshell.continuation = {}
   call vimshell#print_prompt(l:context)
@@ -677,34 +687,111 @@ function! vimshell#parser#check_wildcard()"{{{
   return !empty(l:args) && l:args[-1] =~ '[[*?]\|^\\[()|]'
 endfunction"}}}
 function! vimshell#parser#expand_wildcard(wildcard)"{{{
-  " Exclude wildcard.
+  " Check wildcard.
+  let i = 0
+  let l:max = len(a:wildcard)
+  let l:script = ''
+  let l:found = 0
+  while i < l:max
+    if a:wildcard[i] == '*' || a:wildcard[i] == '?' || a:wildcard[i] == '['
+      let l:found = 1
+      break
+    else
+      let [l:script, i] = s:skip_else(l:script, a:wildcard, i)
+    endif
+  endwhile
+
+  if !l:found
+    return [ a:wildcard ]
+  endif
+
   let l:wildcard = a:wildcard
-  let l:exclude = matchstr(l:wildcard, '\~.*$')
+  
+  " Exclude wildcard.
+  let l:exclude = matchstr(l:wildcard, '\\\@<!\~\zs.\+$')
+  let l:exclude_wilde = []
   if l:exclude != ''
-    " Trunk l:wildcard.
-    let l:wildcard = l:wildcard[: len(l:wildcard)-len(l:exclude)-1]
+    " Truncate wildcard.
+    let l:wildcard = l:wildcard[: len(l:wildcard)-len(l:exclude)-2]
+    let l:exclude_wilde = vimshell#parser#expand_wildcard(l:exclude)
+  endif
+  
+  " Modifier.
+  let l:modifier = matchstr(l:wildcard, '\\\@<!(\zs.\+\ze)$')
+  if l:modifier != ''
+    " Truncate wildcard.
+    let l:wildcard = l:wildcard[: len(l:wildcard)-len(l:modifier)-3]
   endif
 
   " Expand wildcard.
   let l:expanded = split(escape(substitute(glob(l:wildcard), '\\', '/', 'g'), ' '), '\n')
-  let l:exclude_wilde = split(escape(substitute(glob(l:exclude[1:]), '\\', '/', 'g'), ' '), '\n')
   if !empty(l:exclude_wilde)
+    " Check exclude wildcard.
     let l:candidates = l:expanded
     let l:expanded = []
     for candidate in l:candidates
       let l:found = 0
 
       for ex in l:exclude_wilde
-        if candidate == ex
+        if candidate ==# ex
           let l:found = 1
           break
         endif
       endfor
 
-      if l:found == 0
+      if !l:found
         call add(l:expanded, candidate)
       endif
     endfor
+  endif
+
+  if l:modifier != ''
+    " Check file modifier.
+    let i = 0
+    let l:max = len(l:modifier)
+    while i < l:max
+      if l:modifier[i] ==# '/'
+        " Directory.
+        let l:expr = 'getftype(v:val) ==# "dir"'
+      elseif l:modifier[i] ==# '.'
+        " Normal.
+        let l:expr = 'getftype(v:val) ==# "file"'
+      elseif l:modifier[i] ==# '@'
+        " Link.
+        let l:expr = 'getftype(v:val) ==# "link"'
+      elseif l:modifier[i] ==# '='
+        " Socket.
+        let l:expr = 'getftype(v:val) ==# "socket"'
+      elseif l:modifier[i] ==# 'p'
+        " FIFO Pipe.
+        let l:expr = 'getftype(v:val) ==# "pipe"'
+      elseif l:modifier[i] ==# '*'
+        " Executable.
+        let l:expr = 'getftype(v:val) ==# "pipe"'
+      elseif l:modifier[i] ==# '%'
+        " Device.
+        
+        if l:modifier[i:] =~# '^%[bc]'
+          if l:modifier[i] ==# 'b'
+            " Block device.
+            let l:expr = 'getftype(v:val) ==# "bdev"'
+          else
+            " Character device.
+            let l:expr = 'getftype(v:val) ==# "cdev"'
+          endif
+
+          let i += 1
+        else
+          let l:expr = 'getftype(v:val) ==# "bdev" || getftype(v:val) ==# "cdev"'
+        endif
+      else
+        " Unknown.
+        return []
+      endif
+
+      call filter(l:expanded, l:expr)
+      let i += 1
+    endwhile
   endif
 
   return filter(l:expanded, 'v:val != "." && v:val != ".."')
@@ -818,7 +905,7 @@ function! s:parse_block(script)"{{{
     if a:script[i] == '{'
       " Block.
       let l:head = matchstr(a:script[: i-1], '[^[:blank:]]*$')
-      " Trunk l:script.
+      " Truncate l:script.
       let l:script = l:script[: -len(l:head)-1]
       let l:block = matchstr(a:script, '{\zs.*[^\\]\ze}', i)
       if l:block == ''
@@ -883,7 +970,7 @@ function! s:parse_equal(script)"{{{
       if l:prog == ''
         let [l:script, i] = s:skip_else(l:script, a:script, i)
       else
-        let l:filename = vimshell#getfilename(l:prog)
+        let l:filename = vimshell#get_command_path(l:prog)
         if l:filename == ''
           throw printf('Error: File "%s" is not found.', l:prog)
         else
@@ -928,23 +1015,9 @@ function! s:parse_variables(script)"{{{
 endfunction"}}}
 function! s:parse_wildcard(script)"{{{
   let l:script = ''
-
-  let i = 0
-  let l:max = len(a:script)
-  while i < l:max
-    if a:script[i] == '[' || a:script[i] == '*' || a:script[i] == '?' || a:script[i :] =~ '^\\[()|]'
-      " Wildcard.
-      let l:head = matchstr(a:script[: i-1], '[^[:blank:]]*$')
-      let l:wildcard = l:head . matchstr(a:script, '^[^[:blank:]]*', i)
-      " Trunk l:script.
-      let l:script = l:script[: -len(l:wildcard)]
-
-      let l:script .= join(vimshell#parser#expand_wildcard(l:wildcard))
-      let i = matchend(a:script, '^[^[:blank:]]*', i)
-    else
-      let [l:script, i] = s:skip_else(l:script, a:script, i)
-    endif
-  endwhile
+  for l:arg in vimshell#parser#split_args_through(a:script)
+    let l:script .= join(vimshell#parser#expand_wildcard(l:arg)) . ' '
+  endfor
 
   return l:script
 endfunction"}}}
@@ -1150,6 +1223,22 @@ function! s:recursive_expand_alias(string)"{{{
   endwhile
 
   return l:alias
+endfunction"}}}
+
+function! s:highlight_with(start, end, syntax)"{{{
+  let l:cnt = get(b:, 'highlight_count', 0)
+  if globpath(&runtimepath, 'syntax/' . a:syntax . '.vim') == ''
+    return
+  endif
+  unlet! b:current_syntax
+  let l:save_isk= &l:iskeyword  " For scheme.
+  execute printf('syntax include @highlightWith%d syntax/%s.vim',
+        \              l:cnt, a:syntax)
+  let &l:iskeyword = l:save_isk
+  execute printf('syntax region highlightWith%d start=/\%%%dl/ end=/\%%%dl$/ '
+        \            . 'contains=@highlightWith%d,VimShellError',
+        \             l:cnt, a:start, a:end, l:cnt)
+  let b:highlight_count = l:cnt + 1
 endfunction"}}}
 
 " vim: foldmethod=marker

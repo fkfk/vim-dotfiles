@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: exe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 16 Jul 2010
+" Last Modified: 13 Aug 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -103,13 +103,22 @@ function! s:init_process(commands, context, options)"{{{
   endif
   
   " Set environment variables.
-  let $TERMCAP = 'COLUMNS=' . winwidth(0)
-  let $VIMSHELL = 1
-  let $COLUMNS = winwidth(0)-5
-  let $LINES = winheight(0)
-  let $VIMSHELL_TERM = 'execute'
+  call vimshell#set_environments({
+        \ '$TERM' : g:vimshell_environment_term, 
+        \ '$TERMCAP' : 'COLUMNS=' . winwidth(0), 
+        \ '$VIMSHELL' : 1, 
+        \ '$COLUMNS' : winwidth(0)-5,
+        \ '$LINES' : winheight(0),
+        \ '$VIMSHELL_TERM' : 'execute',
+        \ '$EDITOR' : g:vimshell_cat_command,
+        \ '$PAGER' : g:vimshell_cat_command,
+        \})
 
+  " Initialize.
   let l:sub = vimproc#plineopen3(a:commands)
+  
+  " Restore environment variables.
+  call vimshell#restore_environments()
 
   let l:cmdline = []
   for l:command in a:commands
@@ -119,6 +128,7 @@ function! s:init_process(commands, context, options)"{{{
   " Set variables.
   let b:interactive = {
         \ 'type' : 'execute', 
+        \ 'syntax' : b:interactive.syntax,
         \ 'process' : l:sub, 
         \ 'fd' : a:context.fd, 
         \ 'encoding' : a:options['--encoding'], 

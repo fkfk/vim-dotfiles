@@ -254,7 +254,7 @@ function! s:execute_command_line(is_insert, old_pos)"{{{
 
   try
     let l:ret = vimshell#parser#eval_script(l:line, l:context)
-  catch /^Error: File ".*" is not found./
+  catch /File ".*" is not found./
     " Command not found.
     let l:oldline = l:line
     let l:line = vimshell#hook#call_filter('notfound', l:context, l:line)
@@ -436,7 +436,7 @@ function! s:clear()"{{{
 endfunction"}}}
 function! s:expand_wildcard()"{{{
   " Wildcard.
-  if vimshell#get_current_args() <= 0
+  if empty(vimshell#get_current_args())
     return ''
   endif
   let l:wildcard = vimshell#get_current_args()[-1]

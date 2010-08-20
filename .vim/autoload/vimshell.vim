@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: vimshell.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 05 Aug 2010
+" Last Modified: 18 Aug 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -32,11 +32,15 @@ endfunction"}}}
 try
   let s:exists_vimproc_version = vimproc#version()
 catch
+  echoerr v:throwpoint
+  echoerr v:exception
+  echoerr 'Error occured while loading vimproc.'
   echoerr 'Please install vimproc Ver.4.1 or above.'
   finish
 endtry
-if s:exists_vimproc_version < 401
-  echoerr 'Please install vimproc Ver.4.1 or above.'
+if s:exists_vimproc_version < 403
+  echoerr 'Your vimproc is too old.'
+  echoerr 'Please install vimproc Ver.4.3 or above.'
   finish
 endif"}}}
 
@@ -163,15 +167,6 @@ function! vimshell#create_shell(split_flag, directory)"{{{
         \}
   let b:vimshell.continuation = {}
 
-  " Set environment variables.
-  let $TERM = g:vimshell_environment_term
-  let $TERMCAP = 'COLUMNS=' . winwidth(0)
-  let $VIMSHELL = 1
-  let $COLUMNS = winwidth(0)-5
-  let $LINES = winheight(0)
-  let $EDITOR = g:vimshell_cat_command
-  let $PAGER = g:vimshell_cat_command
-
   " Default settings.
   call s:default_settings()
 
@@ -186,6 +181,7 @@ function! vimshell#create_shell(split_flag, directory)"{{{
   " Set interactive variables.
   let b:interactive = {
         \ 'type' : 'vimshell', 
+        \ 'syntax' : 'vimshell', 
         \ 'process' : {}, 
         \ 'fd' : l:context.fd, 
         \ 'encoding' : &encoding, 
@@ -465,29 +461,14 @@ function! vimshell#print_secondary_prompt()"{{{
   $
   let &modified = 0
 endfunction"}}}
-function! vimshell#getfilename(program)"{{{
+function! vimshell#get_command_path(program)"{{{
   " Command search.
-  if vimshell#iswin()
-    let l:path = substitute($PATH, '\\\?;', ',', 'g')
-    let l:files = ''
-    for ext in ['', '.bat', '.cmd', '.exe']
-      let l:files = globpath(l:path, a:program.ext)
-      if !empty(l:files)
-        break
-      endif
-    endfor
-
-    let l:namelist = filter(split(l:files, '\n'), 'executable(v:val)')
-  else
-    let l:path = substitute($PATH, '/\?:', ',', 'g')
-    let l:namelist = filter(split(globpath(l:path, a:program), '\n'), 'executable(v:val)')
-  endif
-
-  if empty(l:namelist)
+  try
+    return vimproc#get_command_name(a:program)
+  catch /File ".*" is not found./
+    " Not found.
     return ''
-  else
-    return l:namelist[0]
-  endif
+  endtry
 endfunction"}}}
 function! vimshell#start_insert(...)"{{{
   if &filetype !=# 'vimshell'
@@ -694,6 +675,20 @@ function! vimshell#imdisable()"{{{
     let &l:iminsert = 0
   endif
 endfunction"}}}
+function! vimshell#set_environments(environments)"{{{
+  let s:environments_save = {}
+  for [key, value] in items(a:environments)
+    let l:save_value = exists(key) ? eval(key) : ''
+
+    let s:environments_save[key] = l:save_value
+    execute 'let' key '= value'
+  endfor
+endfunction"}}}
+function! vimshell#restore_environments()"{{{
+  for [key, value] in items(s:environments_save)
+    execute 'let' key '= value'
+  endfor
+endfunction"}}}
 "}}}
 
 " User helper functions.
@@ -750,6 +745,9 @@ function! vimshell#set_galias(name, value)"{{{
 endfunction"}}}
 function! vimshell#get_galias(name)"{{{
   return get(b:vimshell.galias_table, a:name, '')
+endfunction"}}}
+function! vimshell#set_syntax(syntax_name)"{{{
+  let b:interactive.syntax = a:syntax_name
 endfunction"}}}
 
 function! s:init_internal_commands()"{{{

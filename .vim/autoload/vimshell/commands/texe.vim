@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: texe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 04 Aug 2010
+" Last Modified: 18 Aug 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -85,30 +85,42 @@ function! s:command.execute(commands, context)"{{{
     " Delete zombee process.
     call vimshell#interactive#force_exit()
   endif
+  
+  if l:use_cygpty && g:vimshell_interactive_cygwin_home != ''
+    " Set $HOME.
+    let l:home_save = $HOME
+    let $HOME = g:vimshell_interactive_cygwin_home
+  endif
+
+  " Set environment variables.
+  call vimshell#set_environments({
+        \ '$TERM' : g:vimshell_environment_term, 
+        \ '$TERMCAP' : 'COLUMNS=' . winwidth(0), 
+        \ '$VIMSHELL' : 1, 
+        \ '$COLUMNS' : winwidth(0)-5,
+        \ '$LINES' : winheight(0),
+        \ '$VIMSHELL_TERM' : 'terminal',
+        \ '$EDITOR' : g:vimshell_cat_command,
+        \ '$PAGER' : g:vimshell_cat_command,
+        \})
 
   " Initialize.
-  if vimshell#iswin()
-    if g:vimshell_interactive_cygwin_home != ''
-      " Set $HOME.
-      let l:home_save = $HOME
-      let $HOME = g:vimshell_interactive_cygwin_home
-    endif
-  endif
-  
-  call s:init_bg(l:args, a:context)
-  
   let l:sub = vimproc#ptyopen(l:args)
+  
+  " Restore environment variables.
+  call vimshell#restore_environments()
 
-  if vimshell#iswin()
-    if g:vimshell_interactive_cygwin_home != ''
-      " Restore $HOME.
-      let $HOME = l:home_save
-    endif
+  if l:use_cygpty && g:vimshell_interactive_cygwin_home != ''
+    " Restore $HOME.
+    let $HOME = l:home_save
   endif
+
+  call s:init_bg(l:args, a:context)
 
   " Set variables.
   let b:interactive = {
         \ 'type': 'terminal', 
+        \ 'syntax' : &syntax,
         \ 'process' : l:sub, 
         \ 'fd' : a:context.fd, 
         \ 'encoding' : l:options['--encoding'],
@@ -145,16 +157,6 @@ endfunction
 let s:update_time_save = &updatetime
 
 function! s:default_settings()"{{{
-  " Set environment variables.
-  let $TERM = g:vimshell_environment_term
-  let $TERMCAP = 'COLUMNS=' . winwidth(0)
-  let $VIMSHELL = 1
-  let $COLUMNS = winwidth(0)-5
-  let $LINES = winheight(0)
-  let $VIMSHELL_TERM = 'terminal'
-  let $EDITOR = g:vimshell_cat_command
-  let $PAGER = g:vimshell_cat_command
-
   " Define mappings.
   call vimshell#term_mappings#define_default_mappings()
   

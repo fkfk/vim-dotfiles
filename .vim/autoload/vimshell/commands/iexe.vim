@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: iexe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 04 Aug 2010
+" Last Modified: 18 Aug 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -104,28 +104,41 @@ function! s:command.execute(commands, context)"{{{
   endif
 
   " Initialize.
-  if l:use_cygpty
-    if g:vimshell_interactive_cygwin_home != ''
-      " Set $HOME.
-      let l:home_save = $HOME
-      let $HOME = g:vimshell_interactive_cygwin_home
-    endif
+  if l:use_cygpty && g:vimshell_interactive_cygwin_home != ''
+    " Set $HOME.
+    let l:home_save = $HOME
+    let $HOME = g:vimshell_interactive_cygwin_home
   endif
 
-  call s:init_bg(l:args, a:context)
-  
+  " Set environment variables.
+  call vimshell#set_environments({
+        \ '$TERM' : g:vimshell_environment_term, 
+        \ '$TERMCAP' : 'COLUMNS=' . winwidth(0), 
+        \ '$VIMSHELL' : 1, 
+        \ '$COLUMNS' : winwidth(0)-5,
+        \ '$LINES' : winheight(0),
+        \ '$VIMSHELL_TERM' : 'interactive',
+        \ '$EDITOR' : g:vimshell_cat_command,
+        \ '$PAGER' : g:vimshell_cat_command,
+        \})
+
+  " Initialize.
   let l:sub = vimproc#ptyopen(l:args)
+  
+  " Restore environment variables.
+  call vimshell#restore_environments()
 
-  if l:use_cygpty
-    if g:vimshell_interactive_cygwin_home != ''
-      " Restore $HOME.
-      let $HOME = l:home_save
-    endif
+  if l:use_cygpty && g:vimshell_interactive_cygwin_home != ''
+    " Restore $HOME.
+    let $HOME = l:home_save
   endif
+  
+  call s:init_bg(l:args, a:context)
 
   " Set variables.
   let b:interactive = {
         \ 'type' : 'interactive', 
+        \ 'syntax' : &syntax,
         \ 'process' : l:sub, 
         \ 'fd' : a:context.fd, 
         \ 'encoding' : l:options['--encoding'],
@@ -195,19 +208,10 @@ call vimshell#set_dictionary_helper(g:vimshell_interactive_interpreter_commands,
 call vimshell#set_dictionary_helper(g:vimshell_interactive_interpreter_commands, 'ocaml', 'ocaml')
 call vimshell#set_dictionary_helper(g:vimshell_interactive_interpreter_commands, 'sml', 'sml')
 call vimshell#set_dictionary_helper(g:vimshell_interactive_interpreter_commands, 'javascript', 'js')
+call vimshell#set_dictionary_helper(g:vimshell_interactive_prompts, 'termtter', '> ')
 "}}}
 
 function! s:default_settings()"{{{
-  " Set environment variables.
-  let $TERM = g:vimshell_environment_term
-  let $TERMCAP = 'COLUMNS=' . winwidth(0)
-  let $VIMSHELL = 1
-  let $COLUMNS = winwidth(0)-5
-  let $LINES = winheight(0)
-  let $VIMSHELL_TERM = 'interactive'
-  let $EDITOR = g:vimshell_cat_command
-  let $PAGER = g:vimshell_cat_command
-
   " Common.
   setlocal nocompatible
   setlocal nolist

@@ -1,6 +1,6 @@
 *vimshell.txt*	Vim Scriptで実装された強力なシェル
 
-Version: 7.1
+Version: 7.2
 Author : Shougo <Shougo.Matsu@gmail.com>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
@@ -448,17 +448,17 @@ EXAMPLES						*vimshell-examples*
 	let g:vimshell_enable_smart_case = 1
 	
 	if has('win32') || has('win64') 
-	    " Display user name on Windows.
-	    let g:vimshell_prompt = $USERNAME."% "
+	  " Display user name on Windows.
+	  let g:vimshell_prompt = $USERNAME."% "
 	else
-	    " Display user name on Linux.
-	    let g:vimshell_prompt = $USER."% "
+	  " Display user name on Linux.
+	  let g:vimshell_prompt = $USER."% "
 	
-	    call vimshell#set_execute_file('bmp,jpg,png,gif', 'gexe eog')
-	    call vimshell#set_execute_file('mp3,m4a,ogg', 'gexe amarok')
-	    let g:vimshell_execute_file_list['zip'] = 'zipinfo'
-	    call vimshell#set_execute_file('tgz,gz', 'gzcat')
-	    call vimshell#set_execute_file('tbz,bz2', 'bzcat')
+	  call vimshell#set_execute_file('bmp,jpg,png,gif', 'gexe eog')
+	  call vimshell#set_execute_file('mp3,m4a,ogg', 'gexe amarok')
+	  let g:vimshell_execute_file_list['zip'] = 'zipinfo'
+	  call vimshell#set_execute_file('tgz,gz', 'gzcat')
+	  call vimshell#set_execute_file('tbz,bz2', 'bzcat')
 	endif
 	
 	autocmd FileType vimshell
@@ -483,6 +483,10 @@ EXAMPLES						*vimshell-examples*
 	endfunction
 	function! g:my_preexec(cmdline, context)
 	  call vimshell#execute('echo "preexec"')
+	
+	  if a:cmdline =~# '^\s*diff\>'
+	    call vimshell#set_syntax('diff')
+	  endif
 	  return a:cmdline
 	endfunction
 <
@@ -683,6 +687,12 @@ vimsh [{filename}]					*vimshell-internal-vimsh*
 		ただし制御構造が実装されていないため、あまり使用価値はありま
 		せん。{filename}を省略すると、新しいvimshellバッファを開きま
 		す。
+
+which {command}					*vimshell-internal-which*
+		{command}のフルパスを出力します。aliasも認識されます。
+
+whrereis {command}				*vimshell-internal-whereis*
+		{command}のフルパスをすべて出力します。
 
 ==============================================================================
 SPECIAL COMMANDS					*vimshell-special-commands*
