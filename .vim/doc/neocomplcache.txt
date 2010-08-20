@@ -69,7 +69,7 @@ COMMANDS 						*neocomplcache-commands*
 		While locking neocomplcache, automatic completion is not
 		possible.
 
-:Neco 							*:Neco*
+:Neco [{number}] 					*:Neco*
 		Secret.
 
 :NeoComplCacheLock					*:NeoComplCacheLock*
@@ -657,7 +657,7 @@ EXAMPLES						*neocomplcache-examples*
 	
 	" Recommended key-mappings.
 	" <CR>: close popup and save indent.
-	inoremap <expr><CR>  neocomplcache#smart_close_popup() . (&indentexpr != '' ? "\<C-f>\<CR>X\<BS>":"\<CR>")
+	inoremap <expr><CR>  neocomplcache#smart_close_popup() . "\<CR>"
 	" <TAB>: completion.
 	inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 	" <C-h>, <BS>: close popup and delete backword char.
@@ -762,6 +762,39 @@ ability of neocomplcache will spread by creating plugin by yourself.
 
 ==============================================================================
 CHANGELOG						*neocomplcache-changelog*
+
+2010-08-19
+- Fixed get_cur_text() bug.
+- Fixed examples.
+- Improved for echodoc.
+- Fixed get_cur_text() in snippets_complete.
+
+2010-08-17
+- Fixed abbrev_complete redir bug.
+- Fixed var_dictionary complete in vim_complete.
+- Improved get_cur_text().
+- Fixed keyword pattern.
+- Fixed echodoc in include_complete.
+
+2010-08-16
+- Fixed abbrev_complete.
+- Supported lua.
+
+2010-08-15
+- Improved plugin error catch.
+
+2010-08-14
+- Improved error catch.
+
+2010-08-13
+- Improved caching.
+- Fixed nasm error.
+
+2010-08-12
+- Fixed filter bug.
+
+2010-08-11
+- Refactoringed :Neco command.
 
 2010-08-09
 - Fixed include_complete error in echodoc.

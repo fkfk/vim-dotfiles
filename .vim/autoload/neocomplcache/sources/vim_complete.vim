@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: vim_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 04 Aug 2010
+" Last Modified: 19 Aug 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -75,7 +75,7 @@ function! s:source.get_keyword_pos(cur_text)"{{{
     return -1
   endif
 
-  let l:pattern = '\h\w*\.\%(\h\w*\)\?$\|' . neocomplcache#get_keyword_pattern_end('vim')
+  let l:pattern = '\.\%(\h\w*\)\?$\|' . neocomplcache#get_keyword_pattern_end('vim')
   if l:cur_text !~ '^[[:digit:],[:space:]$''<>]*\h\w*$'
     let l:command_completion = neocomplcache#sources#vim_complete#helper#get_completion_name(
           \neocomplcache#sources#vim_complete#get_command(l:cur_text))
@@ -95,10 +95,12 @@ function! s:source.get_complete_words(cur_keyword_pos, cur_keyword_str)"{{{
         \&& len(a:cur_keyword_str) < s:completion_length)
     return []
   endif
-  
+
   if l:cur_text =~ '\h\w*\.\%(\h\w*\)\?$'
     " Dictionary.
-    let l:list = neocomplcache#sources#vim_complete#helper#var_dictionary(l:cur_text, a:cur_keyword_str)
+    let l:cur_keyword_str = matchstr(l:cur_text, '.\%(\h\w*\)\?$')
+    let l:list = neocomplcache#sources#vim_complete#helper#var_dictionary(l:cur_text, l:cur_keyword_str)
+    return neocomplcache#keyword_filter(l:list, l:cur_keyword_str)
   elseif a:cur_keyword_str =~# '^&\%([gl]:\)\?'
     " Options.
     let l:prefix = matchstr(a:cur_keyword_str, '&\%([gl]:\)\?')
@@ -163,7 +165,7 @@ function! neocomplcache#sources#vim_complete#get_cur_text()"{{{
   if &filetype == 'vimshell' && exists('*vimshell#get_secondary_prompt')
     return l:cur_text[len(vimshell#get_secondary_prompt()) :]
   endif
-  
+
   let l:line = line('.')
   let l:cnt = 0
   while l:cur_text =~ '^\s*\\' && l:line > 1 && l:cnt < 5

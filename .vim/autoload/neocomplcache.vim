@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: neocomplcache.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 09 Aug 2010
+" Last Modified: 19 Aug 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -111,7 +111,7 @@ function! neocomplcache#enable() "{{{
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'lisp,scheme,clojure,int-gosh,int-clisp,int-clj', 
         \'[[:alnum:]+*@$%^&_=<>~.-]\+[!?]\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'ruby,int-irb',
-        \'\<\%(\u\w*::\)*\u\w*\%(\.\w*\%(()\?\)\?\)*\|^=\%(b\%[egin]\|e\%[nd]\)\|\%(@@\|[:$@]\)\h\w*\|\%(\h\w*::\)*\h\w*[!?]\?\%(\s\?()\?\|\s\?\%(do\|{\)\s\?\)\?')
+        \'^=\%(b\%[egin]\|e\%[nd]\)\|\%(@@\|[:$@]\)\h\w*\|\%(\h\w*::\)*\h\w*[!?]\?\%(\s\?()\?\|\s\?\%(do\|{\)\s\?\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'php',
         \'</\?\%(\h[[:alnum:]_-]*\s*\)\?\%(/\?>\)\?\|\$\h\w*\|\%(\h\w*::\)*\h\w*\%(\s\?()\?\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'perl,int-perlsh',
@@ -141,21 +141,21 @@ function! neocomplcache#enable() "{{{
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'objcpp',
         \'^\s*#\s*\h\w*\|\%(\h\w*::\)*\h\w*\%(\s\?()\?\|<>\?\|:\)\?\|@\h\w*\%(\s\?()\?\)\?\|(\s*\h\w*\s*\*\?\s*)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'd',
-        \'\<\u\w*\%(\.\w*\%(()\?\)\?\)*\|\h\w*\%(!\?\s\?()\?\)\?')
+        \'\h\w*\%(!\?\s\?()\?\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'python,int-python,int-ipython',
         \'\h\w*\%(\s\?()\?\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'cs',
         \'\h\w*\%(\s\?()\?\|<\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'java',
-        \'\<\u\w*\%(\.\w*\%(()\?\)\?\)*\|[@]\?\h\w*\%(\s\?()\?\|<\)\?')
+        \'[@]\?\h\w*\%(\s\?()\?\|<\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'javascript,actionscript,int-js,int-kjs',
-        \'\<\u\w*\%(\.\w*\%(()\?\)\?\)*\|\h\w*\%(\s\?()\?\)\?')
+        \'\h\w*\%(\s\?()\?\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'coffee,int-coffee',
-        \'@\h\w*\|\<\u\w*\%(\.\w*\%(()\?\)\?\)*\|\h\w*\%(\s\?()\?\)\?')
+        \'@\h\w*\|\h\w*\%(\s\?()\?\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'awk',
         \'\h\w*\%(\s\?()\?\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'haskell,int-ghci',
-        \'\<\u\w*\%(\.\w*\)*\|[[:alpha:]_''][[:alnum:]_'']*')
+        \'[[:alpha:]_''][[:alnum:]_'']*')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'ml,ocaml,int-ocaml,int-sml,int-smlsharp',
         \'[''`#.]\?\h[[:alnum:]_'']*')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'erlang,int-erl',
@@ -175,7 +175,7 @@ function! neocomplcache#enable() "{{{
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'masm',
         \'\.\h\w*\|[[:alpha:]_@?$][[:alnum:]_@?$]*\|\h\w*:\h\w*')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'nasm',
-        \'^\s*\[\h\w*\|[%.]\?\h\w*\|\%(\.\.\@\?\|%[%$!]\)\%(\h\w*\)\?\|\h\w*:\h\w*')
+        \'^\s*\[\h\w*\|[%.]\?\h\w*\|\%(\.\.@\?\|%[%$!]\)\%(\h\w*\)\?\|\h\w*:\h\w*')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'asm',
         \'[%$.]\?\h\w*\%(\$\h\w*\)\?')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'gas',
@@ -192,6 +192,8 @@ function! neocomplcache#enable() "{{{
         \'\$\w+\|[[:alpha:]_./-][[:alnum:]_.-]*')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'vb',
         \'\a[[:alnum:]]*\%(()\?\)\?\|#\a[[:alnum:]]*')
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_keyword_patterns, 'lua',
+        \'\h\w*\%(()\?\)\?')
   "}}}
 
   " Initialize next keyword patterns."{{{
@@ -284,6 +286,7 @@ function! neocomplcache#enable() "{{{
   call neocomplcache#set_dictionary_helper(g:neocomplcache_member_prefix_patterns, 'c,cpp,objc,objcpp', '\.\|->')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_member_prefix_patterns, 'perl,php', '->')
   call neocomplcache#set_dictionary_helper(g:neocomplcache_member_prefix_patterns, 'java,javascript,d,vim,ruby', '\.')
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_member_prefix_patterns, 'lua', '\.\|:')
   "}}}
 
   " Initialize delimiter patterns."{{{
@@ -298,6 +301,8 @@ function! neocomplcache#enable() "{{{
         \['::'])
   call neocomplcache#set_dictionary_helper(g:neocomplcache_delimiter_patterns, 'java,d,javascript,actionscript,ruby,eruby,haskell,coffee',
         \['\.'])
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_delimiter_patterns, 'lua',
+        \['\.', ':'])
   "}}}
   
   " Initialize ctags arguments."{{{
@@ -337,7 +342,7 @@ function! neocomplcache#enable() "{{{
 
   " Add commands."{{{
   command! -nargs=0 NeoComplCacheDisable call neocomplcache#disable()
-  command! -nargs=0 Neco call s:display_neco()
+  command! -nargs=? Neco call s:display_neco(<q-args>)
   command! -nargs=0 NeoComplCacheLock call s:lock()
   command! -nargs=0 NeoComplCacheUnlock call s:unlock()
   command! -nargs=0 NeoComplCacheToggle call s:toggle_lock()
@@ -544,9 +549,13 @@ function! neocomplcache#check_match_filter(cur_keyword_str, ...)"{{{
         \empty(a:000)? a:cur_keyword_str : a:cur_keyword_str[ : a:1-1]) =~ '[^\\]\*\|\\+'
 endfunction"}}}
 function! neocomplcache#head_filter(list, cur_keyword_str)"{{{
-  let l:cur_keyword = substitute(a:cur_keyword_str, '\\\zs.', '\0', 'g')
+  if &ignorecase
+    let l:expr = printf('!stridx(tolower(v:val.word), %s)', string(tolower(a:cur_keyword_str)))
+  else
+    let l:expr = printf('!stridx(v:val.word, %s)', string(a:cur_keyword_str))
+  endif
 
-  return filter(a:list, printf("stridx(v:val.word, %s) == 0", string(l:cur_keyword)))
+  return filter(a:list, l:expr)
 endfunction"}}}
 function! neocomplcache#fuzzy_filter(list, cur_keyword_str)"{{{
   let l:ret = []
@@ -701,9 +710,9 @@ function! neocomplcache#system(str, ...)"{{{
   return l:output
 endfunction"}}}
 
-function! neocomplcache#get_cur_text()"{{{
+function! neocomplcache#get_cur_text(...)"{{{
   " Return cached text.
-  return neocomplcache#is_auto_complete()? s:cur_text : s:get_cur_text()
+  return a:0 == 0 ? s:cur_text : s:get_cur_text()
 endfunction"}}}
 function! neocomplcache#get_completion_length(plugin_name)"{{{
   if neocomplcache#is_auto_complete() && has_key(s:auto_completion_length, bufnr('%'))
@@ -812,7 +821,7 @@ function! neocomplcache#print_caching(string)"{{{
   echo a:string
 endfunction"}}}
 function! neocomplcache#print_error(string)"{{{
-  echohl Error | echo a:string | echohl None
+  echohl Error | echomsg a:string | echohl None
 endfunction"}}}
 function! neocomplcache#print_warning(string)"{{{
   echohl WarningMsg | echomsg a:string | echohl None
@@ -922,26 +931,157 @@ endfunction"}}}
 function! s:unlock()"{{{
   let s:complete_lock[bufnr('%')] = 0
 endfunction"}}}
-function! s:display_neco()"{{{
+function! s:display_neco(number)"{{{
+  let l:cmdheight_save = &cmdheight
+  
   let l:animation = [
-        \["   A A", 
-        \ "~(-'_'-)"], 
+    \[
+        \[
+        \ "   A A", 
+        \ "~(-'_'-)"
+        \], 
+        \[
+        \ "      A A", 
+        \ "   ~(-'_'-)",
+        \],
+        \[
+        \ "        A A", 
+        \ "     ~(-'_'-)",
+        \],
+        \[
+        \ "          A A  ", 
+        \ "       ~(-'_'-)",
+        \], 
+        \[
+        \ "             A A", 
+        \ "          ~(-^_^-)",
+        \], 
+    \],
+    \[
+        \[
+        \ "   A A", 
+        \ "~(-'_'-)",
+        \],
+        \[
+        \ "      A A", 
+        \ "   ~(-'_'-)",
+        \],
+        \[
+        \ "        A A", 
+        \ "     ~(-'_'-)",
+        \],
+        \[
+        \ "          A A  ", 
+        \ "       ~(-'_'-)",
+        \], 
+        \[
+        \ "             A A", 
+        \ "          ~(-'_'-)",
+        \],
+        \[
+        \ "          A A  ", 
+        \ "       ~(-'_'-)"
+        \],
+        \[
+        \ "        A A", 
+        \ "     ~(-'_'-)"
+        \],
+        \[
+        \ "      A A", 
+        \ "   ~(-'_'-)"
+        \],
+        \[
+        \ "   A A", 
+        \ "~(-'_'-)"
+        \],
+    \],
+    \[
+        \[
+        \ "   A A", 
+        \ "~(-'_'-)",
+        \], 
+        \[
+        \ "        A A", 
+        \ "     ~(-'_'-)",
+        \],
+        \[
+        \ "             A A", 
+        \ "          ~(-'_'-)",
+        \],
+        \[
+        \ "                  A A", 
+        \ "               ~(-'_'-)",
+        \],
+        \[
+        \ "                       A A", 
+        \ "                    ~(-'_'-)",
+        \],
+        \["                           A A", 
+        \ "                        ~(-'_'-)",
+        \],
+    \],
+    \[
+        \[
+        \ "",
+        \ "   A A", 
+        \ "~(-'_'-)",
+        \], 
         \["      A A", 
-        \ "   ~(-'_'-)"], 
-        \["        A A", 
-        \ "     ~(-'_'-)"], 
-        \["          A A  ", 
-        \ "       ~(-'_'-)"], 
-        \["             A A", 
-        \ "          ~(-^_^-)"],
-        \]
+        \ "   ~(-'_'-)",
+        \ "",
+        \], 
+        \[
+        \ "",
+        \ "        A A", 
+        \ "     ~(-'_'-)",
+        \],
+        \[
+        \ "          A A  ", 
+        \ "       ~(-'_'-)", 
+        \ "",
+        \], 
+        \[
+        \ "",
+        \ "             A A", 
+        \ "          ~(-^_^-)",
+        \],
+    \],
+    \[
+        \[
+        \ "   A A        A A", 
+        \ "~(-'_'-)  -8(*'_'*)"
+        \], 
+        \[
+        \ "     A A        A A", 
+        \ "  ~(-'_'-)  -8(*'_'*)"
+        \],
+        \[
+        \ "       A A        A A", 
+        \ "    ~(-'_'-)  -8(*'_'*)"
+        \],
+        \[
+        \ "     A A        A A", 
+        \ "  ~(-'_'-)  -8(*'_'*)"
+        \], 
+        \[
+        \ "   A A        A A", 
+        \ "~(-'_'-)  -8(*'_'*)"
+        \], 
+    \],
+  \]
 
-  for l:anim in l:animation
-    echo ''
+  let l:num = a:number == '' ? neocomplcache#rand(len(l:animation) - 1) : a:number
+  let &cmdheight = len(l:animation[l:num][0])
+
+  for l:anim in l:animation[l:num]
+    echo join(repeat([''], &cmdheight-1), "\n")
     redraw
-    echo l:anim[0] . "\n" . l:anim[1]
-    sleep 150m
+    echon join(l:anim, "\n")
+    sleep 300m
   endfor
+  redraw
+
+  let &cmdheight = l:cmdheight_save
 endfunction"}}}
 function! s:set_auto_completion_length(len)"{{{
   let s:auto_completion_length[bufnr('%')] = a:len
@@ -1232,7 +1372,15 @@ function! s:get_complete_result(cur_text, ...)"{{{
       continue
     endif
 
-    let l:cur_keyword_pos = l:complfunc.get_keyword_pos(a:cur_text)
+    try
+      let l:cur_keyword_pos = l:complfunc.get_keyword_pos(a:cur_text)
+    catch
+      call neocomplcache#print_error(v:throwpoint)
+      call neocomplcache#print_error(v:exception)
+      call neocomplcache#print_error('Error occured in complfunc''s get_keyword_pos()!')
+      call neocomplcache#print_error('Plugin name is ' . l:complfunc_name)
+      return
+    endtry
 
     if l:cur_keyword_pos >= 0
       let l:cur_keyword_str = a:cur_text[l:cur_keyword_pos :]
@@ -1252,7 +1400,15 @@ function! s:get_complete_result(cur_text, ...)"{{{
         let &ignorecase = g:neocomplcache_enable_ignore_case
       endif
 
-      let l:words = l:complfunc.get_complete_words(l:cur_keyword_pos, l:cur_keyword_str)
+      try
+        let l:words = l:complfunc.get_complete_words(l:cur_keyword_pos, l:cur_keyword_str)
+      catch
+        call neocomplcache#print_error(v:throwpoint)
+        call neocomplcache#print_error(v:exception)
+        call neocomplcache#print_error('Error occured in complfunc''s get_complete_words()!')
+        call neocomplcache#print_error('Plugin name is ' . l:complfunc_name)
+        return
+      endtry
 
       let &ignorecase = l:ignorecase_save
 
@@ -1514,7 +1670,6 @@ function! s:get_quick_match_pattern()"{{{
 endfunction"}}}
 function! s:get_cur_text()"{{{
   let l:pos = mode() ==# 'i' ? 2 : 1
-
   let s:cur_text = col('.') < l:pos ? '' : matchstr(getline('.'), '.*')[: col('.') - l:pos]
 
   " Save cur_text.
