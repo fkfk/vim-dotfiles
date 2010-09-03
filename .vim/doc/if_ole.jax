@@ -1,4 +1,4 @@
-*if_ole.txt*    For Vim バージョン 7.0.  Last change: 2006 Apr 30
+*if_ole.txt*    For Vim バージョン 7.3.  Last change: 2008 Aug 16
 
 
 		  VIM REFERENCE MANUAL    by Paul Moore
@@ -40,6 +40,12 @@ Perlなどからアクセス可能な、OLEオートメーションサーバと�
 [Perl] >
 	use Win32::OLE;
 	$vim = new Win32::OLE 'Vim.Application';
+
+[C#] >
+        // プロジェクトに VIM への参照を追加する。
+        // COM タブを選択する。
+        // "VIM Ole Interface 1.1 Type Library" を選択する。
+	Vim.Vim vimobj = new Vim.Vim();
 
 Vimは、他の一部のOLEサーバがサポートしているような、"hidden"なOLEサーバとして
 の機能をサポートしていない。クライアントがVimのインスタンスを起動する場合、そ
@@ -124,7 +130,7 @@ VimをOLEサーバとして動作させる前に、システムレジストリ�
 
 
 OLEサーバーが登録されていないとき、OLEをサポートしたgvimを起動すると警告ダイア
-ログが出ます。"Yes"をを選択するとレジストリに登録できます。
+ログが出ます。"Yes"を選択するとレジストリに登録できます。
 
 レジストリが書き込み可能でないときには登録はできません。もし登録できないときは
 "Administrator"権限でgvimを起動してください。

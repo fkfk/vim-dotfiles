@@ -1,7 +1,11 @@
-*hangulin.txt*  For Vim バージョン 7.0.  Last change: 2006 Apr 02
+*hangulin.txt*  For Vim バージョン 7.3.  Last change: 2009 Jun 24
 
 
 		  VIM REFERENCE MANUAL    by Chi-Deok Hwang and Sung-Hyun Nam
+
+NOTE: |+hangul_input| 機能は削除されることが予定されています。これの存続を望む
+方は Vim ユーザーメーリングリストにメッセージを送ってください。
+
 
 イントロダクション				*hangul*
 ------------------
@@ -28,8 +32,8 @@ feature.h をチェックすべきです。そして、他のオプションも�
 
 環境変数
 --------
-LANG 変数を、ko や ko_KR.euc のような韓国語ロカールに指定する必要があります。
-LC_ALL 変数をセットしている場合は、それも韓国語ロカールである必要があります。
+LANG 変数を、ko や ko_KR.euc のような韓国語ロケールに指定する必要があります。
+LC_ALL 変数をセットしている場合は、それも韓国語ロケールである必要があります。
 
 VIM リソース
 ------------
@@ -99,6 +103,6 @@ Hanja 入力はまだサポートされていませんし、予定もありま�
 コメント、パッチ、提案などはこちらに:
 
 				    Chi-Deok Hwang <hwang@mizi.co.kr>
-				    Nam SungHyun <namsh@kldp.org>
+				    SungHyun Nam <goweol@gmail.com>
 
  vim:tw=78:ts=8:ft=help:norl:

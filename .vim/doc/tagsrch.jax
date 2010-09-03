@@ -1,4 +1,4 @@
-*tagsrch.txt*   For Vim バージョン 7.0.  Last change: 2006 Apr 24
+*tagsrch.txt*   For Vim バージョン 7.3.  Last change: 2009 Feb 18
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -210,7 +210,7 @@ FuncAの呼び出し部分の上でCTRL-]を使うことによって、mainか�
 			の番号を入力すればよい。
 
 							*:sts* *:stselect*
-:sts[elect][!] [ident]	":stelect[!] [ident]"を実行し、ウィンドウを分割して選
+:sts[elect][!] [ident]	":stselect[!] [ident]"を実行し、ウィンドウを分割して選
 			択されたtagを表示する。(Viでは使えない。)
 
 							*g]*
@@ -417,6 +417,9 @@ Vimでは'cpoptions'に't'フラグが設定されていなければ、前の検
 Emacsスタイルのタグファイルは、Vimのコンパイル時に|+emacs_tags|機能を有効にし
 た場合にのみ使用できる。すまないが、Emacsタグファイルについての説明はここでは
 しない。それは下位互換のためにのみ提供している :-)。
+
+Emacs タグファイルの行は非常に長くなることがある。Vim は行の約510バイトまでし
+か扱わない。行が無視されたかどうかは 'verbose' を5以上にしていればわかる。
 
 							*tags-option*
 'tags'オプションはファイル名のリストで構成される。これらのファイルからタグが検

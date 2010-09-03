@@ -1,4 +1,4 @@
-*gui_w32.txt*   For Vim バージョン 7.1.  Last change: 2007 May 03
+*gui_w32.txt*   For Vim バージョン 7.3.  Last change: 2007 Aug 30
 
 
 		VIMリファレンスマニュアル    by Bram Moolenaar
@@ -51,6 +51,16 @@ Vimのウィンドウを最大化した状態で起動したいのならば、vi
 
 								*gui-w32s*
 Win32sかWindows 3.1もしくは3.11で動くgvim.exeも存在する。|win32s|参照。
+
+
+Vim をプラグインとして使う				*gui-w32-windowid*
+
+普通に gvim が起動されると、gvim のウィンドウがトップレベルで作成される。コマ
+ンドラインオプション |--windowid| に10進または16進の数値を指定すると、Vim はそ
+の ID を持つウィンドウの子ウィンドウを作成する。これによって、Vim を他のアプリ
+ケーションのプラグインとして使うことができる。これは完全にプログラマ向けのイン
+ターフェイスであり、Vim を正しく起動するアプリケーションの対応なくしては何の役
+にも立たない。
 
 ==============================================================================
 2. デフォルトエディタVim				*vim-default-editor*
@@ -443,10 +453,8 @@ Vimのウィンドウに1つもしくは複数のファイルをドラッグ&ド
 それらは普通に開かれる。|drag-n-drop|を参照。
 
 							*:simalt* *:si*
-:si[malt] {key}		simulate pressing {key} while holding Alt pressed.
-			{not in Vi} {only for Win32 versions}
-			Altと{key}の同時押しをシミュレートする。
-			{Viにはない機能} {Win32バージョンだけの機能}
+:si[malt] {key}		Alt と {key} の同時押しをシミュレートする。
+			{Vi にはない機能} {Win32バージョンだけの機能}
 
 通常、Vimでは使用可能なマッピングを増やすために、Alt-<Key>の全ての組み合わせを
 使うことができる。これはメニューにアクセスするためのAltキーの標準的な使い方と
