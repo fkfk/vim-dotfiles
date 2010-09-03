@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: mappings.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 08 Aug 2010
+" Last Modified: 02 Sep 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -38,6 +38,10 @@ function! vimshell#mappings#define_default_mappings()"{{{
   nmap  <buffer> <Plug>(vimshell_delete_line) <Plug>(vimshell_change_line)<ESC>
   nnoremap <buffer><silent> <Plug>(vimshell_insert_head)  :<C-u>call <SID>move_head()<CR>
   nnoremap <buffer><silent> <Plug>(vimshell_interrupt)       :<C-u>call <SID>interrupt(0)<CR>
+  nnoremap <silent><buffer> <Plug>(vimshell_insert_enter)  :<C-u>call <SID>insert_enter()<CR>
+  nnoremap <silent><buffer> <Plug>(vimshell_insert_head)  :<C-u>call <SID>insert_head()<CR>
+  nnoremap <silent><buffer> <Plug>(vimshell_append_enter)  :<C-u>call <SID>append_enter()<CR>
+  nnoremap <silent><buffer> <Plug>(vimshell_append_end)  :<C-u>call <SID>append_end()<CR>
 
   vnoremap <buffer><expr> <Plug>(vimshell_select_previous_prompt)  <SID>select_previous_prompt()
   vnoremap <buffer><expr> <Plug>(vimshell_select_next_prompt)  <SID>select_next_prompt()
@@ -85,8 +89,11 @@ function! vimshell#mappings#define_default_mappings()"{{{
   nmap <buffer> cc <Plug>(vimshell_change_line)
   " Delete line.
   nmap <buffer> dd <Plug>(vimshell_delete_line)
-  " Insert head.
-  nmap <buffer> I <Plug>(vimshell_insert_head)
+  " Start insert.
+  nmap <buffer> I         <Plug>(vimshell_insert_head)
+  nmap <buffer> A         <Plug>(vimshell_append_end)
+  nmap <buffer> i         <Plug>(vimshell_insert_enter)
+  nmap <buffer> a         <Plug>(vimshell_append_enter)
   " Interrupt.
   nmap <buffer> <C-c> <Plug>(vimshell_interrupt)
   
@@ -176,13 +183,22 @@ function! s:execute_line(is_insert)"{{{
       " History output execution.
       call setline('$', vimshell#get_prompt() . matchstr(getline('.'), '^\s*\d\+:\s\zs.*'))
     else
-      " Search cursor file.
-      let l:filename = expand('<cfile>')
-      if has('conceal') && l:filename =~ '\[\%[%\]]'
-        let l:filename = matchstr(getline('.'), '\f\+', 3)
+      if getline('.') =~ '^\f\+:'
+        " Grep pattern.
+        let l:line = split(getline('.'), ':')
+        let l:filename = l:line[0]
+        let l:pattern = l:line[1]
+      else
+        " Search cursor file.
+        let l:filename = expand('<cfile>')
+        if has('conceal') && l:filename =~ '\[\%[%\]]'
+          let l:filename = matchstr(getline('.'), '\f\+', 3)
+        endif
+        let l:pattern = ''
       endif
+      
       let l:filename = substitute(substitute(l:filename, ' ', '\\ ', 'g'), '\\', '/', 'g')
-      call s:open_file(l:filename)
+      call s:open_file(l:filename, l:pattern)
     endif
   elseif line('.') != line('$')
     " History execution.
@@ -402,11 +418,7 @@ function! s:paste_prompt()"{{{
   $
 endfunction"}}}
 function! s:move_head()"{{{
-  call search(vimshell#escape_match(vimshell#get_prompt()), 'be', line('.'))
-  if col('.') != col('$')-1
-    normal! l
-  endif
-  startinsert
+  call s:insert_head()
 endfunction"}}}
 function! s:move_end_argument()"{{{
   normal! 0
@@ -482,7 +494,7 @@ function! s:delete_backward_line()"{{{
   
   return l:prefix . repeat("\<BS>", len(vimshell#get_cur_text()))
 endfunction"}}}
-function! s:open_file(filename)"{{{
+function! s:open_file(filename, pattern)"{{{
   " Execute cursor file.
   if a:filename == ''
     return
@@ -507,7 +519,7 @@ function! s:open_file(filename)"{{{
     call setline('$', vimshell#get_prompt() . 'cd ' . l:filename)
   else
     " Edit file.
-    call setline('$', vimshell#get_prompt() . 'vim ' . l:filename)
+    call setline('$', vimshell#get_prompt() . 'vim ' . l:filename . (a:pattern != '' ? ' '.a:pattern : ''))
   endif
 endfunction"}}}
 function! s:interrupt(is_insert)"{{{
@@ -530,6 +542,42 @@ function! s:interrupt(is_insert)"{{{
   
   call vimshell#print_prompt(l:context)
   call vimshell#start_insert(a:is_insert)
+endfunction"}}}
+function! s:insert_enter()"{{{
+  if !vimshell#head_match(getline('.'), vimshell#get_prompt())
+    $
+    startinsert!
+    return
+  endif
+  
+  if col('.') <= len(vimshell#get_prompt())
+    if len(vimshell#get_prompt()) + 1 <= col('$')
+      startinsert!
+      return
+    else
+      let l:pos = getpos('.')
+      let l:pos[2] = len(vimshell#get_prompt()) + 1
+      call setpos('.', l:pos)
+    endif
+  endif
+
+  startinsert
+endfunction"}}}
+function! s:insert_head()"{{{
+  normal! 0
+  call s:insert_enter()
+endfunction"}}}
+function! s:append_enter()"{{{
+  if vimshell#check_cursor_is_end()
+    call s:append_end()
+  else
+    normal! l
+    call s:insert_enter()
+  endif
+endfunction"}}}
+function! s:append_end()"{{{
+  call s:insert_enter()
+  startinsert!
 endfunction"}}}
 
 " vim: foldmethod=marker

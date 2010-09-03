@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: vimshell.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 18 Aug 2010
+" Last Modified: 03 Sep 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -501,10 +501,7 @@ function! vimshell#get_user_prompt()"{{{
 endfunction"}}}
 function! vimshell#get_cur_text()"{{{
   " Get cursor text without prompt.
-  let l:pos = mode() ==# 'i' ? 2 : 1
-
-  let l:cur_text = col('.') < l:pos ? '' : matchstr(getline('.'), '.*')[: col('.') - l:pos]
-  return l:cur_text[len(vimshell#get_prompt()):]
+  return vimshell#get_cur_line()[len(vimshell#get_prompt()):]
 endfunction"}}}
 function! vimshell#get_prompt_command()"{{{
   " Get command without prompt.
@@ -540,8 +537,8 @@ function! vimshell#set_prompt_command(string)"{{{
   call setline(l:lnum, vimshell#get_prompt() . a:string)
 endfunction"}}}
 function! vimshell#get_cur_line()"{{{
-  let l:pos = mode() ==# 'i' ? 2 : 1
-  return col('.') < l:pos ? '' : getline('.')[: col('.') - l:pos]
+  let l:cur_text = matchstr(getline('.'), '^.*\%' . col('.') . 'c' . (mode() ==# 'i' ? '' : '.'))
+  return l:cur_text
 endfunction"}}}
 function! vimshell#get_current_args()"{{{
   let l:statements = vimshell#parser#split_statements(vimshell#get_cur_text())
@@ -675,19 +672,24 @@ function! vimshell#imdisable()"{{{
     let &l:iminsert = 0
   endif
 endfunction"}}}
-function! vimshell#set_environments(environments)"{{{
-  let s:environments_save = {}
-  for [key, value] in items(a:environments)
+function! vimshell#set_variables(variables)"{{{
+  let l:variables_save = {}
+  for [key, value] in items(a:variables)
     let l:save_value = exists(key) ? eval(key) : ''
 
-    let s:environments_save[key] = l:save_value
+    let l:variables_save[key] = l:save_value
+    execute 'let' key '= value'
+  endfor
+  
+  return l:variables_save
+endfunction"}}}
+function! vimshell#restore_variables(variables)"{{{
+  for [key, value] in items(a:variables)
     execute 'let' key '= value'
   endfor
 endfunction"}}}
-function! vimshell#restore_environments()"{{{
-  for [key, value] in items(s:environments_save)
-    execute 'let' key '= value'
-  endfor
+function! vimshell#check_cursor_is_end()"{{{
+  return vimshell#get_cur_line() ==# getline('.')
 endfunction"}}}
 "}}}
 

@@ -184,9 +184,46 @@ BUGS							*vimshell-bugs*
 ==============================================================================
 CHANGELOG						*vimshell-changelog*
 
+2010-09-03
+- Fixed cursor.
+
+2010-09-02
+- Improved insert enter.
+- Improved interactive cursor.
+- Improved interactive update.
+
+2010-09-01
+- Improved insert enter.
+- Improved output.
+
+2010-08-29
+- Improved syntax.
+
+2010-08-26
+- Supported grep pattern.
+- Added syntax highlight.
+
+2010-08-25
+- Fixed filename completion.
+
+2010-08-23
+- Fixed alias parse.
+- Fixed texe error.
+- Improved save variables.
+
+2010-08-22
+- Improved iexe mappings.
+- Improved vimshell mappings.
+- Improved get_cur_text.
+- Fixed prompt bug.
+
+2010-08-20
+- Stop insert when execute exit.
+
 2010-08-19
 - Improved column.
 - Fixed update.
+- Improved interactive completion.
 
 2010-08-18
 - Fixed initialization error check.

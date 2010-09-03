@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: terminal.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 19 Aug 2010
+" Last Modified: 02 Sep 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -27,9 +27,8 @@
 function! vimshell#terminal#print(string)"{{{
   setlocal modifiable
   
-  let l:pos = mode() ==# 'i' ? 1 : 0
   let l:current_line = getline('.')
-  let l:cur_text = col('.') < l:pos ? '' : matchstr(l:current_line, '.*')[: col('.') - l:pos]
+  let l:cur_text = matchstr(getline('.'), '^.*\%' . col('.') . 'c')
   
   "echomsg a:string
   if b:interactive.type !=# 'terminal' && a:string !~ '[\e\r\b]' && l:current_line ==# l:cur_text
@@ -52,8 +51,9 @@ function! vimshell#terminal#print(string)"{{{
   let l:pos = 0
   let l:max = len(a:string)
   let s:line = line('.')
-  let s:col = (mode() ==# 'i' && b:interactive.type !=# 'terminal' ? 
-        \ (col('.') < l:pos ? 1 : col('.') - l:pos) : col('.'))
+  "let s:col = (mode() ==# 'i' && b:interactive.type !=# 'terminal' ? 
+        "\ (col('.') < 1 ? 1 : col('.') - 1) : col('.'))
+  let s:col = col('.')
   let s:lines = {}
   let s:lines[s:line] = l:current_line
   
@@ -250,7 +250,7 @@ function! s:output_string(string)"{{{
   
   let l:string = a:string
 
-  if b:interactive.terminal.current_character_set =~# 'Line Drawing'
+  if b:interactive.terminal.current_character_set ==# 'Line Drawing'
     " Convert characters.
     let l:string = ''
     for c in split(a:string, '\zs')
@@ -262,9 +262,8 @@ function! s:output_string(string)"{{{
   if !has_key(s:lines, s:line)
     let s:lines[s:line] = ''
   endif
-  let l:line = s:lines[s:line]
-  let l:left_line = s:col == 1 ? '' : l:line[: s:col - 2]
-  let l:right_line = vimshell#util#truncate_head(l:line[s:col - 1 :], vimshell#util#wcswidth(l:string))
+  let l:left_line = matchstr(s:lines[s:line], '^.*\%' . s:col . 'c')
+  let l:right_line = s:lines[s:line][len(l:left_line) :]
 
   let s:lines[s:line] = l:left_line . l:string . l:right_line
   
@@ -597,7 +596,7 @@ function! s:escape.move_down(matchstr)"{{{
     let s:line += n
 
     if !has_key(s:lines, s:line)
-      let s:lines[s:line] = repeat(' ', s:col)
+      let s:lines[s:line] = repeat(' ', s:col-1)
     endif
   endif
 endfunction"}}}
