@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: keyword_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 15 Aug 2010
+" Last Modified: 20 Aug 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -49,6 +49,10 @@ endfunction"}}}
 
 function! s:source.get_keyword_pos(cur_text)"{{{
   let [l:cur_keyword_pos, l:cur_keyword_str] = neocomplcache#match_word(a:cur_text)
+  if l:cur_keyword_pos < 0
+    " Empty string.
+    return len(a:cur_text)
+  endif
 
   return l:cur_keyword_pos
 endfunction"}}}
