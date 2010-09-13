@@ -38,9 +38,6 @@ let g:rubycomplete_buffer_loading = 1
 let g:rubycomplete_classes_in_global = 1
 let g:rubycomplete_rails = 1
 
-"autocomplpopを無効化
-let g:AutoComplPop_NotEnableAtStartup = 1
-
 "neocomplcacheの設定
 let g:neocomplcache_enable_at_startup = 1
 let g:neocomplcache_auto_completion_start_length = 1
@@ -64,12 +61,6 @@ noremap <C-h> gT
 
 " <TAB>で補完できるよう設定
 inoremap <tab> <C-n>
-
-" Ku用マッピング
-noremap <C-k>s :Ku source<CR>
-noremap <C-k>b :Ku buffer<CR>
-noremap <C-k>f :Ku file<CR>
-noremap <C-k>h :Ku history<CR>
 
 " vnew,new用マッピング
 noremap <C-x>v :vnew<CR>
@@ -103,12 +94,6 @@ set nrformats="hex"
 
 "Git用
 let git_diff_spawn_mode=1
-autocmd BufNewFile,BufRead COMMIT_EDITMSG set filetype=git
-
-"Flex(*.asと*.mxml)用
-autocmd BufNewFile,BufRead *.as set filetype=actionscript
-autocmd BufNewFile,BufRead *.mxml set filetype=mxml
-autocmd FileType actionscript :set dictionary=~/.vim/dict/actionscript3.dict
 
 "エンコーディング via kana/dot.vimrc
 if !exists('did_encoding_settings') && has('iconv')
