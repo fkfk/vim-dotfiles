@@ -25,6 +25,7 @@ License: MIT license  {{{
 CONTENTS						*neocomplcache-contents*
 
 Introduction		|neocomplcache-introduction|
+Install			|neocomplcache-install|
 Interface		|neocomplcache-interface|
   Commands		  |neocomplcache-commands|
   Variables		  |neocomplcache-variables|
@@ -50,6 +51,15 @@ Because all variable names are changed in neocomplcache Ver.5, there is not
 backward compatibility. In the case of the upgrade, you should use the next
 script which Mr.thinca made.
 http://gist.github.com/422503
+
+==============================================================================
+INSTALL							*neocomplcache-install*
+
+1: Extract the file and Put files in your Vim directory
+   (usually ~/.vim/ or Program Files/Vim/vimfiles on Windows). 
+2: Execute |:NeoComplCacheEnable| command or 
+let g:neocomplcache_enable_at_startup = 1
+in your .vimrc. 
 
 ==============================================================================
 INTERFACE						*neocomplcache-interface*
@@ -286,14 +296,22 @@ g:neocomplcache_caching_limit_file_size			*g:neocomplcache_caching_limit_file_si
 g:neocomplcache_disable_caching_buffer_name_pattern	*g:neocomplcache_disable_caching_buffer_name_pattern*
 		This variable set a pattern of the buffer name. If matched it,
 		neocomplcache does not make a cache of the buffer. When it is
-		an empty character string, it becomes invalid.
+		an empty character string, neocomplcache will ignore.
 	
 		Default value is ''.
 
 g:neocomplcache_lock_buffer_name_pattern		*g:neocomplcache_lock_buffer_name_pattern*
 		This variable set a pattern of the buffer name. If matched it,
 		neocomplcache does not complete automatically. When it is an
-		empty character string, it becomes invalid.
+		empty character string, neocomplcache will ignore.
+	
+		Default value is ''.
+
+g:neocomplcache_disable_auto_select_buffer_name_pattern	*g:neocomplcache_auto_select_buffer_name_pattern*
+		This variable set a pattern of the buffer name. If matched it,
+		neocomplcache disable |g:neocomplcache_enable_auto_select|.
+		When it is an empty character string, neocomplcache will
+		ignore.
 	
 		Default value is ''.
 
@@ -776,6 +794,22 @@ ability of neocomplcache will spread by creating plugin by yourself.
 
 ==============================================================================
 CHANGELOG						*neocomplcache-changelog*
+
+2010-09-10
+- Improved caching algorithm.
+- Added g:neocomplcache_disable_auto_select_buffer_name_pattern option.
+
+2010-09-08
+- Improved cache timing.
+- Revised documentation.
+- Fixed for Vim 7.0.
+- Added install description.
+
+2010-09-06
+- Improved for echodoc.
+
+2010-09-04
+- Improved omni_complete default pattern.
 
 2010-09-03
 - Fixed snippets analyze.
