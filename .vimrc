@@ -22,7 +22,7 @@ set foldmethod=marker
 set listchars=tab:>-,trail:-,nbsp:%,extends:>,precedes:<
 
 " ステイタス行に文字コードと改行コードを表示。
-set statusline=%<%f\ %=\%m%r%y%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}\ \ %l,%c%V%8P
+set statusline=%<%f\ %=\%m%r%y%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}\ \ %l\/%L,%c%V%8P[%n]
 
 set incsearch
 set nocompatible
