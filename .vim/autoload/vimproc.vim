@@ -2,7 +2,7 @@
 " FILE: vimproc.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com> (Modified)
 "          Yukihiro Nakadaira <yukihiro.nakadaira at gmail.com> (Original)
-" Last Modified: 05 Sep 2010
+" Last Modified: 08 Nov 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -44,15 +44,15 @@ if !exists('g:vimproc_dll_path')
 endif
 "}}}
 
-if !filereadable(g:vimproc_dll_path)
-  execute 'echoerr' printf('"%s" is not found. Please make it.', g:vimproc_dll_path)
-  finish
-endif
-
 if has('iconv')
   " Dll path should be encoded with default encoding.  Vim does not convert
   " it from &enc to default encoding.
   let g:vimproc_dll_path = iconv(g:vimproc_dll_path, &encoding, "default")
+endif
+
+if !filereadable(g:vimproc_dll_path)
+  echoerr printf('vimproc''s DLL: "%s" is not found. Please read :help vimproc and make it.', g:vimproc_dll_path)
+  finish
 endif
 
 "-----------------------------------------------------------
@@ -99,26 +99,25 @@ function! vimproc#get_command_name(command, ...)"{{{
   if a:0 > 3
     throw 'vimproc#get_command_name: Invalid argument.'
   endif
-  
+
   if a:0 >= 1
     let l:path = a:1
   else
     let l:path = $PATH
   endif
-  
-  if s:is_win 
-    let l:path = substitute(substitute(l:path, ';', ',', 'g'), '\s', '\\\\ ', 'g')
-  else
-    let l:path = substitute(substitute(l:path, ':', ',', 'g'), '\s', '\\\\ ', 'g')
-  endif
+
+  " Expand path.
+  let l:path = substitute(l:path, (s:is_win ? ';' : ':'), ',', 'g')
+  let l:path = join(split(l:path, ','), ',')
+  let l:path = substitute(l:path, '\s', '\\\\ ', 'g')
 
   let l:count = a:0 < 2 ? 1 : a:2
-  
+
   let l:command = expand(a:command)
-  
+
   let l:pattern = printf('[/~]\?\f\+[%s]\f*$', s:is_win ? '/\\' : '/')
   if l:command =~ l:pattern
-    if s:is_win && fnamemodify(l:command, ':e') ==? 'lnk'
+    if !executable(l:command)
       let l:command = resolve(l:command)
     endif
 
@@ -134,11 +133,26 @@ function! vimproc#get_command_name(command, ...)"{{{
   " Command search.
   let l:suffixesadd_save = &l:suffixesadd
   if s:is_win
-    let &l:suffixesadd = substitute($PATHEXT.';.LNK', ';', ',', 'g')
+    " On Windows, findfile() search a file which don't have file extension
+    " also. When there are 'perldoc', 'perldoc.bat' in your $PATH,
+    " executable('perldoc')  return 1 cause by you have 'perldoc.bat'.
+    " But findfile('perldoc', $PATH, 1) return whether file exist there.
+    if fnamemodify(l:command, ':e') == ''
+      let &l:suffixesadd = ''
+      for l:ext in split($PATHEXT.';.LNK', ';')
+        let l:file = findfile(l:command . l:ext, l:path, l:count)
+        if (l:count >= 0 && l:file != '') || (l:count < 0 && empty(l:file))
+          break
+        endif
+      endfor
+    else
+      let &l:suffixesadd = substitute($PATHEXT.';.LNK', ';', ',', 'g')
+      let l:file = findfile(l:command, l:path, l:count)
+    endif
   else
     let &l:suffixesadd = ''
+    let l:file = findfile(l:command, l:path, l:count)
   endif
-  let l:file = findfile(l:command, l:path, l:count)
   let &l:suffixesadd = l:suffixesadd_save
 
   if l:count < 0
@@ -147,8 +161,8 @@ function! vimproc#get_command_name(command, ...)"{{{
     if l:file != ''
       let l:file = fnamemodify(l:file, ':p')
     endif
-    
-    if (s:is_win && fnamemodify(l:file, ':e') ==? 'lnk')
+
+    if !executable(l:command)
       let l:file = resolve(l:file)
     endif
 
@@ -614,17 +628,15 @@ function! s:libcall(func, args)"{{{
   let l:EOV = "\xFF"
   let l:args = empty(a:args) ? '' : (join(reverse(copy(a:args)), l:EOV) . l:EOV)
   let l:stack_buf = libcall(g:vimproc_dll_path, a:func, l:args)
-  " Why this does not work?
-  " let result = split(stack_buf, EOV, 1)
   let l:result = split(l:stack_buf, '[\xFF]', 1)
   if !empty(l:result) && l:result[-1] != ''
     let s:lasterr = l:result
     let l:msg = string(l:result)
-    if has('iconv') && s:is_win
+    if has('iconv') && &termencoding != '' && &termencoding != &encoding
       " Kernel error message is encoded with system codepage.
-      " XXX: other normal error message may be encoded with &enc.
-      let l:msg = iconv(l:msg, 'default', &enc)
+      let l:msg = iconv(l:msg, &termencoding, &encoding)
     endif
+    
     throw printf('proc: %s: %s', a:func, l:msg)
   endif
   return l:result[:-2]
@@ -632,6 +644,10 @@ endfunction"}}}
 
 function! s:SID_PREFIX()
   return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID_PREFIX$')
+endfunction
+
+function! s:print_error(string)
+  echohl Error | echomsg a:string | echohl None
 endfunction
 
 " Get funcref.
@@ -686,7 +702,13 @@ function! s:vp_pipe_open(npipe, argv)"{{{
           \ [a:npipe, len(a:argv)] + a:argv)
   endif
 
-  return [pid] + fdlist
+  if a:npipe != len(l:fdlist)
+    echoerr 'Bug behavior is detected!'
+    echoerr printf('a:npipe = %d, a:argv = %s', a:npipe, string(a:argv))
+    echoerr printf('l:fdlist = %s', string(l:fdlist))
+  endif
+
+  return [l:pid] + l:fdlist
 endfunction"}}}
 
 function! s:vp_pipe_close() dict

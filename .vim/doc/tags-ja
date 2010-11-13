@@ -1806,6 +1806,7 @@ $VIMRUNTIME	starting.jax	/*$VIMRUNTIME*
 :Neco	neocomplcache.jax	/*:Neco*
 :NeoComplCacheAutoCompletionLength	neocomplcache.jax	/*:NeoComplCacheAutoCompletionLength*
 :NeoComplCacheCachingBuffer	neocomplcache.jax	/*:NeoComplCacheCachingBuffer*
+:NeoComplCacheCachingInclude	neocomplcache.jax	/*:NeoComplCacheCachingInclude*
 :NeoComplCacheCachingSyntax	neocomplcache.jax	/*:NeoComplCacheCachingSyntax*
 :NeoComplCacheCachingTags	neocomplcache.jax	/*:NeoComplCacheCachingTags*
 :NeoComplCacheCreateTags	neocomplcache.jax	/*:NeoComplCacheCreateTags*
@@ -1854,6 +1855,7 @@ $VIMRUNTIME	starting.jax	/*$VIMRUNTIME*
 :VimShellPop	vimshell.jax	/*:VimShellPop*
 :VimShellSendBuffer	vimshell.jax	/*:VimShellSendBuffer*
 :VimShellSendString	vimshell.jax	/*:VimShellSendString*
+:VimShellTab	vimshell.jax	/*:VimShellTab*
 :VimShellTerminal	vimshell.jax	/*:VimShellTerminal*
 :VimballList	pi_vimball.jax	/*:VimballList*
 :Vimuntar	pi_tar.jax	/*:Vimuntar*
@@ -5715,6 +5717,7 @@ g:neocomplcache_disable_auto_select_buffer_name_pattern	neocomplcache.jax	/*g:ne
 g:neocomplcache_disable_caching_buffer_name_pattern	neocomplcache.jax	/*g:neocomplcache_disable_caching_buffer_name_pattern*
 g:neocomplcache_disable_select_mode_mappings	neocomplcache.jax	/*g:neocomplcache_disable_select_mode_mappings*
 g:neocomplcache_enable_at_startup	neocomplcache.jax	/*g:neocomplcache_enable_at_startup*
+g:neocomplcache_enable_auto_delimiter	neocomplcache.jax	/*g:neocomplcache_enable_auto_delimiter*
 g:neocomplcache_enable_auto_select	neocomplcache.jax	/*g:neocomplcache_enable_auto_select*
 g:neocomplcache_enable_caching_message	neocomplcache.jax	/*g:neocomplcache_enable_caching_message*
 g:neocomplcache_enable_camel_case_completion	neocomplcache.jax	/*g:neocomplcache_enable_camel_case_completion*
@@ -5725,6 +5728,7 @@ g:neocomplcache_enable_smart_case	neocomplcache.jax	/*g:neocomplcache_enable_sma
 g:neocomplcache_enable_underbar_completion	neocomplcache.jax	/*g:neocomplcache_enable_underbar_completion*
 g:neocomplcache_enable_wildcard	neocomplcache.jax	/*g:neocomplcache_enable_wildcard*
 g:neocomplcache_filetype_include_lists	neocomplcache.jax	/*g:neocomplcache_filetype_include_lists*
+g:neocomplcache_force_caching_buffer_name_pattern	neocomplcache.jax	/*g:neocomplcache_force_caching_buffer_name_pattern*
 g:neocomplcache_include_exprs	neocomplcache.jax	/*g:neocomplcache_include_exprs*
 g:neocomplcache_include_paths	neocomplcache.jax	/*g:neocomplcache_include_paths*
 g:neocomplcache_include_patterns	neocomplcache.jax	/*g:neocomplcache_include_patterns*
@@ -5873,7 +5877,9 @@ g:vimball_home	pi_vimball.jax	/*g:vimball_home*
 g:vimball_mkdir	pi_vimball.jax	/*g:vimball_mkdir*
 g:vimproc_dll_path	vimproc.jax	/*g:vimproc_dll_path*
 g:vimshell_cat_command	vimshell.jax	/*g:vimshell_cat_command*
+g:vimshell_cd_command	vimshell.jax	/*g:vimshell_cd_command*
 g:vimshell_disable_escape_highlight	vimshell.jax	/*g:vimshell_disable_escape_highlight*
+g:vimshell_enable_auto_slash	vimshell.jax	/*g:vimshell_enable_auto_slash*
 g:vimshell_environment_term	vimshell.jax	/*g:vimshell_environment_term*
 g:vimshell_escape_colors	vimshell.jax	/*g:vimshell_escape_colors*
 g:vimshell_external_history_path	vimshell.jax	/*g:vimshell_external_history_path*
@@ -5884,6 +5890,7 @@ g:vimshell_interactive_cygwin_home	vimshell.jax	/*g:vimshell_interactive_cygwin_
 g:vimshell_interactive_cygwin_path	vimshell.jax	/*g:vimshell_interactive_cygwin_path*
 g:vimshell_interactive_encodings	vimshell.jax	/*g:vimshell_interactive_encodings*
 g:vimshell_interactive_interpreter_commands	vimshell.jax	/*g:vimshell_interactive_interpreter_commands*
+g:vimshell_interactive_no_echoback_commands	vimshell.jax	/*g:vimshell_interactive_no_echoback_commands*
 g:vimshell_interactive_no_save_history_commands	vimshell.jax	/*g:vimshell_interactive_no_save_history_commands*
 g:vimshell_interactive_update_time	vimshell.jax	/*g:vimshell_interactive_update_time*
 g:vimshell_max_command_history	vimshell.jax	/*g:vimshell_max_command_history*
@@ -5897,6 +5904,7 @@ g:vimshell_smart_case	vimshell.jax	/*g:vimshell_smart_case*
 g:vimshell_split_command	vimshell.jax	/*g:vimshell_split_command*
 g:vimshell_split_height	vimshell.jax	/*g:vimshell_split_height*
 g:vimshell_temporary_directory	vimshell.jax	/*g:vimshell_temporary_directory*
+g:vimshell_terminal_commands	vimshell.jax	/*g:vimshell_terminal_commands*
 g:vimshell_terminal_cursor	vimshell.jax	/*g:vimshell_terminal_cursor*
 g:vimshell_use_ckw	vimshell.jax	/*g:vimshell_use_ckw*
 g:vimshell_user_prompt	vimshell.jax	/*g:vimshell_user_prompt*
@@ -6736,7 +6744,9 @@ neocomplcache-interface	neocomplcache.jax	/*neocomplcache-interface*
 neocomplcache-introduction	neocomplcache.jax	/*neocomplcache-introduction*
 neocomplcache-key-mappings	neocomplcache.jax	/*neocomplcache-key-mappings*
 neocomplcache-plugins	neocomplcache.jax	/*neocomplcache-plugins*
+neocomplcache-plugins-ghc_complete	neocomplcache.jax	/*neocomplcache-plugins-ghc_complete*
 neocomplcache-snippet-completion	neocomplcache.jax	/*neocomplcache-snippet-completion*
+neocomplcache-user-plugins	neocomplcache.jax	/*neocomplcache-user-plugins*
 neocomplcache-variables	neocomplcache.jax	/*neocomplcache-variables*
 neocomplcache-version5	neocomplcache.jax	/*neocomplcache-version5*
 neocomplcache.txt	neocomplcache.jax	/*neocomplcache.txt*
