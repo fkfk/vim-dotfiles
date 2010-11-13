@@ -3,7 +3,8 @@ set backspace=2
 set tabstop=2
 set softtabstop=2
 set shiftwidth=2
-set expandtab
+"インデントにタブを用いなければならないのでコメントアウト
+"set expandtab
 set noautoindent
 set nowritebackup
 set tags=$HOME/.tags
@@ -51,6 +52,7 @@ let g:neocomplcache_enable_smart_case = 1
 
 "ref.vimの設定
 let g:ref_refe_cmd = "refe187"
+let g:ref_phpmanual_path = $HOME . "/.vim/manual/phpmanual"
 
 "tabpage周り
 noremap <C-x>tn :tabnew<CR>
