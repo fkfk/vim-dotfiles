@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: helper.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 03 Aug 2010
+" Last Modified: 29 Sep 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -62,7 +62,7 @@ function! vimshell#complete#helper#files(cur_keyword_str, ...)"{{{
       let l:cur_keyword_str = simplify($HOME . '/../' . l:cur_keyword_str[1:])
     endif
   endif
-  
+
   try
     let l:glob = (a:0 == 1) ? globpath(a:1, l:cur_keyword_str . l:mask) : glob(l:cur_keyword_str . l:mask)
     let l:files = split(substitute(l:glob, '\\', '/', 'g'), '\n')
@@ -111,6 +111,9 @@ function! vimshell#complete#helper#files(cur_keyword_str, ...)"{{{
     let l:abbr = l:dict.word
     if isdirectory(l:word)
       let l:abbr .= '/'
+      if g:vimshell_enable_auto_slash
+        let l:dict.word .= '/'
+      endif
       let l:dict.menu = 'directory'
     elseif vimshell#iswin()
       if '.'.fnamemodify(l:word, ':e') =~ l:exts
@@ -227,7 +230,7 @@ function! vimshell#complete#helper#executables(cur_keyword_str, ...)"{{{
     let l:dict.menu = 'command'
     if a:cur_keyword_str !~ '[/\\]'
       let l:dict.word = fnamemodify(l:keyword.word, ':t')
-      let l:dict.abbr = fnamemodify(l:keyword.abbr, ':t') . (vimshell#iswin() ? '*' : '')
+      let l:dict.abbr = fnamemodify(l:keyword.abbr, ':t')
     endif
 
     call add(l:ret, l:dict)
@@ -250,6 +253,24 @@ function! vimshell#complete#helper#buffers(cur_keyword_str)"{{{
 
   return l:ret
 endfunction"}}}
+function! vimshell#complete#helper#args(command, args)"{{{
+  let l:commands = vimshell#available_commands()
+
+  " Get complete words.
+  let l:complete_words = has_key(l:commands, a:command) && has_key(l:commands[a:command], 'complete') ?
+        \ l:commands[a:command].complete(a:args) : vimshell#complete#helper#files(a:args[-1])
+
+  if a:args[-1] =~ '^--[[:alnum:]._-]\+=\f*$'
+    " Complete file.
+    let l:prefix = matchstr(a:args[-1], '^--[[:alnum:]._-]\+=')
+    for keyword in vimshell#complete#helper#files(a:args[-1][len(l:prefix): ])
+      let keyword.word = l:prefix . keyword.word
+      call add(l:complete_words, keyword)
+    endfor
+  endif
+
+  return l:complete_words
+endfunction"}}}
 function! vimshell#complete#helper#command_args(args)"{{{
   " command args...
   if len(a:args) == 1
@@ -257,26 +278,47 @@ function! vimshell#complete#helper#command_args(args)"{{{
     return vimshell#complete#helper#executables(a:args[0])
   else
     " Args.
-    return vimshell#complete#args_complete#get_complete_words(a:args[0], a:args[1:])
+    return vimshell#complete#helper#args(a:args[0], a:args[1:])
   endif
 endfunction"}}}
 
+function! vimshell#complete#helper#call_omnifunc(omnifunc)"{{{
+  if exists(':NeoComplCacheDisable')
+    return neocomplcache#sources#completefunc_complete#call_completefunc(a:omnifunc)
+  else
+    " Set complete function.
+    let &l:omnifunc = a:omnifunc
+
+    return "\<C-x>\<C-o>\<C-p>"
+  endif
+endfunction"}}}
+function! vimshell#complete#helper#restore_omnifunc(omnifunc)"{{{
+  if &l:omnifunc !=# a:omnifunc
+    let &l:omnifunc = a:omnifunc
+  endif
+endfunction"}}}
 function! vimshell#complete#helper#compare_rank(i1, i2)"{{{
   return a:i1.rank < a:i2.rank ? 1 : a:i1.rank == a:i2.rank ? 0 : -1
 endfunction"}}}
 function! vimshell#complete#helper#keyword_filter(list, cur_keyword_str)"{{{
   let l:cur_keyword = substitute(a:cur_keyword_str, '\\\zs.', '\0', 'g')
+  if &ignorecase
+    let l:expr = printf('stridx(tolower(v:val.word), %s) == 0', string(tolower(l:cur_keyword)))
+  else
+    let l:expr = printf('stridx(v:val.word, %s) == 0', string(l:cur_keyword))
+  endif
 
-  return filter(a:list, printf("v:val[: %d] == %s", len(l:cur_keyword) - 1, string(l:cur_keyword)))
+  return filter(a:list, l:expr)
 endfunction"}}}
 function! vimshell#complete#helper#keyword_simple_filter(list, cur_keyword_str)"{{{
-  if a:cur_keyword_str == ''
-    return a:list
-  endif
-  
   let l:cur_keyword = substitute(a:cur_keyword_str, '\\\zs.', '\0', 'g')
+  if &ignorecase
+    let l:expr = printf('stridx(tolower(v:val), %s) == 0', string(tolower(l:cur_keyword)))
+  else
+    let l:expr = printf('stridx(v:val, %s) == 0', string(l:cur_keyword))
+  endif
 
-  return filter(a:list, printf("v:val[: %d] == %s", len(l:cur_keyword) - 1, string(l:cur_keyword)))
+  return filter(a:list, l:expr)
 endfunction"}}}
 
 " vim: foldmethod=marker

@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: interactive.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 22 Aug 2010
+" Last Modified: 19 Oct 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -91,11 +91,9 @@ function! vimshell#interactive#execute_pty_inout(is_insert)"{{{
     
     if l:in =~ "\<C-d>$"
       " EOF.
-      call b:interactive.process.write(l:in[:-2] . (b:interactive.is_pty ? "\<C-z>" : "\<C-d>"))
-      let b:interactive.skip_echoback = l:in[:-2]
-      call vimshell#interactive#execute_pty_out(a:is_insert)
+      let l:eof = (b:interactive.is_pty ? "\<C-d>" : "\<C-z>")
 
-      call vimshell#interactive#exit()
+      call b:interactive.process.write(l:in[:-2] . l:eof)
       return
     else
       call b:interactive.process.write(l:in . "\<LF>")
@@ -106,7 +104,8 @@ function! vimshell#interactive#execute_pty_inout(is_insert)"{{{
   endtry
 
   call vimshell#interactive#execute_pty_out(a:is_insert)
-  if !b:interactive.process.eof
+  if exists('b:interactive') && has_key(b:interactive.process, 'eof')
+        \ && !b:interactive.process.eof
     if a:is_insert
       startinsert!
     else
@@ -122,7 +121,7 @@ function! vimshell#interactive#send_string(string)"{{{
   setlocal modifiable
   
   let l:in = a:string
-
+  
   if b:interactive.encoding != '' && &encoding != b:interactive.encoding
     " Convert encoding.
     let l:in = iconv(l:in, &encoding, b:interactive.encoding)
@@ -131,11 +130,9 @@ function! vimshell#interactive#send_string(string)"{{{
   try
     if l:in =~ "\<C-d>$"
       " EOF.
-      call b:interactive.process.write(l:in[:-2] . (b:interactive.is_pty ? "\<C-z>" : "\<C-d>"))
-      call vimshell#interactive#execute_pty_out(1)
-
-      call vimshell#interactive#exit()
-      return
+      let l:eof = (b:interactive.is_pty ? "\<C-d>" : "\<C-z>")
+      
+      call b:interactive.process.write(l:in[:-2] . l:eof)
     else
       call b:interactive.process.write(l:in)
     endif
@@ -147,11 +144,11 @@ function! vimshell#interactive#send_string(string)"{{{
   call vimshell#interactive#execute_pty_out(1)
 endfunction"}}}
 function! vimshell#interactive#send_input()"{{{
-  let l:input = input('Please input send string: ')
+  let l:input = input('Please input send string: ', vimshell#interactive#get_cur_line(line('.')))
   call vimshell#imdisable()
+  call setline('.', vimshell#interactive#get_prompt() . ' ')
 
-  let b:interactive.echoback_linenr = line('.')
-
+  normal! $h
   call vimshell#interactive#send_string(l:input)
 endfunction"}}}
 function! vimshell#interactive#send_char(char)"{{{
@@ -179,7 +176,7 @@ function! s:send_region(line1, line2, string)"{{{
   if l:winnr <= 0
     return
   endif
-  
+
   " Check alternate buffer.
   let l:type = getbufvar(winbufnr(l:winnr), 'interactive').type
   if l:type ==# 'interactive' || l:type ==# 'terminal'
@@ -189,25 +186,26 @@ function! s:send_region(line1, line2, string)"{{{
       let l:string = join(getline(a:line1, a:line2), "\<LF>") . "\<LF>"
     endif
     let l:line = split(l:string, "\<LF>")[0]
-    
-    execute winnr('#') 'wincmd w'
+
+    let l:save_winnr = winnr()
+    execute l:winnr 'wincmd w'
 
     if l:type !=# 'terminal'
       " Save prompt.
       let l:prompt = vimshell#interactive#get_prompt(line('$'))
       let l:prompt_nr = line('$')
     endif
-    
+
     " Send string.
     call vimshell#interactive#send_string(l:string)
-    
+
     if l:type !=# 'terminal'
           \ && b:interactive.process.is_valid
       call setline(l:prompt_nr, l:prompt . l:line)
     endif
 
     stopinsert
-    wincmd p
+    execute l:save_winnr 'wincmd w'
   endif
 endfunction"}}}
 function! vimshell#interactive#set_send_buffer(bufname)"{{{
@@ -329,16 +327,23 @@ function! vimshell#interactive#exit()"{{{
   let b:interactive.status = str2nr(l:status)
   let b:interactive.cond = l:cond
   if &filetype !=# 'vimshell'
-    syn match   InteractiveMessage   '\*\%(Exit\|Killed\)\*'
-    hi def link InteractiveMessage WarningMsg
-    
-    call append(line('$'), '*Exit*')
-    
-    $
-    normal! $
-
     stopinsert
-    setlocal nomodifiable
+
+    if exists("b:interactive.is_close_immediately") && b:interactive.is_close_immediately
+      " Close buffer immediately.
+      bdelete
+    else
+      syn match   InteractiveMessage   '\*\%(Exit\|Killed\)\*'
+      hi def link InteractiveMessage WarningMsg
+
+      setlocal modifiable
+      call append(line('$'), '*Exit*')
+
+      $
+      normal! $
+
+      setlocal nomodifiable
+    endif
   endif
 endfunction"}}}
 function! vimshell#interactive#force_exit()"{{{
@@ -575,14 +580,14 @@ function! s:check_output(interactive, bufnr, bufnr_save)"{{{
   if a:interactive.type ==# 'less' || !s:cache_output(a:interactive)
     return
   endif
-  
+
   if a:bufnr != a:bufnr_save
     execute bufwinnr(a:bufnr) . 'wincmd w'
   endif
 
   if mode() !=# 'i'
     let l:intbuffer_pos = getpos('.')
-    
+
     $
     normal! $
   endif
@@ -596,12 +601,12 @@ function! s:check_output(interactive, bufnr, bufnr_save)"{{{
     call vimshell#parser#execute_continuation(mode() ==# 'i')
   elseif l:type ==# 'interactive' || l:type ==# 'terminal'
     if l:type ==# 'interactive' && (
-          \ line('.') != a:interactive.echoback_linenr
-          \ && has_key(a:interactive.prompt_history, line('.'))
-          \ && line('$') == line('.') && vimshell#interactive#get_cur_line(line('.'), a:interactive) != ''
+          \ line('$') != a:interactive.echoback_linenr
+          \ && has_key(a:interactive.prompt_history, line('$'))
+          \ && vimshell#interactive#get_cur_line(line('$'), a:interactive) != ''
           \ )
       " Skip.
-      
+
       if mode() !=# 'i'
         call setpos('.', l:intbuffer_pos)
       endif
@@ -611,7 +616,7 @@ function! s:check_output(interactive, bufnr, bufnr_save)"{{{
       endif
       return
     endif
-    
+
     if l:type ==# 'terminal' && mode() !=# 'i'
       setlocal modifiable
     endif

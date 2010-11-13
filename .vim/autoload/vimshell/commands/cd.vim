@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: cd.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 09 Jul 2010
+" Last Modified: 07 Oct 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -29,7 +29,7 @@ let s:command = {
       \ 'kind' : 'internal',
       \ 'description' : 'cd {directory-path} [{substitute-pattern}]',
       \}
-function! s:command.execute(command, args, fd, other_info)"{{{
+function! s:command.execute(command, args, fd, context)"{{{
   " Change the working directory.
 
   if empty(a:args)
@@ -46,13 +46,15 @@ function! s:command.execute(command, args, fd, other_info)"{{{
     let l:dir = substitute(a:args[0], '^\~\ze[/\\]', substitute($HOME, '\\', '/', 'g'), '')
   endif
 
-  let l:dir = vimshell#resolve(l:dir)
+  if vimshell#iswin()
+    let l:dir = vimshell#resolve(l:dir)
+  endif
 
   let l:cwd = getcwd()
   if isdirectory(l:dir)
     " Move to directory.
     let b:vimshell.save_dir = fnamemodify(l:dir, ':p')
-    lcd `=b:vimshell.save_dir`
+    call vimshell#cd(b:vimshell.save_dir)
   elseif l:dir =~ '^-\d*$'
     " Popd.
     return vimshell#execute_internal_command('popd', [ l:dir[1:] ], 
@@ -61,7 +63,7 @@ function! s:command.execute(command, args, fd, other_info)"{{{
   elseif filereadable(l:dir)
     " Move to parent directory.
     let b:vimshell.save_dir = fnamemodify(l:dir, ':p:h')
-    lcd `=b:vimshell.save_dir`
+    call vimshell#cd(b:vimshell.save_dir)
   else
     " Check cd path.
     let l:dirs = split(globpath(&cdpath, l:dir), '\n')
@@ -71,11 +73,13 @@ function! s:command.execute(command, args, fd, other_info)"{{{
       return
     endif
 
-    let l:dir = vimshell#resolve(l:dirs[0])
+    if vimshell#iswin()
+      let l:dir = vimshell#resolve(l:dir)
+    endif
 
     if isdirectory(l:dirs[0])
       let b:vimshell.save_dir = fnamemodify(l:dirs[0], ':p')
-      lcd `=b:vimshell.save_dir`
+      call vimshell#cd(b:vimshell.save_dir)
     else
       call vimshell#error_line(a:fd, printf('cd: File "%s" is not found.', l:dir))
       return
@@ -90,9 +94,9 @@ function! s:command.execute(command, args, fd, other_info)"{{{
     let b:vimshell.directory_stack = b:vimshell.directory_stack[: g:vimshell_max_directory_stack-1]
   endif
   
-  if a:other_info.is_interactive
+  if a:context.is_interactive
     " Call chpwd hook.
-    let l:context = a:other_info
+    let l:context = a:context
     let l:context.fd = a:fd
     call vimshell#hook#call('chpwd', l:context)
   endif

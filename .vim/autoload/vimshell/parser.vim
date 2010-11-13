@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: parser.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 05 Sep 2010
+" Last Modified: 21 Oct 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -37,8 +37,11 @@ function! vimshell#parser#eval_script(script, context)"{{{
   " Split statements.
   let l:statements = vimproc#parser#parse_statements(a:script)
   let l:max = len(l:statements)
+  
+  let l:context = a:context
+  let l:context.is_single_command = (l:context.is_interactive && l:max == 1)
+  
   let i = 0
-
   while i < l:max
     try
       let l:ret =  s:execute_statement(l:statements[i].statement, a:context)
@@ -65,13 +68,13 @@ function! vimshell#parser#execute_command(commands, context)"{{{
   if empty(a:commands)
     return 0
   endif
-  
+
   let l:internal_commands = vimshell#available_commands()
   let l:program = a:commands[0].args[0]
   let l:args = a:commands[0].args[1:]
   let l:fd = a:commands[0].fd
   let l:line = join(a:commands[0].args)
-  
+
   " Check pipeline.
   if has_key(l:internal_commands, l:program)
         \ && l:internal_commands[l:program].kind ==# 'execute'
@@ -84,7 +87,7 @@ function! vimshell#parser#execute_command(commands, context)"{{{
   elseif len(a:commands) > 1
     let l:context = a:context
     let l:context.fd = l:fd
-    
+
     if a:commands[-1].args[0] == 'less'
       " Execute less(Syntax sugar).
       let l:commands = a:commands[: -2]
@@ -100,7 +103,7 @@ function! vimshell#parser#execute_command(commands, context)"{{{
     let l:dir = substitute(substitute(l:line, '^\~\ze[/\\]', substitute($HOME, '\\', '/', 'g'), ''), '\\\(.\)', '\1', 'g')
     let l:command = vimshell#get_command_path(program)
     let l:ext = fnamemodify(l:program, ':e')
-    
+
     " Check internal commands.
     if has_key(l:internal_commands, l:program)"{{{
       " Internal commands.
@@ -119,13 +122,18 @@ function! vimshell#parser#execute_command(commands, context)"{{{
       let l:commands = [ { 'args' : l:args, 'fd' : l:fd } ]
       return vimshell#parser#execute_command(l:commands, a:context)
     elseif l:command != '' || executable(l:program)
-      " Execute external commands.
-      return vimshell#execute_internal_command('exe', insert(l:args, l:program), l:fd, a:context)
+      if has_key(g:vimshell_terminal_commands, l:program)
+            \ && g:vimshell_terminal_commands[l:program]
+        " Execute terminal commands.
+        return vimshell#execute_internal_command('texe', insert(l:args, l:program), l:fd, a:context)
+      else
+        " Execute external commands.
+        return vimshell#execute_internal_command('exe', insert(l:args, l:program), l:fd, a:context)
+      endif
     else
       throw printf('Error: File "%s" is not found.', l:program)
     endif
   endif"}}}
-
 endfunction
 "}}}
 function! vimshell#parser#execute_continuation(is_insert)"{{{
@@ -284,7 +292,7 @@ function! s:parse_galias(script)"{{{
         throw 'Exception: Join to next line (\).'
       endif
 
-      let l:arg .= l:script[i]
+      let l:arg .= '\' .  l:script[i]
       let i += 1
     elseif l:script[i] != ' '
       let l:arg .= l:script[i]

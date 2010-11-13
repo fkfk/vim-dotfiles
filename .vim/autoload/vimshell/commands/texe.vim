@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: texe.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 23 Aug 2010
+" Last Modified: 08 Oct 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -35,12 +35,12 @@ function! s:command.execute(commands, context)"{{{
     call vimshell#error_line(a:context.fd, 'iexe: this command is not supported pipe.')
     return
   endif
-  
+
   let l:commands = a:commands
   let [l:args, l:options] = vimshell#parser#getopt(l:commands[0].args, 
         \{ 'arg=' : ['--encoding']
         \})
-  
+
   if empty(l:args)
     return
   endif
@@ -82,10 +82,10 @@ function! s:command.execute(commands, context)"{{{
   endif
 
   if exists('b:interactive') && !empty(b:interactive.process) && b:interactive.process.is_valid
-    " Delete zombee process.
+    " Delete zombie process.
     call vimshell#interactive#force_exit()
   endif
-  
+
   if vimshell#iswin() && g:vimshell_interactive_cygwin_home != ''
     " Set $HOME.
     let l:home_save = vimshell#set_variables({
@@ -107,7 +107,7 @@ function! s:command.execute(commands, context)"{{{
 
   " Initialize.
   let l:sub = vimproc#ptyopen(l:args)
-  
+
   " Restore environment variables.
   call vimshell#restore_variables(l:environments_save)
 
@@ -116,6 +116,7 @@ function! s:command.execute(commands, context)"{{{
     call vimshell#restore_variables(l:home_save)
   endif
 
+  let l:save_winnr = winnr()
   call s:init_bg(l:args, a:context)
 
   " Set variables.
@@ -139,9 +140,15 @@ function! s:command.execute(commands, context)"{{{
         \}
   call vimshell#interactive#init()
 
-  if !has_key(a:context, 'is_from_command') || !a:context.is_from_command
-    wincmd p
-  elseif b:interactive.process.is_valid
+  let l:last_winnr = winnr()
+  execute l:save_winnr.'wincmd w'
+
+  if has_key(a:context, 'is_single_command') && a:context.is_single_command
+    call vimshell#print_prompt(a:context)
+    execute l:last_winnr.'wincmd w'
+  endif
+
+  if b:interactive.process.is_valid
     startinsert
   endif
 endfunction"}}}
@@ -192,7 +199,7 @@ function! s:init_bg(args, context)"{{{
   call vimshell#split_nicely()
 
   edit `='texe-'.fnamemodify(a:args[0], ':r').'@'.(bufnr('$')+1)`
-  lcd `=l:cwd`
+  call vimshell#cd(l:cwd)
   
   call s:default_settings()
   

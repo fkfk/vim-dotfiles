@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: less.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 18 Aug 2010
+" Last Modified: 16 Sep 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -48,7 +48,7 @@ function! s:command.execute(commands, context)"{{{
 
   " Background execute.
   if exists('b:interactive') && !empty(b:interactive.process) && b:interactive.process.is_valid
-    " Delete zombee process.
+    " Delete zombie process.
     call vimshell#interactive#force_exit()
   endif
   
@@ -109,6 +109,8 @@ function! s:init(commands, context, syntax, interactive)"{{{
   " Save current directiory.
   let l:cwd = getcwd()
 
+  let l:save_winnr = winnr()
+
   " Split nicely.
   call vimshell#split_nicely()
 
@@ -117,8 +119,8 @@ function! s:init(commands, context, syntax, interactive)"{{{
     let l:args .= join(l:command.args)
   endfor
   edit `='less-'.substitute(l:args, '[<>|]', '_', 'g').'@'.(bufnr('$')+1)`
-  lcd `=l:cwd`
-  
+  call vimshell#cd(l:cwd)
+
   " Common.
   setlocal nocompatible
   setlocal nolist
@@ -131,11 +133,11 @@ function! s:init(commands, context, syntax, interactive)"{{{
     setlocal conceallevel=3
     setlocal concealcursor=n
   endif
-  
+
   " For less.
   setlocal wrap
   setlocal nomodifiable
-  
+
   setlocal filetype=vimshell-less
   let &syntax = a:syntax
   let b:interactive = a:interactive
@@ -153,25 +155,30 @@ function! s:init(commands, context, syntax, interactive)"{{{
   augroup vimshell
     autocmd BufUnload <buffer>       call vimshell#interactive#hang_up(expand('<afile>'))
   augroup END
-  
+
   nnoremap <buffer><silent> <Plug>(vimshell_less_execute_line)  :<C-u>call <SID>on_execute()<CR>
   nnoremap <buffer><silent> <Plug>(vimshell_less_interrupt)       :<C-u>call vimshell#interactive#hang_up(bufname('%'))<CR>
   nnoremap <buffer><silent> <Plug>(vimshell_less_exit)       :<C-u>call vimshell#interactive#quit_buffer()<CR>
   nnoremap <buffer><silent> <Plug>(vimshell_less_next_line)       :<C-u>call <SID>next_line()<CR>
   nnoremap <buffer><silent> <Plug>(vimshell_less_next_screen)       :<C-u>call <SID>next_screen()<CR>
   nnoremap <buffer><silent> <Plug>(vimshell_less_next_half_screen)       :<C-u>call <SID>next_half_screen()<CR>
-  
+
   nmap <buffer><CR>      <Plug>(vimshell_less_execute_line)
   nmap <buffer><C-c>     <Plug>(vimshell_less_interrupt)
   nmap <buffer>q         <Plug>(vimshell_less_exit)
   nmap <buffer>j         <Plug>(vimshell_less_next_line)
   nmap <buffer><C-f>     <Plug>(vimshell_less_next_screen)
   nmap <buffer><C-d>     <Plug>(vimshell_less_next_half_screen)
-  
+
   call s:on_execute()
 
-  if !has_key(a:context, 'is_from_command') || !a:context.is_from_command
-    wincmd p
+  let l:last_winnr = winnr()
+  execute l:save_winnr.'wincmd w'
+
+  if has_key(a:context, 'is_single_command') && a:context.is_single_command
+    call vimshell#print_prompt(a:context)
+    execute l:last_winnr.'wincmd w'
+    stopinsert
   endif
 endfunction"}}}
 

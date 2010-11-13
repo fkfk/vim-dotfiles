@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: mappings.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 05 Sep 2010
+" Last Modified: 03 Nov 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -42,6 +42,7 @@ function! vimshell#mappings#define_default_mappings()"{{{
   nnoremap <silent><buffer> <Plug>(vimshell_insert_head)  :<C-u>call <SID>insert_head()<CR>
   nnoremap <silent><buffer> <Plug>(vimshell_append_enter)  :<C-u>call <SID>append_enter()<CR>
   nnoremap <silent><buffer> <Plug>(vimshell_append_end)  :<C-u>call <SID>append_end()<CR>
+  nnoremap <buffer><silent> <Plug>(vimshell_clear)  :<C-u>call <SID>clear(0)<CR>
 
   vnoremap <buffer><expr> <Plug>(vimshell_select_previous_prompt)  <SID>select_previous_prompt()
   vnoremap <buffer><expr> <Plug>(vimshell_select_next_prompt)  <SID>select_next_prompt()
@@ -50,26 +51,26 @@ function! vimshell#mappings#define_default_mappings()"{{{
   inoremap <buffer><expr> <Plug>(vimshell_history_complete_insert)  vimshell#complete#history_complete#insert()
   inoremap <buffer><expr> <Plug>(vimshell_command_complete) pumvisible() ? "\<C-n>" : vimshell#parser#check_wildcard() ? 
         \ <SID>expand_wildcard() : vimshell#complete#command_complete#complete()
-  inoremap <buffer><silent> <Plug>(vimshell_push_current_line)  <ESC>:<C-u>call <SID>push_current_line()<CR>
-  inoremap <buffer><silent> <Plug>(vimshell_insert_last_word)  <ESC>:<C-u>call <SID>insert_last_word()<CR>
-  inoremap <buffer><silent> <Plug>(vimshell_run_help)  <ESC>:<C-u>call <SID>run_help()<CR>
-  inoremap <buffer><silent> <Plug>(vimshell_move_head)  <ESC>:<C-u>call <SID>move_head()<CR>
+  inoremap <buffer><silent> <Plug>(vimshell_push_current_line)  <ESC>:call <SID>push_current_line()<CR>
+  inoremap <buffer><silent> <Plug>(vimshell_insert_last_word)  <ESC>:call <SID>insert_last_word()<CR>
+  inoremap <buffer><silent> <Plug>(vimshell_run_help)  <ESC>:call <SID>run_help()<CR>
+  inoremap <buffer><silent> <Plug>(vimshell_move_head)  <ESC>:call <SID>move_head()<CR>
   inoremap <buffer><expr> <Plug>(vimshell_delete_backward_line)  <SID>delete_backward_line()
   inoremap <buffer><expr> <Plug>(vimshell_delete_backward_word)  vimshell#get_cur_text()  == '' ? '' : "\<C-w>"
-  inoremap <buffer><silent> <Plug>(vimshell_clear)  <ESC>:<C-u>call <SID>clear()<CR>
   inoremap <buffer><silent> <Plug>(vimshell_enter)  <C-g>u<C-o>:<C-u>call <SID>execute_line(1)<CR>
-  inoremap <buffer><silent> <Plug>(vimshell_interrupt)       <ESC>:<C-u>call <SID>interrupt(1)<CR>
+  inoremap <buffer><silent> <Plug>(vimshell_interrupt)       <ESC>:call <SID>interrupt(1)<CR>
   inoremap <buffer><silent> <Plug>(vimshell_move_previous_window)       <ESC><C-w>p
 
   inoremap <buffer><expr> <Plug>(vimshell_delete_backward_char)  <SID>delete_backward_char(0)
   inoremap <buffer><expr> <Plug>(vimshell_another_delete_backward_char)  <SID>delete_backward_char(1)
   inoremap <buffer><expr> <Plug>(vimshell_delete_forward_line)  col('.') == col('$') ? "" : "\<ESC>lDa"
+  inoremap <buffer><silent> <Plug>(vimshell_clear)  <ESC>:call <SID>clear(1)<CR>
   "}}}
-  
+
   if exists('g:vimshell_no_default_keymappings') && g:vimshell_no_default_keymappings
     return
   endif
-  
+
   " Normal mode key-mappings.
   " Execute command.
   nmap <buffer> <CR> <Plug>(vimshell_enter)
@@ -80,7 +81,7 @@ function! vimshell#mappings#define_default_mappings()"{{{
   " Move to next prompt.
   nmap <buffer> <C-n> <Plug>(vimshell_next_prompt)
   " Remove this output.
-  nmap <buffer> <C-d> <Plug>(vimshell_delete_previous_output)
+  nmap <buffer> <C-k> <Plug>(vimshell_delete_previous_output)
   " Paste this prompt.
   nmap <buffer> <C-y> <Plug>(vimshell_paste_prompt)
   " Search end argument.
@@ -96,7 +97,9 @@ function! vimshell#mappings#define_default_mappings()"{{{
   nmap <buffer> a         <Plug>(vimshell_append_enter)
   " Interrupt.
   nmap <buffer> <C-c> <Plug>(vimshell_interrupt)
-  
+  " Clear.
+  nmap <buffer> <C-l> <Plug>(vimshell_clear)
+
   " Visual mode key-mappings.
   " Move to previous prompt.
   vmap <buffer> <C-p> <Plug>(vimshell_select_previous_prompt)
@@ -107,9 +110,9 @@ function! vimshell#mappings#define_default_mappings()"{{{
   " Execute command.
   inoremap <expr> <SID>(bs-ctrl-])    getline('.')[col('.') - 2] ==# "\<C-]>" ? "\<BS>" : ''
   imap <buffer> <C-]>               <C-]><SID>(bs-ctrl-])
-  imap <buffer> <CR> <C-]><Plug>(vimshell_enter)
+  imap <buffer> <CR>                <C-]><Plug>(vimshell_enter)
   " History completion.
-  imap <buffer> <C-s>  <Plug>(vimshell_history_complete_whole)
+  imap <buffer> <C-l>  <Plug>(vimshell_history_complete_whole)
   imap <buffer> <C-q>  <Plug>(vimshell_history_complete_insert)
   " Command completion.
   imap <buffer> <TAB>  <Plug>(vimshell_command_complete)
@@ -125,8 +128,6 @@ function! vimshell#mappings#define_default_mappings()"{{{
   imap <buffer> <C-t> <Plug>(vimshell_insert_last_word)
   " Run help.
   imap <buffer> <C-x><C-h> <Plug>(vimshell_run_help)
-  " Clear.
-  imap <buffer> <C-l> <Plug>(vimshell_clear)
   " Interrupt.
   imap <buffer> <C-c> <Plug>(vimshell_interrupt)
   " Delete char.
@@ -191,13 +192,13 @@ function! s:execute_line(is_insert)"{{{
       else
         " Search cursor file.
         let l:filename = expand('<cfile>')
-        if has('conceal') && l:filename =~ '\[\%[%\]]'
+        if has('conceal') && l:filename =~ '\[\%[%\]]\|^%$'
           let l:filename = matchstr(getline('.'), '\f\+', 3)
         endif
         let l:pattern = ''
       endif
-      
-      let l:filename = substitute(substitute(l:filename, ' ', '\\ ', 'g'), '\\', '/', 'g')
+
+      let l:filename = substitute(substitute(l:filename, '\\', '/', 'g'), ' ', '\\ ', 'g')
       call s:open_file(l:filename, l:pattern)
     endif
   elseif line('.') != line('$')
@@ -214,7 +215,7 @@ function! s:execute_line(is_insert)"{{{
   let l:oldpos = getpos('.')
 
   $
-  
+
   if !empty(b:vimshell.continuation)
     try
       let l:ret = vimshell#parser#execute_continuation(a:is_insert)
@@ -433,7 +434,7 @@ function! s:delete_line()"{{{
     startinsert!
   endif
 endfunction"}}}
-function! s:clear()"{{{
+function! s:clear(is_insert)"{{{
   " Clean up the screen.
   let l:lines = split(vimshell#get_prompt_command(), "\<NL>", 1)
   % delete _
@@ -444,7 +445,10 @@ function! s:clear()"{{{
   call vimshell#set_prompt_command(l:lines[0])
   call append('$', map(l:lines[1:], string(vimshell#get_secondary_prompt()).'.v:val'))
   $
-  call vimshell#start_insert()
+  
+  if a:is_insert
+    call vimshell#start_insert()
+  endif
 endfunction"}}}
 function! s:expand_wildcard()"{{{
   " Wildcard.
@@ -475,9 +479,10 @@ function! s:delete_backward_char(is_auto_select)"{{{
   else
     let l:prefix = "\<C-y>"
   endif
-  
+
   " Prevent backspace over prompt
-  if getline('.')[: col('.') - 2] !=# vimshell#get_prompt()
+  let l:cur_text = vimshell#get_cur_line()
+  if l:cur_text !=# vimshell#get_prompt()
     return l:prefix . "\<BS>"
   else
     return l:prefix
@@ -486,13 +491,15 @@ endfunction"}}}
 function! s:delete_backward_line()"{{{
   if !pumvisible()
     let l:prefix = ''
-  elseif a:is_auto_select || (exists('g:neocomplcache_enable_auto_select') && g:neocomplcache_enable_auto_select)
+  elseif exists('g:neocomplcache_enable_auto_select') && g:neocomplcache_enable_auto_select
     let l:prefix = "\<C-e>"
   else
     let l:prefix = "\<C-y>"
   endif
-  
-  return l:prefix . repeat("\<BS>", len(vimshell#get_cur_text()))
+
+  let l:len = len(substitute(vimshell#get_cur_text(), '.', 'x', 'g'))
+
+  return l:prefix . repeat("\<BS>", l:len)
 endfunction"}}}
 function! s:open_file(filename, pattern)"{{{
   " Execute cursor file.

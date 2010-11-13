@@ -1,6 +1,6 @@
 *vimshell.txt*	Vim Scriptで実装された強力なシェル
 
-Version: 7.2
+Version: 8.0
 Author : Shougo <Shougo.Matsu@gmail.com>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
@@ -73,11 +73,10 @@ aliasの設定はそこで行っておくと便利です。
 ==============================================================================
 INSTALL							*vimshell-install*
 
-http://github.com/Shougo/vimshell/tree/master より、配布ファイルをVimの
-'runtimepath'にコピーします。 ただし、presen/vimshell.txtとRakefileは必要あ
-りません。
+http://github.com/Shougo/vimshell/tree/master より、配布ファイルをそのフォルダ
+ごとVimの'runtimepath'にコピーします。
 
-非同期実行するには、vimprocが必要です。
+さらに、vimshellを使用するにはvimprocが必要です。
 
 私がvimshell用に修正したvimprocがあるので、それをリポジトリから取ってきます。
 http://github.com/Shougo/vimproc
@@ -100,8 +99,9 @@ Make方法
 * Cygwin: >
 	$ make -f make_cygwin.mak
 
-コンパイルが通ったら、autoloadにあるproc.vimとproc.soを.vimのautoloadディレクトリにコピーします。
-Cygwinでコンパイルしたproc.dllはCygwin上のVim専用です。WindowsのVimでは使えません。注意してください。
+コンパイルが通ったら、autoloadにあるvimproc.vim, vimproc/parser.vimとproc.soを
+.vimのautoloadディレクトリにコピーします。Cygwinでコンパイルしたproc.dllは
+Cygwin上のVim専用です。WindowsのVimでは使えません。注意してください。
 
 ==============================================================================
 INTERFACE						*vimshell-interface*
@@ -117,11 +117,14 @@ COMMANDS 						*vimshell-commands*
 			クトリは変更されません。
 
 :VimShellCreate {path}					*:VimShellCreate*
-			|:VimShell:|と同じですが、他のvimshellが起動している
+			|:VimShell|と同じですが、他のvimshellが起動している
 			場合でも、新しいvimshellバッファを作成します。
 
+:VimShellTab {path}					*:VimShellTab*
+			|:VimShellCreate|と同じですが、新しいタブを生成します。
+
 :VimShellPop {path}					*:VimShellPop*
-			|:VimShell:|と同じですが、こちらは小さいウインドウを
+			|:VimShell|と同じですが、こちらは小さいウインドウを
 			ポップアップします。ちょっとだけvimshellの機能を使
 			いたいときに便利です。ウインドウを分割する高さは
 			|g:vimshell_split_height|で決定されます。
@@ -287,6 +290,12 @@ g:vimshell_split_command				*g:vimshell_split_command*
 			
 			初期値は""です。
 
+g:vimshell_cd_command					*g:vimshell_cd_command*
+			vimshellがカレントディレクトリを変更するときに用いるEx
+			コマンドです。
+			
+			初期値は"lcd"です。
+
 g:vimshell_external_history_path			*g:vimshell_external_history_path*
 			vimshellが履歴検索に使用する外部シェルの履歴ファイル
 			へのパスです。これを空にすると無視されます。zshの拡
@@ -322,7 +331,7 @@ g:vimshell_interactive_command_options			*g:vimshell_interactive_command_options
 			ンを与えないと、うまく対話モードにならないコマンド
 			に使用します。
 			
-			初期値は複雑なので、autoload/internal/iexe.vimを参照
+			初期値は複雑なので、autoload/vimshell/commands/iexe.vimを参照
 			してください。
 
 g:vimshell_interactive_interpreter_commands		*g:vimshell_interactive_interpreter_commands*
@@ -330,7 +339,7 @@ g:vimshell_interactive_interpreter_commands		*g:vimshell_interactive_interpreter
 			|:VimShellInteractive|の引数を省略した際のインタプリ
 			タ名を指定します。
 			
-			初期値は複雑なので、autoload/internal/iexe.vimを参照
+			初期値は複雑なので、autoload/vimshell/commands/iexe.vimを参照
 			してください。
 
 g:vimshell_interactive_encodings			*g:vimshell_interactive_encodings*
@@ -338,7 +347,16 @@ g:vimshell_interactive_encodings			*g:vimshell_interactive_encodings*
 			|vimshell-internal-iexe|で起動するコマンドのエンコー
 			ディングを指定します。
 			
-			初期値は複雑なので、autoload/internal/iexe.vimを参照
+			初期値は複雑なので、autoload/vimshell/commands/iexe.vimを参照
+			してください。
+
+g:vimshell_interactive_no_echoback_commands		*g:vimshell_interactive_no_echoback_commands*
+			インタプリタ名をキーとするディクショナリ変数になってい
+			て、|vimshell-internal-iexe|実行時にエコーバックするか
+			どうかを指定します。1ならiexe側でエコーバック処理をしま
+			す。Windowsでのみ有効。
+			
+			初期値は複雑なので、plugin/vimshell.vimを参照
 			してください。
 
 g:vimshell_terminal_cursor				*g:vimshell_terminal_cursor*
@@ -348,6 +366,13 @@ g:vimshell_terminal_cursor				*g:vimshell_terminal_cursor*
 			
 			初期値は'i:block-Cursor/lCursor'です。
 
+g:vimshell_terminal_commands				*g:vimshell_terminal_commands*
+			コマンド名をキーとするディクショナリ変数となっている。
+			値が真であるコマンドを実行する際には、自動的に|vimshell-internal-texe|が使用される。
+			
+			初期値は複雑なので、plugin/vimshell.vimを参照
+			してください。
+
 g:vimshell_interactive_cygwin_commands			*g:vimshell_interactive_cygwin_commands*
 			コマンド名をキーとするディクショナリ変数になっていて、
 			fakecygpty経由で起動するコマンドを指定します。sshな
@@ -356,7 +381,7 @@ g:vimshell_interactive_cygwin_commands			*g:vimshell_interactive_cygwin_commands
 			fakecygptyについては、|vimshell-tips-fakecygpty|を
 			参照してください。
 			
-			初期値は複雑なので、autoload/internal/iexe.vimを参照
+			初期値は複雑なので、autoload/vimshell/commands/iexe.vimを参照
 			してください。
 
 g:vimshell_interactive_cygwin_path			*g:vimshell_interactive_cygwin_path*
@@ -379,6 +404,11 @@ g:vimshell_vcs_print_null				*g:vimshell_vcs_print_null*
 			これが0以外のとき、vimshellの|vimshell-tips-vcs_info|
 			において、利用できるVCSプラグインが存在しないとき、
 			'[novcs]-(noinfo)'と表示します。
+			
+			初期値は0です。
+
+g:vimshell_enable_auto_slash				*g:vimshell_enable_auto_slash*
+			これが0以外のとき、ディレクトリの補完時に/を補います。
 			
 			初期値は0です。
 
@@ -890,4 +920,4 @@ CHANGELOG						*vimshell-changelog*
 doc/vimshell.txtを参照せよ。
 
 ==============================================================================
-vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:fdm=marker:isk+=-:
+vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:isk+=-:

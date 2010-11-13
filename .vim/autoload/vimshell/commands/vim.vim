@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: vim.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 26 Aug 2010
+" Last Modified: 16 Sep 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -29,7 +29,7 @@ let s:command = {
       \ 'kind' : 'internal',
       \ 'description' : 'vim [{filename}]',
       \}
-function! s:command.execute(program, args, fd, other_info)"{{{
+function! s:command.execute(program, args, fd, context)"{{{
   " Edit file.
 
   if empty(a:args)
@@ -41,6 +41,8 @@ function! s:command.execute(program, args, fd, other_info)"{{{
 
   " Save current directiory.
   let l:cwd = getcwd()
+
+  let l:save_winnr = winnr()
 
   if l:filename == ''
     " Split nicely.
@@ -63,13 +65,20 @@ function! s:command.execute(program, args, fd, other_info)"{{{
       echohl Error | echomsg v:errmsg | echohl None
     endtry
   endif
-  
+
   " Call explorer.
   doautocmd BufEnter
 
-  lcd `=l:cwd`
+  call vimshell#cd(l:cwd)
 
-  wincmd p
+  let l:last_winnr = winnr()
+  execute l:save_winnr.'wincmd w'
+
+  if has_key(a:context, 'is_single_command') && a:context.is_single_command
+    call vimshell#print_prompt(a:context)
+    execute l:last_winnr.'wincmd w'
+    stopinsert
+  endif
 endfunction"}}}
 
 function! vimshell#commands#vim#define()
