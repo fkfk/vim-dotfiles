@@ -29,6 +29,9 @@ set incsearch
 set nocompatible
 set hidden
 
+set directory=/tmp
+set backupdir=/tmp
+
 syntax on
 filetype on
 filetype indent on
@@ -45,6 +48,13 @@ let g:neocomplcache_auto_completion_start_length = 1
 let g:neocomplcache_min_keyword_length = 3
 let g:neocomplcache_min_syntax_length = 3
 let g:neocomplcache_enable_smart_case = 1
+let g:neocomplcache_enable_underbar_completion = 1
+
+if !exists('g:neocomplcache_keyword_patterns')
+  let g:neocomplcache_keyword_patterns = {}
+endif
+let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
+
 
 "VimShellの設定
 "現バージョンでは動かないらしいのでコメントアウト
