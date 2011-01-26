@@ -3,8 +3,7 @@ set backspace=2
 set tabstop=2
 set softtabstop=2
 set shiftwidth=2
-"インデントにタブを用いなければならないのでコメントアウト
-"set expandtab
+set expandtab
 set noautoindent
 set nowritebackup
 set tags=$HOME/.tags
@@ -29,8 +28,8 @@ set incsearch
 set nocompatible
 set hidden
 
-set directory=/tmp
-set backupdir=/tmp
+set directory=/tmp/vim
+set backupdir=/tmp/vim
 
 syntax on
 filetype on
@@ -108,7 +107,14 @@ set nrformats="hex"
 let git_diff_spawn_mode=1
 
 "エンコーディング via kana/dot.vimrc
-if !exists('did_encoding_settings') && has('iconv')
+" To deal with Japanese language.
+if $ENV_WORKING ==# 'summer'
+  set encoding=japan
+else
+  set encoding=utf-8
+endif
+
+if has('iconv')
   let s:enc_euc = 'euc-jp'
   let s:enc_jis = 'iso-2022-jp'
 
@@ -141,9 +147,16 @@ if !exists('did_encoding_settings') && has('iconv')
 
   unlet s:enc_euc
   unlet s:enc_jis
-
-  let did_encoding_settings = 1
 endif
+
+if $ENV_ACCESS ==# 'summer'
+  set termencoding=cp932
+elseif has('gui_macvim')
+  " E617 - It's not possible to change 'termencoding' in MacVim.
+else  " fallback
+  set termencoding=  " same as 'encoding'
+endif
+
 
 " TabpageCD
 " Reference: kana's vimrc
