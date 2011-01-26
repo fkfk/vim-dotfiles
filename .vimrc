@@ -28,8 +28,8 @@ set incsearch
 set nocompatible
 set hidden
 
-set directory=/tmp/vim
-set backupdir=/tmp/vim
+set directory=/tmp
+set backupdir=/tmp
 
 syntax on
 filetype on
