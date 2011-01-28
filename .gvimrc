@@ -2,8 +2,7 @@
 "set lines=54
 "set columns=180
 
-"カラースキーム設定
-colorscheme Black
+colorscheme slate
 
 "ツールバー、スクロールバー非表示
 set go=egmtc 
@@ -17,4 +16,4 @@ if has("gui_macvim")
     set encoding=utf-8
     set ambiwidth=double
   endif
-end
+endif
