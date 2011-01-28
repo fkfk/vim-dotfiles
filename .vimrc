@@ -31,15 +31,16 @@ set hidden
 set directory=/tmp
 set backupdir=/tmp
 
+" use pathogen
+filetype off
+call pathogen#runtime_append_all_bundles()
+call pathogen#helptags()
+set helpfile=$VIMRUNTIME/doc/help.txt
+
 syntax on
 filetype on
 filetype indent on
 filetype plugin on
-
-"Rubyのオムニ補完を設定(ft-ruby-omni)
-let g:rubycomplete_buffer_loading = 1
-let g:rubycomplete_classes_in_global = 1
-let g:rubycomplete_rails = 1
 
 "neocomplcacheの設定
 let g:neocomplcache_enable_at_startup = 1
