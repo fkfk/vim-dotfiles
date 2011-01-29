@@ -89,6 +89,7 @@ noremap <Space>d :bdelete<CR>
 noremap <Space>D :bdelete!<CR>
 noremap <Space>t :set tags=$HOME/.tags/
 noremap <C-x>u :undolist<CR>
+noremap <ESC><ESC> :nohlsearch<CR>
 
 " zsh っぽい補完に
 set wildmode=longest,list
