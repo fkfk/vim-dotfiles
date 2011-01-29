@@ -57,6 +57,7 @@ let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
 
 
 "VimShellの設定
+noremap <silent> <C-x>s :VimShell<CR>
 "現バージョンでは動かないらしいのでコメントアウト
 "let g:VimShell_EnableInteractive = 1
 
@@ -187,3 +188,21 @@ augroup END
 
 "QuickRun用設定
 noremap <silent> <C-r> :QuickRun<CR>
+
+"gundo用設定
+nnoremap <silent> <C-u> :GundoToggle<CR>
+
+" unite用設定
+noremap <silent> <C-B> :Unite buffer<CR>
+noremap <silent> <C-N> :UniteWithBufferDir -buffer-name=files file<CR>
+noremap <silent> <C-P> :Unite file_mru<CR>
+noremap <silent> <C-A> :UniteWithBufferDir -buffer-name=files buffer file_mru bookmark file<CR>
+" ウィンドウを分割して開く
+au FileType unite nnoremap <silent> <buffer> <expr> <C-j> unite#do_action('split')
+au FileType unite inoremap <silent> <buffer> <expr> <C-j> unite#do_action('split')
+" ウィンドウを縦に分割して開く
+au FileType unite nnoremap <silent> <buffer> <expr> <C-l> unite#do_action('vsplit')
+au FileType unite inoremap <silent> <buffer> <expr> <C-l> unite#do_action('vsplit')
+" ESCキーを2回押すと終了する
+au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
+au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>

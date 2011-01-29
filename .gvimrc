@@ -2,7 +2,7 @@
 "set lines=54
 "set columns=180
 
-colorscheme slate
+colorscheme desert
 
 "ツールバー、スクロールバー非表示
 set go=egmtc 
