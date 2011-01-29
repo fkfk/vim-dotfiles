@@ -33,9 +33,12 @@
 [submodule ".vim/bundle/quickrun"]
 	path = .vim/bundle/quickrun
 	url = https://github.com/thinca/vim-quickrun.git
+  ignore = untracked
 [submodule ".vim/bundle/unite.vim"]
 	path = .vim/bundle/unite.vim
 	url = https://github.com/Shougo/unite.vim.git
+  ignore = untracked
 [submodule ".vim/bundle/grep.vim"]
 	path = .vim/bundle/grep.vim
 	url = https://github.com/vim-scripts/grep.vim.git
+  ignore = untracked
