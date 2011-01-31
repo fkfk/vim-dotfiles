@@ -88,7 +88,6 @@ noremap <C-x>r :source $HOME/.vimrc<CR>
 noremap <Space>d :bdelete<CR>
 noremap <Space>D :bdelete!<CR>
 noremap <Space>t :set tags=$HOME/.tags/
-noremap <C-x>u :undolist<CR>
 noremap <ESC><ESC> :nohlsearch<CR>
 
 " zsh っぽい補完に
@@ -191,7 +190,11 @@ augroup END
 noremap <silent> <C-r> :QuickRun<CR>
 
 "gundo用設定
-nnoremap <silent> <C-u> :GundoToggle<CR>
+if v:version < '703'
+  noremap <silent> <C-u> :undolist<CR>
+else
+  nnoremap <silent> <C-u> :GundoToggle<CR>
+endif
 
 " unite用設定
 noremap <silent> <C-B> :Unite buffer<CR>
