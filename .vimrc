@@ -10,9 +10,6 @@ set tags=$HOME/.tags
 set kp=:help
 
 "表示回り
-set enc=utf-8
-set fenc=utf-8
-set fencs=iso-2022-jp,enc-jp,cp932
 set wrap
 set ruler
 set ambiwidth=double
@@ -117,6 +114,8 @@ let git_diff_spawn_mode=1
 " To deal with Japanese language.
 if $ENV_WORKING ==# 'summer'
   set encoding=japan
+elseif has('win32')
+  set encoding=cp932
 else
   set encoding=utf-8
 endif
