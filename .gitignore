@@ -1,1 +1,3 @@
 .vim/autoload/pathogen.vim
+.vim/bundle/*/doc/tags
+.vim/bundle/*/doc/tags-ja

@@ -28,8 +28,13 @@ set incsearch
 set nocompatible
 set hidden
 
-set directory=/tmp
-set backupdir=/tmp
+if has('win32')
+  set directory=$TMP
+  set backupdir=$TMP
+else
+  set directory=/tmp
+  set backupdir=/tmp
+endif
 
 " use pathogen
 filetype off
