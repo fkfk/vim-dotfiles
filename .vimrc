@@ -58,6 +58,11 @@ if !exists('g:neocomplcache_keyword_patterns')
 endif
 let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
 
+" <TAB>で補完
+inoremap <expr><tab> pumvisible() ? "\<C-n>" : "\<TAB>"
+" snippetsの展開
+imap <expr><C-e> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<C-e>"
+smap <expr><C-e> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<C-e>"
 
 "VimShellの設定
 noremap <silent> <C-x>s :VimShell<CR>
@@ -73,9 +78,6 @@ noremap <C-x>tq :tabclose<CR>
 noremap <C-x>to :tabonly<CR>
 noremap <C-l> gt
 noremap <C-h> gT
-
-" <TAB>で補完できるよう設定
-inoremap <tab> <C-n>
 
 " vnew,new用マッピング
 noremap <C-x>v :vnew<CR>
@@ -98,6 +100,12 @@ noremap <Space>d :bdelete<CR>
 noremap <Space>D :bdelete!<CR>
 noremap <Space>t :set tags=$HOME/.tags/
 noremap <ESC><ESC> :nohlsearch<CR>
+
+" VCSCommand
+noremap <silent> <Leader>vd :VCSDiff<CR>
+noremap <silent> <Leader>va :VCSAdd<CR>
+noremap <silent> <Leader>vc :VCSCommit<CR>
+noremap <silent> <Leader>vs :VCSStatus<CR>
 
 " zsh っぽい補完に
 set wildmode=longest,list
