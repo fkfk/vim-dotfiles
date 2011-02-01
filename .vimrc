@@ -61,8 +61,7 @@ let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
 
 "VimShellの設定
 noremap <silent> <C-x>s :VimShell<CR>
-"現バージョンでは動かないらしいのでコメントアウト
-"let g:VimShell_EnableInteractive = 1
+let g:vimshell_prompt = '> '
 
 "ref.vimの設定
 let g:ref_refe_cmd = "refe187"
