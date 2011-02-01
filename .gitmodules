@@ -42,3 +42,7 @@
 	path = .vim/bundle/grep.vim
 	url = https://github.com/vim-scripts/grep.vim.git
   ignore = untracked
+[submodule ".vim/bundle/neco-ruby"]
+	path = .vim/bundle/neco-ruby
+	url = https://github.com/ujihisa/neco-ruby.git
+  ignore = untracked
