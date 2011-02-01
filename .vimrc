@@ -8,6 +8,7 @@ set noautoindent
 set nowritebackup
 set tags=$HOME/.tags
 set kp=:help
+let mapleader = ","
 
 "表示回り
 set wrap
@@ -84,6 +85,13 @@ noremap <C-x>n :new<CR>
 " sp,vsp用マッピング
 noremap <C-x>V :vsp<CR>
 noremap <C-x>S :sp<CR>
+
+" ウィンドウの移動
+noremap <Leader>k <C-w>K
+noremap <Leader>j <C-w>J
+noremap <Leader>h <C-w>H
+noremap <Leader>l <C-w>L
+noremap <Leader>t <C-w>T
 
 " etc
 noremap <C-x>r :source $HOME/.vimrc<CR>
