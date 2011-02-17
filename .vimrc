@@ -52,6 +52,7 @@ let g:neocomplcache_min_keyword_length = 3
 let g:neocomplcache_min_syntax_length = 3
 let g:neocomplcache_enable_smart_case = 1
 let g:neocomplcache_enable_underbar_completion = 1
+let g:neocomplcache_snippets_dir = '$HOME/.vim/snippets'
 
 if !exists('g:neocomplcache_keyword_patterns')
   let g:neocomplcache_keyword_patterns = {}
@@ -204,6 +205,10 @@ augroup vimrc-autocmd
     \| endif
     \| execute 'cd' fnameescape(t:cwd)
 augroup END
+
+" eregex.vim
+AlterCommand s S
+AlterCommand %s %S
 
 "QuickRun用設定
 noremap <silent> <C-r> :QuickRun<CR>
