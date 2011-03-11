@@ -93,7 +93,7 @@ noremap <Leader>k <C-w>K
 noremap <Leader>j <C-w>J
 noremap <Leader>h <C-w>H
 noremap <Leader>l <C-w>L
-noremap <Leader>t <C-w>T
+noremap <Leader>T <C-w>T
 
 " etc
 noremap <C-x>r :source $HOME/.vimrc<CR>
