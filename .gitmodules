@@ -58,3 +58,6 @@
 	path = .vim/bundle/vim-surround
 	url = https://github.com/tpope/vim-surround.git
   ignore = untracked
+[submodule ".vim/bundle/vim-markdown"]
+	path = .vim/bundle/vim-markdown
+	url = https://github.com/hallison/vim-markdown.git
