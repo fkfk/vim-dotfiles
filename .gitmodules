@@ -64,3 +64,6 @@
 [submodule ".vim/bundle/rbpit.vim"]
 	path = .vim/bundle/rbpit.vim
 	url = https://github.com/fkfk/rbpit.vim
+[submodule ".vim/bundle/lingr-vim"]
+	path = .vim/bundle/lingr-vim
+	url = https://github.com/tsukkee/lingr-vim.git
