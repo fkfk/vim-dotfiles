@@ -211,6 +211,7 @@ AlterCommand s S
 AlterCommand %s %S
 
 "QuickRun用設定
+let g:quickrun_config = {'*': {'runmode': 'async:remote:vimproc'},}
 noremap <silent> <C-r> :QuickRun<CR>
 
 "gundo用設定
