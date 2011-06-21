@@ -211,7 +211,12 @@ AlterCommand s S
 AlterCommand %s %S
 
 "QuickRun用設定
-let g:quickrun_config = {'*': {'runmode': 'async:remote:vimproc'},}
+if has("clientserver")
+  let g:quickrun_config = {'*': {'runmode': 'async:remote:vimproc'},}
+else
+  let g:quickrun_config = {'*': {'runmode': 'async:vimproc'},}
+endif
+
 noremap <silent> <C-r> :QuickRun<CR>
 
 "gundo用設定
