@@ -36,6 +36,13 @@ endif
 
 " use pathogen
 filetype off
+let g:pathogen_disabled = []
+if !has('python')
+  call add(g:pathogen_disabled, 'blogit')
+  if v:version < '703'
+    call add(g:pathogen_disabled, 'gundo')
+  endif
+endif
 call pathogen#runtime_append_all_bundles()
 call pathogen#helptags()
 set helpfile=$VIMRUNTIME/doc/help.txt
