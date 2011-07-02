@@ -34,6 +34,13 @@ else
   set backupdir=/tmp
 endif
 
+if has('kaoriya')
+  let s:ruby_libruby = system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
+  if filereadable(s:ruby_libruby)
+    let $RUBY_DLL = s:ruby_libruby
+  endif
+endif
+
 " use pathogen
 filetype off
 let g:pathogen_disabled = []
