@@ -226,7 +226,7 @@ AlterCommand %s %S
 
 "QuickRun用設定
 let g:quickrun_config = {}
-if has("clientserver")
+if has("clientserver") && v:servername != ''
   let g:quickrun_config = {'*': {'runmode': 'async:remote:vimproc'},}
 else
   let g:quickrun_config = {'*': {'runmode': 'async:vimproc'},}
