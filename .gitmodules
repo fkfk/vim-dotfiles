@@ -67,6 +67,3 @@
 [submodule ".vim/bundle/lingr-vim"]
 	path = .vim/bundle/lingr-vim
 	url = https://github.com/tsukkee/lingr-vim.git
-[submodule ".vim/bundle/blogit"]
-	path = .vim/bundle/blogit
-	url = http://git.symlink.me/pub/romain/blogit.git
