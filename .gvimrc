@@ -16,12 +16,4 @@ if has("gui_macvim")
     set encoding=utf-8
     set ambiwidth=double
   endif
-
-  if has('kaoriya')
-    let s:ruby_libdir = system("ruby -rrbconfig -e 'print Config::CONFIG[\"libdir\"]'")
-    let s:ruby_libruby = s:ruby_libdir . '/libruby.dylib'
-    if filereadable(s:ruby_libruby)
-      let $RUBY_DLL = s:ruby_libruby
-    endif
-  endif
 endif

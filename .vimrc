@@ -34,8 +34,17 @@ else
   set backupdir=/tmp
 endif
 
+" Windowsでscpを使う場合pscp.exeを用いる
+if has('win32')
+  let g:netrw_scp_cmd="c:\\opt\\putty\\pscp.exe -q"
+endif
+
 if has('kaoriya')
-  let s:ruby_libruby = system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
+  try
+    let s:ruby_libruby = vimproc#system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
+  catch
+    let s:ruby_libruby = system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
+  endtry
   if filereadable(s:ruby_libruby)
     let $RUBY_DLL = s:ruby_libruby
   endif
