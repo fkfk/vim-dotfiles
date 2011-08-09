@@ -67,3 +67,6 @@
 [submodule ".vim/bundle/lingr-vim"]
 	path = .vim/bundle/lingr-vim
 	url = https://github.com/tsukkee/lingr-vim.git
+[submodule ".vim/bundle/unite-grep"]
+	path = .vim/bundle/unite-grep
+	url = https://github.com/Sixeight/unite-grep.git
