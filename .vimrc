@@ -34,22 +34,6 @@ else
   set backupdir=/tmp
 endif
 
-" Windowsでscpを使う場合pscp.exeを用いる
-if has('win32')
-  let g:netrw_scp_cmd="c:\\opt\\putty\\pscp.exe -q"
-endif
-
-if has('kaoriya')
-  try
-    let s:ruby_libruby = vimproc#system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
-  catch
-    let s:ruby_libruby = system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
-  endtry
-  if filereadable(s:ruby_libruby)
-    let $RUBY_DLL = s:ruby_libruby
-  endif
-endif
-
 " use pathogen
 filetype off
 let g:pathogen_disabled = []
@@ -67,6 +51,22 @@ syntax on
 filetype on
 filetype indent on
 filetype plugin on
+
+" Windowsでscpを使う場合pscp.exeを用いる
+if has('win32') && !exists('g:netrw_scp_cmd')
+  let g:netrw_scp_cmd="c:\\opt\\putty\\pscp.exe -q"
+endif
+
+if has('kaoriya')
+  try
+    let s:ruby_libruby = vimproc#system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
+  catch
+    let s:ruby_libruby = system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
+  endtry
+  if filereadable(s:ruby_libruby)
+    let $RUBY_DLL = s:ruby_libruby
+  endif
+endif
 
 "neocomplcacheの設定
 let g:neocomplcache_enable_at_startup = 1
@@ -236,9 +236,9 @@ AlterCommand %s %S
 "QuickRun用設定
 let g:quickrun_config = {}
 if has("clientserver") && v:servername != ''
-  let g:quickrun_config = {'*': {'runmode': 'async:remote:vimproc'},}
+  let g:quickrun_config["_"] = {'runner': 'remote', 'runner/remote/vimproc': 1}
 else
-  let g:quickrun_config = {'*': {'runmode': 'async:vimproc'},}
+  let g:quickrun_config["_"] = {'runner': 'vimproc','runner/vimproc/updatetime': 100}
 endif
 let g:quickrun_config.javascript = {'command': 'node'}
 
