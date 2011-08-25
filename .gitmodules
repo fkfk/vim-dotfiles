@@ -73,3 +73,6 @@
 [submodule ".vim/bundle/vim-ruby"]
 	path = .vim/bundle/vim-ruby
 	url = https://github.com/vim-ruby/vim-ruby.git
+[submodule ".vim/bundle/vimshell-ssh"]
+	path = .vim/bundle/vimshell-ssh
+	url = https://github.com/ujihisa/vimshell-ssh.git
