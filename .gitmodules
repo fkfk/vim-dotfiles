@@ -76,3 +76,6 @@
 [submodule ".vim/bundle/vimshell-ssh"]
 	path = .vim/bundle/vimshell-ssh
 	url = https://github.com/ujihisa/vimshell-ssh.git
+[submodule ".vim/bundle/neosnippet"]
+	path = .vim/bundle/neosnippet
+	url = https://github.com/Shougo/neosnippet.git
