@@ -79,3 +79,6 @@
 [submodule ".vim/bundle/neosnippet"]
 	path = .vim/bundle/neosnippet
 	url = https://github.com/Shougo/neosnippet.git
+[submodule ".vim/bundle/vimdoc-ja"]
+	path = .vim/bundle/vimdoc-ja
+	url = https://github.com/vim-jp/vimdoc-ja.git
