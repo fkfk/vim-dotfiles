@@ -94,3 +94,6 @@
 [submodule ".vim/bundle/neco-ruby-keyword-args"]
 	path = .vim/bundle/neco-ruby-keyword-args
 	url = https://github.com/rhysd/neco-ruby-keyword-args.git
+[submodule ".vim/bundle/unite-ruby-require"]
+	path = .vim/bundle/unite-ruby-require
+	url = https://github.com/rhysd/unite-ruby-require.vim.git
