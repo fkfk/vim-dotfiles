@@ -280,6 +280,11 @@ if has('conceal')
   set conceallevel=2 concealcursor=i
 endif
 
+" for Tagbar
+let g:tagbar_autofocus = 1
+let g:tagbar_iconchars = ['+', '-']
+noremap <silent> <C-T> :TagbarToggle<CR>
+
 augroup BinaryXXD
   autocmd!
   autocmd BufReadPre  *.bin let &binary =1
