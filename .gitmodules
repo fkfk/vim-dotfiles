@@ -82,3 +82,6 @@
 [submodule ".vim/bundle/vimdoc-ja"]
 	path = .vim/bundle/vimdoc-ja
 	url = https://github.com/vim-jp/vimdoc-ja.git
+[submodule ".vim/bundle/vim-hybrid"]
+	path = .vim/bundle/vim-hybrid
+	url = https://github.com/w0ng/vim-hybrid.git
