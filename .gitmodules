@@ -91,3 +91,6 @@
 [submodule ".vim/bundle/vim-textobj-ruby"]
 	path = .vim/bundle/vim-textobj-ruby
 	url = https://github.com/rhysd/vim-textobj-ruby.git
+[submodule ".vim/bundle/neco-ruby-keyword-args"]
+	path = .vim/bundle/neco-ruby-keyword-args
+	url = https://github.com/rhysd/neco-ruby-keyword-args.git
