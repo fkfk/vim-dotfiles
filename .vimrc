@@ -43,7 +43,7 @@ if !has('python')
     call add(g:pathogen_disabled, 'gundo')
   endif
 endif
-call pathogen#runtime_append_all_bundles()
+call pathogen#incubate()
 call pathogen#helptags()
 set helpfile=$VIMRUNTIME/doc/help.txt
 
