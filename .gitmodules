@@ -106,3 +106,6 @@
 [submodule ".vim/bundle/editorconfig-vim"]
 	path = .vim/bundle/editorconfig-vim
 	url = https://github.com/editorconfig/editorconfig-vim.git
+[submodule ".vim/bundle/vimfiler"]
+	path = .vim/bundle/vimfiler
+	url = https://github.com/Shougo/vimfiler.vim.git
