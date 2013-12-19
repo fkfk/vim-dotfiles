@@ -301,6 +301,11 @@ augroup BinaryXXD
   autocmd BufWritePost * set nomod | endif
 augroup END
 
+" for quickfix
+autocmd QuickFixCmdPost *grep* cwindow
+noremap <silent> <Leader>n :cn<CR>
+noremap <silent> <Leader>p :cp<CR>
+
 if filereadable($HOME.'/.vimrc.local')
   source $HOME/.vimrc.local
 endif
