@@ -18,3 +18,12 @@ if has("gui_macvim")
     set ambiwidth=double
   endif
 endif
+
+if has("win32")
+  set guifont=Ricty:h11:cSHIFTJIS,MS_Gothic:h12:cSHIFTJIS
+  " DirectXで描画できるならばDirectXを用いる
+  " NOTE: ropオプションは内部エンコーディングがutf-8のときのみ使用できる
+  if has('directx') && &encoding ==# 'utf-8'
+    set rop=type:directx,renmode:5,taamode:1
+  endif
+endif
