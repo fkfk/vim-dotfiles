@@ -109,3 +109,6 @@
 [submodule ".vim/bundle/vimfiler"]
 	path = .vim/bundle/vimfiler
 	url = https://github.com/Shougo/vimfiler.vim.git
+[submodule ".vim/bundle/unite-ssh"]
+	path = .vim/bundle/unite-ssh
+	url = https://github.com/Shougo/unite-ssh.git
