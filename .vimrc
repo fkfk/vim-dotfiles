@@ -287,6 +287,9 @@ let g:tagbar_autofocus = 1
 let g:tagbar_iconchars = ['+', '-']
 noremap <silent> <C-T> :TagbarToggle<CR>
 
+" for vimfiler
+noremap <silent> <C-x>e :VimFilerExplorer<CR>
+
 augroup BinaryXXD
   autocmd!
   autocmd BufReadPre  *.bin let &binary =1
