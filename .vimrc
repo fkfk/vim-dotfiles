@@ -156,7 +156,12 @@ let git_diff_spawn_mode=1
 if $ENV_WORKING ==# 'summer'
   set encoding=japan
 elseif has('win32')
-  set encoding=cp932
+  " vim-kaoriyaで内部エンコーディングがutf-8の場合
+  if has('kaoriya') && glob($VIM."/switches/enabled/utf-8.vim") != ""
+    set encoding=utf-8
+  else
+    set encoding=cp932
+  endif
 else
   set encoding=utf-8
 endif
