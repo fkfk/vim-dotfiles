@@ -164,10 +164,27 @@ endif
 if has('iconv')
   let s:enc_euc = 'euc-jp'
   let s:enc_jis = 'iso-2022-jp'
+  let s:enc_eucjpms_ready = 0
+  let s:enc_eucjisx_ready = 0
+
+  " iconvがeucJP-msに対応しているかをチェック
+  if iconv("\x87\x64\x87\x6a", 'cp932', 'eucjp-ms') ==# "\xad\xc5\xad\xcb"
+    let s:enc_eucjpms_ready = 1
+  endif
 
   " Does iconv support JIS X 0213 ?
   if iconv("\x87\x64\x87\x6a", 'cp932', 'euc-jisx0213') ==# "\xad\xc5\xad\xcb"
-    let s:enc_euc = 'euc-jisx0213,euc-jp'
+    let s:enc_eucjisx_ready = 1
+  endif
+
+  if s:enc_eucjpms_ready == 1 || s:enc_eucjisx_ready == 1
+    if s:enc_eucjpms_ready == 1 && s:enc_eucjisx_ready == 1
+      let s:enc_euc = 'eucjp-ms,euc-jisx0213,euc-jp'
+    elseif s:enc_eucjpms_ready == 1
+      let s:enc_euc = 'eucjp-ms,euc-jp'
+    elseif s:enc_eucjisx_ready == 1
+      let s:enc_euc = 'euc-jisx0213,euc-jp'
+    endif
     let s:enc_jis = 'iso-2022-jp-3'
   endif
 
