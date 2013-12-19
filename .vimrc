@@ -6,6 +6,7 @@ set shiftwidth=2
 set expandtab
 set noautoindent
 set nowritebackup
+set fileformats=unix,dos,mac
 set tags=$HOME/.tags
 set kp=:help
 let mapleader = ","
