@@ -146,7 +146,7 @@ set splitbelow
 set splitright
 
 "<C-x> <C-a>で増減させるもの
-set nrformats="hex"
+set nrformats=alpha,hex
 
 "Git用
 let git_diff_spawn_mode=1
