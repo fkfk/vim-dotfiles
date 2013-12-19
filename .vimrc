@@ -310,6 +310,7 @@ let g:tagbar_iconchars = ['+', '-']
 noremap <silent> <C-T> :TagbarToggle<CR>
 
 " for vimfiler
+let g:vimfiler_as_default_explorer = 1
 noremap <silent> <C-x>e :VimFilerExplorer<CR>
 
 augroup BinaryXXD
