@@ -9,7 +9,7 @@ set nowritebackup
 set fileformats=unix,dos,mac
 set tags=$HOME/.tags
 set kp=:help
-let mapleader = ","
+let mapleader = " "
 
 "表示回り
 set wrap
