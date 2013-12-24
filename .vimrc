@@ -71,24 +71,24 @@ if has('kaoriya')
 endif
 
 "neocomplcacheの設定
-let g:neocomplcache_enable_at_startup = 1
-let g:neocomplcache_auto_completion_start_length = 1
-let g:neocomplcache_min_keyword_length = 3
-let g:neocomplcache_min_syntax_length = 3
-let g:neocomplcache_enable_smart_case = 1
-let g:neocomplcache_enable_underbar_completion = 1
-let g:neocomplcache_snippets_dir = '$HOME/.vim/snippets'
+let g:neocomplete#enable_at_startup = 1
+let g:neocomplete#auto_completion_start_length = 1
+let g:neocomplete#min_keyword_length = 3
+let g:neocomplete#min_syntax_length = 3
+let g:neocomplete#enable_smart_case = 1
+let g:neocomplete#enable_underbar_completion = 1
+let g:neocomplete#snippets_dir = '$HOME/.vim/snippets'
 
-if !exists('g:neocomplcache_keyword_patterns')
-  let g:neocomplcache_keyword_patterns = {}
+if !exists('g:neocomplete#keyword_patterns')
+  let g:neocomplete#keyword_patterns = {}
 endif
-let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
+let g:neocomplete#keyword_patterns['default'] = '\h\w*'
 
 " <TAB>で補完
 inoremap <expr><tab> pumvisible() ? "\<C-n>" : "\<TAB>"
 " snippetsの展開
-imap <expr><C-e> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<C-e>"
-smap <expr><C-e> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<C-e>"
+imap <expr><C-e> neocomplete#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<C-e>"
+smap <expr><C-e> neocomplete#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<C-e>"
 
 "VimShellの設定
 noremap <silent> <C-x>s :VimShell<CR>

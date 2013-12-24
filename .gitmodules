@@ -10,10 +10,6 @@
 	path = .vim/bundle/vcscommand
 	url = http://repo.or.cz/r/vcscommand.git
   ignore = untracked
-[submodule ".vim/bundle/neocomplcache"]
-	path = .vim/bundle/neocomplcache
-	url = https://github.com/Shougo/neocomplcache.git
-  ignore = untracked
 [submodule ".vim/bundle/vimshell"]
 	path = .vim/bundle/vimshell
 	url = https://github.com/Shougo/vimshell.git
@@ -112,3 +108,6 @@
 [submodule ".vim/bundle/unite-ssh"]
 	path = .vim/bundle/unite-ssh
 	url = https://github.com/Shougo/unite-ssh.git
+[submodule ".vim/bundle/neocomplete.vim"]
+	path = .vim/bundle/neocomplete.vim
+	url = https://github.com/Shougo/neocomplete.vim.git
