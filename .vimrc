@@ -313,6 +313,9 @@ noremap <silent> <C-T> :TagbarToggle<CR>
 let g:vimfiler_as_default_explorer = 1
 noremap <silent> <C-x>e :VimFilerExplorer<CR>
 
+" for junkfile
+let g:junkfile#directory = "~/.junkfiles"
+
 augroup BinaryXXD
   autocmd!
   autocmd BufReadPre  *.bin let &binary =1
