@@ -8,7 +8,7 @@
   ignore = untracked
 [submodule ".vim/bundle/vcscommand"]
 	path = .vim/bundle/vcscommand
-	url = http://repo.or.cz/r/vcscommand.git
+	url = https://github.com/vim-scripts/vcscommand.vim.git
   ignore = untracked
 [submodule ".vim/bundle/vimshell"]
 	path = .vim/bundle/vimshell
