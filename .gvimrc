@@ -30,4 +30,6 @@ if has("win32")
     set guifont=Ricty:h11:cSHIFTJIS,MS_Gothic:h12:cSHIFTJIS
     set rop=type:directx,renmode:5,taamode:1
   endif
+elseif has("unix")
+  set guifont=Ricty\ 11,Monospace\ 10
 endif
