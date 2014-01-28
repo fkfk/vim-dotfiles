@@ -87,8 +87,8 @@ let g:neocomplete#keyword_patterns['default'] = '\h\w*'
 " <TAB>で補完
 inoremap <expr><tab> pumvisible() ? "\<C-n>" : "\<TAB>"
 " snippetsの展開
-imap <expr><C-e> neocomplete#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<C-e>"
-smap <expr><C-e> neocomplete#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<C-e>"
+imap <expr><C-e> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<C-e>"
+smap <expr><C-e> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<C-e>"
 
 "VimShellの設定
 noremap <silent> <C-x>s :VimShell<CR>
