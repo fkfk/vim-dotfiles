@@ -97,6 +97,7 @@ let g:vimshell_prompt = '> '
 "ref.vimの設定
 let g:ref_refe_cmd = "refe187"
 let g:ref_phpmanual_path = $HOME . "/.vim/manual/phpmanual"
+let g:ref_phpmanual_cmd = "lynx -dump -nonumbers -display_charset=UTF-8 %s"
 
 "tabpage周り
 noremap <C-x>tn :tabnew<CR>
