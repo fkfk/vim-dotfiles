@@ -120,3 +120,6 @@
 [submodule ".vim/bundle/neosnippet-snippets"]
 	path = .vim/bundle/neosnippet-snippets
 	url = https://github.com/Shougo/neosnippet-snippets/
+[submodule ".vim/bundle/phpfolding"]
+	path = .vim/bundle/phpfolding
+	url = https://github.com/vim-scripts/phpfolding.vim.git
