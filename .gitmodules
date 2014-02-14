@@ -122,4 +122,4 @@
 	url = https://github.com/Shougo/neosnippet-snippets/
 [submodule ".vim/bundle/phpfolding"]
 	path = .vim/bundle/phpfolding
-	url = https://github.com/vim-scripts/phpfolding.vim.git
+	url = https://github.com/phux/phpfolding.vim.git
