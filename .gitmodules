@@ -123,3 +123,6 @@
 [submodule ".vim/bundle/phpfolding"]
 	path = .vim/bundle/phpfolding
 	url = https://github.com/phux/phpfolding.vim.git
+[submodule ".vim/bundle/actionscript.vim"]
+	path = .vim/bundle/actionscript.vim
+	url = https://github.com/cairo140/actionscript.vim.git
