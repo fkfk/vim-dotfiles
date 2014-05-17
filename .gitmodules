@@ -126,3 +126,6 @@
 [submodule ".vim/bundle/actionscript.vim"]
 	path = .vim/bundle/actionscript.vim
 	url = https://github.com/cairo140/actionscript.vim.git
+[submodule ".vim/bundle/vim-hack"]
+	path = .vim/bundle/vim-hack
+	url = https://github.com/hhvm/vim-hack.git
