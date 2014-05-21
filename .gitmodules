@@ -129,3 +129,6 @@
 [submodule ".vim/bundle/vim-hack"]
 	path = .vim/bundle/vim-hack
 	url = https://github.com/hhvm/vim-hack.git
+[submodule ".vim/bundle/vdebug"]
+	path = .vim/bundle/vdebug
+	url = https://github.com/joonty/vdebug.git
