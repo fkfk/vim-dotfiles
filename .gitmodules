@@ -135,3 +135,6 @@
 [submodule ".vim/bundle/vim-gocode"]
 	path = .vim/bundle/vim-gocode
 	url = https://github.com/Blackrush/vim-gocode.git
+[submodule ".vim/bundle/vim-choosewin"]
+	path = .vim/bundle/vim-choosewin
+	url = https://github.com/t9md/vim-choosewin.git
