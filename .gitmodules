@@ -138,3 +138,6 @@
 [submodule ".vim/bundle/vim-choosewin"]
 	path = .vim/bundle/vim-choosewin
 	url = https://github.com/t9md/vim-choosewin.git
+[submodule ".vim/bundle/neomru"]
+	path = .vim/bundle/neomru
+	url = https://github.com/Shougo/neomru.vim.git
