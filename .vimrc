@@ -99,6 +99,22 @@ let g:ref_refe_cmd = "refe187"
 let g:ref_phpmanual_path = $HOME . "/.vim/manual/phpmanual"
 let g:ref_phpmanual_cmd = "lynx -dump -nonumbers -display_charset=UTF-8 %s"
 
+" for ref webdict
+let g:ref_source_webdict_cmd = "lynx -dump -nonumbers -display_charset=UTF-8 %s"
+let g:ref_source_webdict_encoding = "UTF-8"
+let g:ref_source_webdict_sites = {
+\   'wiktionary': {
+\     'url': 'http://ja.wiktionary.org/wiki/%s',
+\     'keyword_encoding': 'utf-8',
+\     'cache': 1,
+\   },
+\   'wikipedia:ja': {
+\     'url': 'http://ja.wikipedia.org/wiki/%s',
+\     'keyword_encoding': 'utf-8',
+\     'cache': 1,
+\   },
+\ }
+
 "phpfolding.vimの設定
 let g:DisableAutoPHPFolding = 1
 au FileType php EnablePHPFolds
