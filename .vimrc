@@ -296,6 +296,9 @@ au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
 au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
 
 " neosnippet用設定
+" Plugin settings.
+let g:neosnippet#snippets_directory = $HOME."/.vim/snippets"
+
 " Plugin key-mappings.
 imap <C-k> <Plug>(neosnippet_expand_or_jump)
 smap <C-k> <Plug>(neosnippet_expand_or_jump)
@@ -336,9 +339,6 @@ augroup END
 autocmd QuickFixCmdPost *grep* cwindow
 noremap <silent> <Leader>n :cn<CR>
 noremap <silent> <Leader>p :cp<CR>
-
-" for neosnippet
-let g:neosnippet#snippets_directory = $HOME."/.vim/snippets"
 
 " for neomru
 let g:neomru#time_format = "[%Y/%m/%d %H:%M:%S] "
