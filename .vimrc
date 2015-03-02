@@ -337,6 +337,9 @@ autocmd QuickFixCmdPost *grep* cwindow
 noremap <silent> <Leader>n :cn<CR>
 noremap <silent> <Leader>p :cp<CR>
 
+" for neosnippet
+let g:neosnippet#snippets_directory = $HOME."/.vim/snippets"
+
 if filereadable($HOME.'/.vimrc.local')
   source $HOME/.vimrc.local
 endif
