@@ -287,6 +287,10 @@ else
 endif
 let g:quickrun_config.javascript = {'command': 'node'}
 
+if has('win32')
+  let g:quickrun_config.vb = {'command': 'cscript', 'cmdopt': '/Nologo', 'tempfile': "{tempname()}.vbs"}
+endif
+
 noremap <silent> <C-r> :QuickRun<CR>
 
 "gundo用設定
