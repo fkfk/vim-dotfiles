@@ -281,10 +281,10 @@ else
 endif
 
 " unite用設定
-noremap <silent> <C-B> :Unite buffer<CR>
-noremap <silent> <C-N> :UniteWithBufferDir -buffer-name=files file<CR>
-noremap <silent> <C-P> :Unite file_mru<CR>
-noremap <silent> <C-A> :UniteWithBufferDir -buffer-name=files buffer file_mru bookmark file<CR>
+noremap <silent> <C-B> :Unite -start-insert buffer<CR>
+noremap <silent> <C-N> :UniteWithBufferDir -start-insert -buffer-name=files file<CR>
+noremap <silent> <C-P> :Unite -start-insert file_mru<CR>
+noremap <silent> <C-A> :UniteWithBufferDir -start-insert -buffer-name=files buffer file_mru bookmark file<CR>
 " ウィンドウを分割して開く
 au FileType unite nnoremap <silent> <buffer> <expr> <C-j> unite#do_action('split')
 au FileType unite inoremap <silent> <buffer> <expr> <C-j> unite#do_action('split')
