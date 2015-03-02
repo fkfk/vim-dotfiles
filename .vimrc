@@ -367,6 +367,44 @@ let g:choosewin_blink_on_land = 0
 let g:choosewin_statusline_replace = 0
 let g:choosewin_tabline_replace = 0
 
+" for smartinput
+call smartinput#map_to_trigger('i', '<Space>', '<Space>', '<Space>')
+call smartinput#map_to_trigger('i', '#', '#', '#')
+call smartinput#map_to_trigger('i', '<Bar>', '<Bar>', '<Bar>')
+
+call smartinput#define_rule({
+\   'at'    : '(\%#)',
+\   'char'  : '<Space>',
+\   'input' : '<Space><Space><Left>',
+\   })
+
+call smartinput#define_rule({
+\   'at'    : '( \%# )',
+\   'char'  : '<BS>',
+\   'input' : '<Del><BS>',
+\   })
+
+call smartinput#define_rule({
+\   'at': '\s\+\%#',
+\   'char': '<CR>',
+\   'input': "<C-o>:call setline('.', substitute(getline('.'), '\\s\\+$', '', ''))<CR><CR>",
+\   })
+
+call smartinput#define_rule({
+\   'at'       : '\%#',
+\   'char'     : '#',
+\   'input'    : '#{}<Left>',
+\   'filetype' : ['ruby'],
+\   'syntax'   : ['Constant', 'Special'],
+\   })
+
+call smartinput#define_rule({
+\   'at' : '\({\|\<do\>\)\s*\%#',
+\   'char' : '<Bar>',
+\   'input' : '<Bar><Bar><Left>',
+\   'filetype' : ['ruby'],
+\    })
+
 if filereadable($HOME.'/.vimrc.local')
   source $HOME/.vimrc.local
 endif
