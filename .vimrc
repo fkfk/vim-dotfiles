@@ -114,6 +114,11 @@ let g:ref_source_webdict_sites = {
 \   },
 \ }
 
+au FileType perl setl kp=:Ref\ perldoc
+au FileType php setl kp=:Ref\ phpmanual
+au FileType python setl kp=:Ref\ pydoc
+au FileType ruby setl kp=:Ref\ refe
+
 "phpfolding.vimの設定
 let g:DisableAutoPHPFolding = 1
 au FileType php EnablePHPFolds
