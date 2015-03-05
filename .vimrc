@@ -40,7 +40,6 @@ endif
 filetype off
 let g:pathogen_disabled = []
 if !has('python')
-  call add(g:pathogen_disabled, 'blogit')
   if v:version < '703'
     call add(g:pathogen_disabled, 'gundo')
   endif
