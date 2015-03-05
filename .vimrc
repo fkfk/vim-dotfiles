@@ -395,14 +395,6 @@ call smartinput#define_rule({
 \   })
 
 call smartinput#define_rule({
-\   'at'       : '\%#',
-\   'char'     : '#',
-\   'input'    : '#{}<Left>',
-\   'filetype' : ['ruby'],
-\   'syntax'   : ['Constant', 'Special'],
-\   })
-
-call smartinput#define_rule({
 \   'at' : '\({\|\<do\>\)\s*\%#',
 \   'char' : '<Bar>',
 \   'input' : '<Bar><Bar><Left>',
