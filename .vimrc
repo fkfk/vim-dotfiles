@@ -1,3 +1,7 @@
+if filereadable($HOME.'/.vimrc.local.first')
+  source $HOME/.vimrc.local.first
+endif
+
 "入力周り
 set backspace=2
 set tabstop=2
