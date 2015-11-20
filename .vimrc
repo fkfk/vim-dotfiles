@@ -189,17 +189,7 @@ if $ENV_WORKING ==# 'summer'
 elseif has('win32')
   " vim-kaoriyaで内部エンコーディングがutf-8の場合
   if has('kaoriya') && glob($VIM."/switches/enabled/utf-8.vim") != ""
-    if has('gui')
-      set encoding=utf-8
-    else
-      " CUI版の場合CP932でなければ文字化けする
-      set encoding=cp932
-      " g:vimshell_interactive_encodingsでutf-8を指定しなければ文字化けする
-      if !exists('g:vimshell_interactive_encodings')
-        let g:vimshell_interactive_encodings = {}
-      endif
-      let g:vimshell_interactive_encodings['/'] = 'utf-8'
-    endif
+    set encoding=utf-8
   else
     set encoding=cp932
   endif
@@ -265,6 +255,13 @@ if $ENV_ACCESS ==# 'summer'
   set termencoding=cp932
 elseif has('gui_macvim')
   " E617 - It's not possible to change 'termencoding' in MacVim.
+elseif has('kaoriya') && ! has('gui') && glob($VIM."/switches/enabled/utf-8.vim") != ""
+  set termencoding=cp932
+  " g:vimshell_interactive_encodingsでutf-8を指定しなければ文字化けする
+  if !exists('g:vimshell_interactive_encodings')
+    let g:vimshell_interactive_encodings = {}
+  endif
+  let g:vimshell_interactive_encodings['/'] = 'utf-8'
 elseif g:local_termencoding != ""
   let &termencoding = g:local_termencoding
 else  " fallback
