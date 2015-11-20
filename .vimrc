@@ -183,7 +183,17 @@ if $ENV_WORKING ==# 'summer'
 elseif has('win32')
   " vim-kaoriyaで内部エンコーディングがutf-8の場合
   if has('kaoriya') && glob($VIM."/switches/enabled/utf-8.vim") != ""
-    set encoding=utf-8
+    if has('gui')
+      set encoding=utf-8
+    else
+      " CUI版の場合CP932でなければ文字化けする
+      set encoding=cp932
+      " g:vimshell_interactive_encodingsでutf-8を指定しなければ文字化けする
+      if !exists('g:vimshell_interactive_encodings')
+        let g:vimshell_interactive_encodings = {}
+      endif
+      let g:vimshell_interactive_encodings['/'] = 'utf-8'
+    endif
   else
     set encoding=cp932
   endif
