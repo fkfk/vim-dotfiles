@@ -180,6 +180,8 @@ set nrformats=alpha,hex
 "Git用
 let git_diff_spawn_mode=1
 
+let g:local_encoding = get(g:, 'local_encoding', '')
+let g:local_termencoding = get(g:, 'local_termencoding', '')
 "エンコーディング via kana/dot.vimrc
 " To deal with Japanese language.
 if $ENV_WORKING ==# 'summer'
@@ -201,6 +203,8 @@ elseif has('win32')
   else
     set encoding=cp932
   endif
+elseif g:local_encoding != ""
+  let &encoding = g:local_encoding
 else
   set encoding=utf-8
 endif
@@ -261,6 +265,8 @@ if $ENV_ACCESS ==# 'summer'
   set termencoding=cp932
 elseif has('gui_macvim')
   " E617 - It's not possible to change 'termencoding' in MacVim.
+elseif g:local_termencoding != ""
+  let &termencoding = g:local_termencoding
 else  " fallback
   set termencoding=  " same as 'encoding'
 endif
