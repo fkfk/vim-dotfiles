@@ -291,6 +291,7 @@ augroup END
 " eregex.vim
 AlterCommand s S
 AlterCommand %s %S
+AlterCommand '<,'>s '<,'>S
 
 "QuickRun用設定
 let g:quickrun_config = {}
