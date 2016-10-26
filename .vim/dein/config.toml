@@ -46,17 +46,29 @@ repo = 'davidoc/taskpaper.vim'
 
 [[plugins]]
 repo = 'Shougo/unite.vim'
+on_cmd = ['Unite']
+on_func = ['unite']
+on_source = ['vimfiler.vim']
 
 [[plugins]]
 repo = 'Sixeight/unite-grep'
+on_cmd = ['Unite']
+on_func = ['unite']
+on_source = ['vimfiler.vim']
 depends = ['unite.vim']
 
 [[plugins]]
 repo = 'rhysd/unite-ruby-require.vim'
+on_cmd = ['Unite']
+on_func = ['unite']
+on_source = ['vimfiler.vim']
 depends = ['unite.vim']
 
 [[plugins]]
 repo = 'Shougo/unite-ssh'
+on_cmd = ['Unite']
+on_func = ['unite']
+on_source = ['vimfiler.vim']
 depends = ['unite.vim']
 
 [[plugins]]
@@ -178,6 +190,8 @@ repo = 'vim-jp/vimdoc-ja'
 
 [[plugins]]
 repo = 'Shougo/vimfiler.vim'
+on_path = '.*'
+on_cmd = ['VimFiler']
 depends = ['unite.vim']
 
 [[plugins]]
