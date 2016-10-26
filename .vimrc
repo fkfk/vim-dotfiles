@@ -288,34 +288,7 @@ endif
 
 " TabpageCD
 " Reference: kana's vimrc
-call altercmd#load()
-
-command! -complete=customlist,s:complete_cdpath -nargs=? TabpageCD
-\ execute 'cd' fnameescape(<q-args>)
-\| let t:cwd = getcwd()
-
-function! s:complete_cdpath(arglead, cmdline, cursorpos)
-    return split(globpath(&cdpath,
-            \ join(split(a:cmdline, '\s', 1)[1:], ' ') . '*/'),
-            \ "\n")
-endfunction
-
-AlterCommand cd TabpageCD
-
-command! CD silent exe "TabpageCD " . expand('%:p:h')
-
-augroup vimrc-autocmd
-    autocmd VimEnter,TabEnter *
-    \ if !exists('t:cwd')
-    \| let t:cwd = getcwd()
-    \| endif
-    \| execute 'cd' fnameescape(t:cwd)
-augroup END
-
-" eregex.vim
-AlterCommand s S
-AlterCommand %s %S
-AlterCommand '<,'>s '<,'>S
+" XXX: move to config.toml
 
 "QuickRun用設定
 let g:quickrun_config = {}
