@@ -1,0 +1,144 @@
+[[plugins]]
+repo = 'cairo140/actionscript.vim'
+on_ft = ['actionscript']
+
+[[plugins]]
+repo = 'editorconfig/editorconfig-vim'
+
+[[plugins]]
+repo = 'mattn/emmet-vim'
+
+[[plugins]]
+repo = 'vim-scripts/grep.vim'
+
+[[plugins]]
+repo = 'sjl/gundo.vim'
+on_cmd    = ['GundoToggle']
+
+[[plugins]]
+repo = 'Shougo/junkfile.vim'
+
+[[plugins]]
+repo = 'Shougo/neocomplete.vim'
+on_i = 1
+
+[[plugins]]
+repo = 'Shougo/neomru.vim'
+
+[[plugins]]
+repo = 'Shougo/neosnippet'
+on_i = 1
+
+[[plugins]]
+repo = 'Shougo/neosnippet-snippets'
+on_i = 1
+
+[[plugins]]
+repo = 'phux/phpfolding.vim'
+on_ft = ['php']
+
+[[plugins]]
+repo = 'majutsushi/tagbar'
+
+[[plugins]]
+repo = 'davidoc/taskpaper.vim'
+
+[[plugins]]
+repo = 'Shougo/unite.vim'
+
+[[plugins]]
+repo = 'Sixeight/unite-grep'
+depends = ['unite.vim']
+
+[[plugins]]
+repo = 'rhysd/unite-ruby-require.vim'
+on_ft = ['ruby']
+depends = ['unite.vim']
+
+[[plugins]]
+repo = 'Shougo/unite-ssh'
+depends = ['unite.vim']
+
+[[plugins]]
+repo = 'kana/vim-altercmd'
+
+[[plugins]]
+repo = 't9md/vim-choosewin'
+
+[[plugins]]
+repo = 'kchmck/vim-coffee-script'
+on_ft = ['coffee']
+
+[[plugins]]
+repo = 'Blackrush/vim-gocode'
+on_ft = ['go']
+
+[[plugins]]
+repo = 'w0ng/vim-hybrid'
+
+[[plugins]]
+repo = 'hallison/vim-markdown'
+on_ft = ['markdown']
+
+[[plugins]]
+repo = 'thinca/vim-quickrun'
+
+[[plugins]]
+repo = 'thinca/vim-ref'
+
+[[plugins]]
+repo = 'vim-ruby/vim-ruby'
+on_ft = ['ruby']
+
+[[plugins]]
+repo = 'tpope/vim-surround'
+
+[[plugins]]
+repo = 'kana/vim-smartinput'
+
+[[plugins]]
+repo = 'kana/vim-textobj-user'
+
+[[plugins]]
+repo = 'rhysd/vim-textobj-ruby'
+on_ft = ['ruby']
+
+[[plugins]]
+repo = 'cespare/vim-toml'
+on_ft = 'toml'
+
+[[plugins]]
+repo = 'vim-scripts/vcscommand.vim'
+
+[[plugins]]
+repo = 'joonty/vdebug'
+
+[[plugins]]
+repo = 'vim-jp/vimdoc-ja'
+
+[[plugins]]
+repo = 'Shougo/vimfiler.vim'
+depends = ['unite.vim']
+
+[[plugins]]
+repo = 'Shougo/vimproc'
+hook_post_update = '''
+  if dein#util#_is_windows()
+    let cmd = 'tools\\update-dll-mingw'
+  elseif dein#util#_is_cygwin()
+    let cmd = 'make -f make_cygwin.mak'
+  elseif executable('gmake')
+    let cmd = 'gmake'
+  else
+    let cmd = 'make'
+  endif
+  let g:dein#plugin.build = cmd
+'''
+
+[[plugins]]
+repo = 'Shougo/vimshell'
+depends = ['vimproc']
+
+[[plugins]]
+repo = 'ujihisa/vimshell-ssh'
+depends = ['vimshell']
