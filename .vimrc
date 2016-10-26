@@ -290,6 +290,9 @@ endif
 " Reference: kana's vimrc
 " XXX: move to config.toml
 
+" eregex.vim
+let g:eregex_default_enable = 0
+
 "QuickRun用設定
 let g:quickrun_config = {}
 if has("clientserver") && v:servername != ''
