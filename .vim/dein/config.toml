@@ -15,7 +15,7 @@ repo = 'vim-scripts/grep.vim'
 
 [[plugins]]
 repo = 'sjl/gundo.vim'
-on_cmd    = ['GundoToggle']
+on_cmd = ['GundoToggle']
 
 [[plugins]]
 repo = 'Shougo/junkfile.vim'
