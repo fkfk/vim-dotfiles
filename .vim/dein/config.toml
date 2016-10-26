@@ -104,6 +104,10 @@ repo = 'rhysd/vim-textobj-ruby'
 on_ft = ['ruby']
 
 [[plugins]]
+repo = 'cespare/vim-toml'
+on_ft = 'toml'
+
+[[plugins]]
 repo = 'vim-scripts/vcscommand.vim'
 
 [[plugins]]
