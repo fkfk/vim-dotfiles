@@ -67,6 +67,8 @@ if dein#load_state(s:dein_dir)
   endif
 endif
 
+silent! execute 'helptags' s:dein_repo_dir . '/doc/'
+
 syntax on
 filetype on
 filetype indent on
