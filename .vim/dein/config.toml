@@ -25,7 +25,6 @@ on_i = 1
 
 [[plugins]]
 repo = 'Shougo/neomru.vim'
-on_source = ['unite.vim']
 
 [[plugins]]
 repo = 'Shougo/neosnippet'
@@ -50,16 +49,16 @@ repo = 'Shougo/unite.vim'
 
 [[plugins]]
 repo = 'Sixeight/unite-grep'
-on_source = ['unite.vim']
+depends = ['unite.vim']
 
 [[plugins]]
 repo = 'rhysd/unite-ruby-require.vim'
 on_ft = ['ruby']
-on_source = ['unite.vim']
+depends = ['unite.vim']
 
 [[plugins]]
 repo = 'Shougo/unite-ssh'
-on_source = ['unite.vim']
+depends = ['unite.vim']
 
 [[plugins]]
 repo = 'kana/vim-altercmd'
@@ -116,6 +115,7 @@ repo = 'vim-jp/vimdoc-ja'
 
 [[plugins]]
 repo = 'Shougo/vimfiler.vim'
+depends = ['unite.vim']
 
 [[plugins]]
 repo = 'Shougo/vimproc'
@@ -134,6 +134,7 @@ hook_post_update = '''
 
 [[plugins]]
 repo = 'Shougo/vimshell'
+depends = ['vimproc']
 
 [[plugins]]
 repo = 'ujihisa/vimshell-ssh'
