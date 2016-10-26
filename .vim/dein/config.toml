@@ -180,6 +180,7 @@ repo = 'cespare/vim-toml'
 
 [[plugins]]
 repo = 'vim-scripts/vcscommand.vim'
+on_cmd = ['VCSAdd', 'VCSAnnotate', 'VCSBlame', 'VCSCommit', 'VCSDelete', 'VCSDiff', 'VCSGotoOriginal', 'VCSLog', 'VCSRemove', 'VCSRevert', 'VCSReview', 'VCSStatus', 'VCSUpdate', 'VCSVimDiff']
 
 [[plugins]]
 repo = 'joonty/vdebug'
