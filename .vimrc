@@ -51,7 +51,7 @@ augroup MyAutoCmd
   autocmd!
 augroup END
 
-let s:dein_dir = expand($HOME . '/.vim/dein')
+let s:dein_dir = $HOME . '/.vim/dein'
 let s:dein_repo_dir = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
 let s:toml_file = s:dein_dir . '/config.toml'
 let &rtp = &rtp .",". s:dein_repo_dir
