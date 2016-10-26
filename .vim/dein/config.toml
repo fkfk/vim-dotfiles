@@ -8,6 +8,9 @@ repo = 'editorconfig/editorconfig-vim'
 repo = 'mattn/emmet-vim'
 
 [[plugins]]
+repo = 'othree/eregex.vim'
+
+[[plugins]]
 repo = 'vim-scripts/grep.vim'
 
 [[plugins]]
