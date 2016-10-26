@@ -1,4 +1,4 @@
-.vim/autoload/pathogen.vim
-.vim/bundle/*/doc/tags
-.vim/bundle/*/doc/tags-ja
 .vim/.netrwhist
+.vim/dein/
+!.vim/dein/config.toml
+!.vim/dein/repos/github.com/Shougo/dein.vim/

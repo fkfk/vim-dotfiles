@@ -40,17 +40,32 @@ else
   set backupdir=/tmp
 endif
 
-" use pathogen
+" use dein.vim
 filetype off
-let g:pathogen_disabled = []
-if !has('python')
-  if v:version < '703'
-    call add(g:pathogen_disabled, 'gundo')
+
+if !&compatible
+  set nocompatible
+endif
+
+augroup MyAutoCmd
+  autocmd!
+augroup END
+
+let s:dein_dir = expand($HOME . '/.vim/dein')
+let s:dein_repo_dir = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
+let s:toml_file = s:dein_dir . '/config.toml'
+let &rtp = &rtp .",". s:dein_repo_dir
+
+if dein#load_state(s:dein_dir)
+  call dein#begin(s:dein_dir, [$MYVIMRC, s:toml_file])
+  call dein#load_toml(s:toml_file)
+  call dein#end()
+  call dein#save_state()
+
+  if dein#check_install()
+    call dein#install()
   endif
 endif
-call pathogen#infect('bundle/{}')
-call pathogen#helptags()
-set helpfile=$VIMRUNTIME/doc/help.txt
 
 syntax on
 filetype on
@@ -276,17 +291,17 @@ call altercmd#load()
 command! -complete=customlist,s:complete_cdpath -nargs=? TabpageCD
 \ execute 'cd' fnameescape(<q-args>)
 \| let t:cwd = getcwd()
- 
+
 function! s:complete_cdpath(arglead, cmdline, cursorpos)
     return split(globpath(&cdpath,
             \ join(split(a:cmdline, '\s', 1)[1:], ' ') . '*/'),
             \ "\n")
 endfunction
- 
+
 AlterCommand cd TabpageCD
- 
+
 command! CD silent exe "TabpageCD " . expand('%:p:h')
- 
+
 augroup vimrc-autocmd
     autocmd VimEnter,TabEnter *
     \ if !exists('t:cwd')
