@@ -107,6 +107,7 @@ hook_post_source = '''
 
 [[plugins]]
 repo = 't9md/vim-choosewin'
+on_map = ['<Plug>(choosewin)']
 
 [[plugins]]
 repo = 'kchmck/vim-coffee-script'
