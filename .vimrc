@@ -43,7 +43,7 @@ endif
 " use dein.vim
 filetype off
 
-if !&compatible
+if &compatible
   set nocompatible
 endif
 
