@@ -19,6 +19,8 @@ on_cmd = ['GundoToggle']
 
 [[plugins]]
 repo = 'Shougo/junkfile.vim'
+on_cmd = ['JunkfileOpen']
+on_func = ['junkfile']
 
 [[plugins]]
 repo = 'Shougo/neocomplete.vim'
