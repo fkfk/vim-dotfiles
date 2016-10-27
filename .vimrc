@@ -53,12 +53,21 @@ augroup END
 
 let s:dein_dir = $HOME . '/.vim/dein'
 let s:dein_repo_dir = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
-let s:toml_file = s:dein_dir . '/config.toml'
 let &rtp = &rtp .",". s:dein_repo_dir
 
+if !exists('g:dein_toml_list')
+  let g:dein_toml_list = []
+endif
+let g:dein_toml_list += [s:dein_dir . '/config.toml', s:dein_dir . '/config_local.toml']
+let s:dein_rc_list = [$MYVIMRC] + g:dein_toml_list
+
 if dein#load_state(s:dein_dir)
-  call dein#begin(s:dein_dir, [$MYVIMRC, s:toml_file])
-  call dein#load_toml(s:toml_file)
+  call dein#begin(s:dein_dir, s:dein_rc_list)
+  for toml in g:dein_toml_list
+    if filereadable(toml)
+      call dein#load_toml(toml)
+    endif
+  endfor
   call dein#end()
   call dein#save_state()
 
