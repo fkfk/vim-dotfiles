@@ -129,6 +129,9 @@ repo = 'thinca/vim-quickrun'
 
 [[plugins]]
 repo = 'thinca/vim-ref'
+on_cmd = ['Ref', 'RefHistory']
+on_func = ['ref']
+on_map = ['<Plug>(ref']
 
 [[plugins]]
 repo = 'vim-ruby/vim-ruby'
