@@ -8,7 +8,7 @@ repo = 'editorconfig/editorconfig-vim'
 repo = 'mattn/emmet-vim'
 
 [[plugins]]
-repo = 'othree/eregex.vim'
+repo = 'fkfk/eregex.vim'
 
 [[plugins]]
 repo = 'vim-scripts/grep.vim'
@@ -102,9 +102,9 @@ hook_post_source = '''
       \| execute 'cd' fnameescape(t:cwd)
   augroup END
 
-  AlterCommand s S
-  AlterCommand %s %S
-  AlterCommand '<,'>s '<,'>S
+  AlterCommand s Substitute
+  AlterCommand %s %Substitute
+  AlterCommand '<,'>s '<,'>Substitute
 '''
 
 [[plugins]]
