@@ -11,6 +11,8 @@ repo = 'mattn/emmet-vim'
 
 [[plugins]]
 repo = 'fkfk/eregex.vim'
+on_cmd = ['E2v', 'Match', 'Substitute', 'Global', 'Vglobal']
+on_func = ['E2v']
 
 [[plugins]]
 repo = 'vim-scripts/grep.vim'
