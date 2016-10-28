@@ -2,9 +2,6 @@
 "set lines=54
 "set columns=180
 
-colorscheme desert
-"colorscheme hybrid
-
 "ツールバー、スクロールバー非表示
 set go=egmtc 
 

@@ -153,6 +153,11 @@ on_ft = ['go']
 
 [[plugins]]
 repo = 'w0ng/vim-hybrid'
+hook_add = '''
+  autocmd MyAutoCmd VimEnter * nested
+  \ se bg=dark
+  \| colorscheme hybrid
+'''
 
 [[plugins]]
 repo = 'hallison/vim-markdown'
