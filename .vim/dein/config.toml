@@ -8,6 +8,9 @@ on_cmd = ['EditorConfigReload']
 
 [[plugins]]
 repo = 'mattn/emmet-vim'
+on_cmd = ['Emmet', 'EmmetInstall']
+on_func = ['emmet']
+on_map = ['<C-y>']
 
 [[plugins]]
 repo = 'fkfk/eregex.vim'
