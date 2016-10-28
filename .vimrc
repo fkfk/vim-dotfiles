@@ -1,7 +1,3 @@
-if filereadable($HOME.'/.vimrc.local.first')
-  source $HOME/.vimrc.local.first
-endif
-
 "入力周り
 set backspace=2
 set tabstop=2
@@ -414,7 +410,3 @@ let g:choosewin_overlay_clear_multibyte = 1
 let g:choosewin_blink_on_land = 0
 let g:choosewin_statusline_replace = 0
 let g:choosewin_tabline_replace = 0
-
-if filereadable($HOME.'/.vimrc.local')
-  source $HOME/.vimrc.local
-endif
