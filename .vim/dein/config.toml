@@ -54,6 +54,9 @@ on_cmd = ['JunkfileOpen']
 on_func = ['junkfile']
 
 [[plugins]]
+repo = 'itchyny/lightline.vim'
+
+[[plugins]]
 repo = 'Shougo/neocomplete.vim'
 on_i = 1
 
