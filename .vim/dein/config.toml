@@ -129,6 +129,8 @@ repo = 'hallison/vim-markdown'
 
 [[plugins]]
 repo = 'thinca/vim-quickrun'
+on_cmd = ['QuickRun']
+on_func = ['quickrun']
 
 [[plugins]]
 repo = 'thinca/vim-ref'
