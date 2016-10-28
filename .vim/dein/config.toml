@@ -16,6 +16,30 @@ on_func = ['E2v']
 
 [[plugins]]
 repo = 'vim-scripts/grep.vim'
+on_cmd = [
+  'Grep',
+  'GrepAdd',
+  'Rgrep',
+  'RgrepAdd',
+  'GrepBuffer',
+  'GrepBufferAdd',
+  'Bgrep',
+  'BgrepAdd',
+  'GrepArgs',
+  'GrepArgsAdd',
+  'Fgrep',
+  'FgrepAdd',
+  'Rfgrep',
+  'RfgrepAdd',
+  'Egrep',
+  'EgrepAdd',
+  'Regrep',
+  'RegrepAdd',
+  'Agrep',
+  'AgrepAdd',
+  'Ragrep',
+  'RagrepAdd'
+]
 
 [[plugins]]
 repo = 'sjl/gundo.vim'
