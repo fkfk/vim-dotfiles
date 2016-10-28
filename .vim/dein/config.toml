@@ -3,6 +3,8 @@ repo = 'cairo140/actionscript.vim'
 
 [[plugins]]
 repo = 'editorconfig/editorconfig-vim'
+on_path = '.*'
+on_cmd = ['EditorConfigReload']
 
 [[plugins]]
 repo = 'mattn/emmet-vim'
