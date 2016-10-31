@@ -290,36 +290,44 @@ endif
 let g:eregex_default_enable = 0
 
 "QuickRun用設定
-let g:quickrun_config = {}
+let g:quickrun_config = {
+\   '_': {
+\     'runner': 'vimproc',
+\     'runner/vimproc/updatetime': 100
+\   },
+\   'coffee': {
+\     'command': 'coffee',
+\     'runner': 'vimproc',
+\     'runner/vimproc/updatetime': 100
+\   },
+\   'coffee/compile': {
+\     'command': 'coffee',
+\     'cmdopt': '-cp',
+\     'runner': 'vimproc',
+\     'runner/vimproc/updatetime': 100
+\   },
+\   'javascript': {
+\     'command': 'node'
+\   },
+\   'less': {
+\     'command': 'lessc',
+\     'runner': 'vimproc',
+\     'runner/vimproc/updatetime': 100
+\   },
+\   'sass': {
+\     'command': 'sass',
+\     'cmdopt': '-t expanded',
+\     'runner': 'vimproc',
+\     'runner/vimproc/updatetime': 100
+\   },
+\   'vb': {
+\     'command': 'cscript',
+\     'cmdopt': '/Nologo',
+\     'tempfile': "{tempname()}.vbs"
+\   }
+\ }
 if has("clientserver") && v:servername != ''
   let g:quickrun_config["_"] = {'runner': 'remote', 'runner/remote/vimproc': 1}
-else
-  let g:quickrun_config["_"] = {'runner': 'vimproc','runner/vimproc/updatetime': 100}
-endif
-let g:quickrun_config.javascript = {'command': 'node'}
-let g:quickrun_config.coffee =  {
-\   'command': 'coffee',
-\   'runner': 'vimproc',
-\   'runner/vimproc/updatetime': 100
-\ }
-let g:quickrun_config['coffee/compile'] = {
-\   'command': 'coffee',
-\   'cmdopt': '-cp',
-\   'runner': 'vimproc', 'runner/vimproc/updatetime': 100
-\ }
-let g:quickrun_config.less = {
-\   'command': 'lessc',
-\   'runner': 'vimproc',
-\   'runner/vimproc/updatetime': 100
-\ }
-let g:quickrun_config.sass = {
-\   'command': 'sass',
-\   'cmdopt': '-t expanded',
-\   'runner': 'vimproc', 'runner/vimproc/updatetime': 100
-\ }
-
-if has('win32')
-  let g:quickrun_config.vb = {'command': 'cscript', 'cmdopt': '/Nologo', 'tempfile': "{tempname()}.vbs"}
 endif
 
 noremap <silent> <C-r> :QuickRun<CR>
