@@ -135,8 +135,14 @@ hook_post_source = '''
       \| execute 'cd' fnameescape(t:cwd)
   augroup END
 
+  AlterCommand g Global
+  AlterCommand v Vglobal
   AlterCommand s Substitute
+  AlterCommand %g %Global
+  AlterCommand %v %Vglobal
   AlterCommand %s %Substitute
+  AlterCommand '<,'>g '<,'>Global
+  AlterCommand '<,'>v '<,'>Vglobal
   AlterCommand '<,'>s '<,'>Substitute
 '''
 
