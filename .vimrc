@@ -55,10 +55,9 @@ if !exists('g:dein_toml_list')
   let g:dein_toml_list = []
 endif
 let g:dein_toml_list += [s:dein_dir . '/config.toml', s:dein_dir . '/config_local.toml']
-let s:dein_rc_list = [$MYVIMRC] + g:dein_toml_list
 
 if dein#load_state(s:dein_dir)
-  call dein#begin(s:dein_dir, s:dein_rc_list)
+  call dein#begin(s:dein_dir)
   for toml in g:dein_toml_list
     if filereadable(toml)
       call dein#load_toml(toml)
