@@ -48,6 +48,9 @@ let s:dein_dir = $HOME . '/.vim/dein'
 let s:dein_repo_dir = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
 let &rtp = &rtp .",". s:dein_repo_dir
 
+let g:dein#install_progress_type = 'title'
+let g:dein#install_log_filename = $HOME . '/.vim/dein/install.log'
+
 if !exists('g:dein_toml_list')
   let g:dein_toml_list = []
 endif
