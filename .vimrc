@@ -79,7 +79,7 @@ if has('win32') && !exists('g:netrw_scp_cmd')
   let g:netrw_scp_cmd="c:\\opt\\putty\\pscp.exe -q"
 endif
 
-if has('kaoriya')
+if has('gui_macvim')
   try
     let s:ruby_libruby = vimproc#system('ruby -rrbconfig -e "print Config::CONFIG[\"libdir\"] + \"/\" + Config::CONFIG[\"LIBRUBY\"]"')
   catch
