@@ -268,19 +268,15 @@ if has('iconv')
   unlet s:enc_jis
 endif
 
-if $ENV_ACCESS ==# 'summer'
-  set termencoding=cp932
-elseif has('gui_macvim')
-  " E617 - It's not possible to change 'termencoding' in MacVim.
+if g:local_termencoding != ""
+  let &termencoding = g:local_termencoding
 elseif has('kaoriya') && ! has('gui') && glob($VIM."/switches/enabled/utf-8.vim") != ""
   set termencoding=cp932
   " g:vimshell_interactive_encodingsでutf-8を指定しなければ文字化けする
-  if !exists('g:vimshell_interactive_encodings')
-    let g:vimshell_interactive_encodings = {}
-  endif
+  let g:vimshell_interactive_encodings = get(g:, 'vimshell_interactive_encodings', {})
   let g:vimshell_interactive_encodings['/'] = 'utf-8'
-elseif g:local_termencoding != ""
-  let &termencoding = g:local_termencoding
+elseif has('gui_macvim')
+  " E617 - It's not possible to change 'termencoding' in MacVim.
 else  " fallback
   set termencoding=  " same as 'encoding'
 endif
