@@ -173,7 +173,6 @@ noremap <C-x>r :source $HOME/.vimrc<CR>
 noremap <Space>d :bdelete<CR>
 noremap <Space>D :bdelete!<CR>
 noremap <Space>t :set tags=$HOME/.tags/
-noremap <ESC><ESC> :nohlsearch<CR>
 
 " VCSCommand
 noremap <silent> <Leader>vd :VCSDiff<CR>
@@ -402,10 +401,21 @@ let g:choosewin_tabline_replace = 0
 " for vim-gocode
 let g:gocomplete#system_function = 'vimproc#system'
 
+" for vim-anzu
+nmap n <Plug>(anzu-n-with-echo)
+nmap N <Plug>(anzu-N-with-echo)
+nmap * <Plug>(anzu-star-with-echo)
+nmap # <Plug>(anzu-sharp-with-echo)
+noremap <silent> <ESC><ESC> :<C-u>call anzu#clear_search_status() \| exec 'nohl'<CR>
+
 " for lightline
 let g:lightline = {
       \   'colorscheme': 'jellybeans',
       \   'active': {
+      \     'left': [
+      \         ['mode', 'paste'],
+      \         ['readonly', 'filename', 'modified', 'anzu']
+      \     ],
       \     'right': [
       \       ['lineinfo', 'syntastic'],
       \       ['percent'],
@@ -414,6 +424,7 @@ let g:lightline = {
       \   },
       \   'component_function': {
       \     'git-branch': 'GetBranchName',
+      \     'anzu': 'anzu#search_status'
       \   },
       \ }
 

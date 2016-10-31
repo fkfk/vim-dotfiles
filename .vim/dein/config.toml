@@ -147,6 +147,11 @@ hook_post_source = '''
 '''
 
 [[plugins]]
+repo = 'osyo-manga/vim-anzu'
+on_map = ['<Plug>(anzu-']
+on_func = ['anzu']
+
+[[plugins]]
 repo = 't9md/vim-choosewin'
 on_map = ['<Plug>(choosewin)']
 
