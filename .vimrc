@@ -201,10 +201,8 @@ let git_diff_spawn_mode=1
 
 let g:local_encoding = get(g:, 'local_encoding', '')
 let g:local_termencoding = get(g:, 'local_termencoding', '')
-"エンコーディング via kana/dot.vimrc
-" To deal with Japanese language.
-if $ENV_WORKING ==# 'summer'
-  set encoding=japan
+if g:local_encoding != ""
+  let &encoding = g:local_encoding
 elseif has('win32')
   " vim-kaoriyaで内部エンコーディングがutf-8の場合
   if has('kaoriya') && glob($VIM."/switches/enabled/utf-8.vim") != ""
@@ -212,8 +210,6 @@ elseif has('win32')
   else
     set encoding=cp932
   endif
-elseif g:local_encoding != ""
-  let &encoding = g:local_encoding
 else
   set encoding=utf-8
 endif
