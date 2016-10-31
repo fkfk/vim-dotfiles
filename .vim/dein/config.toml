@@ -249,8 +249,28 @@ depends = ['unite.vim']
 repo = 'Shougo/vimproc'
 merged = 0
 hook_add = '''
-  let s:vimproc_dll = get(g:, 'vimproc#dll_path', '')
-  if s:vimproc_dll == '' || !filereadable(s:vimproc_dll)
+  if dein#util#_is_windows()
+    let s:vimproc_dll_basename = has('win64') ?
+          \ 'vimproc_win64.dll' : 'vimproc_win32.dll'
+  elseif dein#util#_is_cygwin()
+    let s:vimproc_dll_basename = 'vimproc_cygwin.dll'
+  elseif dein#util#_is_mac()
+    let s:vimproc_dll_basename = 'vimproc_mac.so'
+  elseif glob('/lib*/ld-linux*64.so.2', 1) != ''
+    let s:vimproc_dll_basename = 'vimproc_linux64.so'
+  elseif glob('/lib*/ld-linux*.so.2', 1) != ''
+    let s:vimproc_dll_basename = 'vimproc_linux32.so'
+  elseif system('uname -s') =~? '^.\+BSD\n$'
+    let s:vimproc_dll_basename = system(
+          \ 'uname -sm | tr "[:upper:]" "[:lower:]"'
+          \ .' | sed -e "s/ /_/" | xargs -I "{}" echo "vimproc_{}.so"')[0 : -2]
+  else
+    let s:vimproc_dll_basename = 'vimproc_unix.so'
+  endif
+
+  let s:vimproc_dll = get(g:, 'vimproc#dll_path', dein#get('vimproc').path . '/lib/'. s:vimproc_dll_basename)
+
+  if !filereadable(s:vimproc_dll)
     call dein#call_hook('post_update')
     call dein#build('vimproc')
   endif
