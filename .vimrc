@@ -215,53 +215,45 @@ else
 endif
 
 if has('iconv')
+  let s:enc_euc_list = ['euc-jp']
   let s:enc_euc = 'euc-jp'
   let s:enc_jis = 'iso-2022-jp'
-  let s:enc_eucjpms_ready = 0
-  let s:enc_eucjisx_ready = 0
-
-  " iconvがeucJP-msに対応しているかをチェック
-  if iconv("\x87\x64\x87\x6a", 'cp932', 'eucjp-ms') ==# "\xad\xc5\xad\xcb"
-    let s:enc_eucjpms_ready = 1
-  endif
 
   " Does iconv support JIS X 0213 ?
   if iconv("\x87\x64\x87\x6a", 'cp932', 'euc-jisx0213') ==# "\xad\xc5\xad\xcb"
-    let s:enc_eucjisx_ready = 1
+    let s:enc_euc_list = ['euc-jsx0231'] + s:enc_euc_list
   endif
 
-  if s:enc_eucjpms_ready == 1 || s:enc_eucjisx_ready == 1
-    if s:enc_eucjpms_ready == 1 && s:enc_eucjisx_ready == 1
-      let s:enc_euc = 'eucjp-ms,euc-jisx0213,euc-jp'
-    elseif s:enc_eucjpms_ready == 1
-      let s:enc_euc = 'eucjp-ms,euc-jp'
-    elseif s:enc_eucjisx_ready == 1
-      let s:enc_euc = 'euc-jisx0213,euc-jp'
-    endif
+  " iconvがeucJP-msに対応しているかをチェック
+  if iconv("\x87\x64\x87\x6a", 'cp932', 'eucjp-ms') ==# "\xad\xc5\xad\xcb"
+    let s:enc_euc_list = ['eucjp-ms'] + s:enc_euc_list
+  endif
+
+  let s:enc_euc = join(s:enc_euc_list, ',')
+  if count(s:enc_euc_list, 'eucjp-ms') != 0 || count(s:enc_euc_list, 'euc-jisx0213') != 0
     let s:enc_jis = 'iso-2022-jp-3'
   endif
 
   " Make fileencodings
+  let s:fileencodings = ['ucs-bom']
   let &fileencodings = 'ucs-bom'
   if &encoding !=# 'utf-8'
-    let &fileencodings = &fileencodings . ',' . 'ucs-2le'
-    let &fileencodings = &fileencodings . ',' . 'ucs-2'
+    let s:fileencodings += ['ucs-2le', 'ucs-2']
   endif
-  let &fileencodings = &fileencodings . ',' . s:enc_jis
+  let s:fileencodings += [s:enc_jis]
 
   if &encoding ==# 'utf-8'
-    let &fileencodings = &fileencodings . ',' . s:enc_euc
-    let &fileencodings = &fileencodings . ',' . 'cp932'
+    let s:fileencodings += s:enc_euc_list + ['cp932']
   elseif &encoding =~# '^euc\%(-jp\|-jisx0213\|jp-ms\)$'
     let &encoding = s:enc_euc
-    let &fileencodings = &fileencodings . ',' . 'utf-8'
-    let &fileencodings = &fileencodings . ',' . 'cp932'
+    let s:fileencodings += ['utf-8', 'cp932']
   else  " cp932
-    let &fileencodings = &fileencodings . ',' . 'utf-8'
-    let &fileencodings = &fileencodings . ',' . s:enc_euc
+    let s:fileencodings += ['utf-8'] + s:enc_euc_list
   endif
-  let &fileencodings = &fileencodings . ',' . &encoding
+  let &fileencodings = join(s:fileencodings + [&encoding], ',')
 
+  unlet s:fileencodings
+  unlet s:enc_euc_list
   unlet s:enc_euc
   unlet s:enc_jis
 endif
