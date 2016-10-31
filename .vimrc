@@ -47,9 +47,7 @@ let &rtp = &rtp .",". s:dein_repo_dir
 let g:dein#install_progress_type = 'title'
 let g:dein#install_log_filename = s:dein_dir . '/install.log'
 
-if !exists('g:dein_toml_list')
-  let g:dein_toml_list = []
-endif
+let g:dein_toml_list = get(g:, 'dein_toml_list', [])
 let g:dein_toml_list += [s:dein_dir . '/config.toml', s:dein_dir . '/config_local.toml']
 
 if dein#load_state(s:dein_dir)
