@@ -410,5 +410,26 @@ let g:choosewin_tabline_replace = 0
 
 " for lightline
 let g:lightline = {
-      \ 'colorscheme': 'jellybeans',
+      \   'colorscheme': 'jellybeans',
+      \   'active': {
+      \     'right': [
+      \       ['lineinfo', 'syntastic'],
+      \       ['percent'],
+      \       ['git-branch', 'fileformat', 'fileencoding', 'filetype'],
+      \     ]
+      \   },
+      \   'component_function': {
+      \     'git-branch': 'GetBranchName',
+      \   },
       \ }
+
+function! GetBranchName()
+  try
+    if &ft !~? 'vimfiler\|gundo' && exists('*fugitive#head')
+      let _ = fugitive#head()
+      return strlen(_) ? _ : ''
+    endif
+  catch
+  endtry
+  return ''
+endfunction

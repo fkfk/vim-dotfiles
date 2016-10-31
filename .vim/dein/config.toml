@@ -148,6 +148,9 @@ on_map = ['<Plug>(choosewin)']
 repo = 'kchmck/vim-coffee-script'
 
 [[plugins]]
+repo = 'tpope/vim-fugitive'
+
+[[plugins]]
 repo = 'Blackrush/vim-gocode'
 on_ft = ['go']
 
