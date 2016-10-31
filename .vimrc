@@ -236,7 +236,6 @@ if has('iconv')
 
   " Make fileencodings
   let s:fileencodings = ['ucs-bom']
-  let &fileencodings = 'ucs-bom'
   if &encoding !=# 'utf-8'
     let s:fileencodings += ['ucs-2le', 'ucs-2']
   endif
