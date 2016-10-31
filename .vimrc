@@ -103,9 +103,7 @@ let g:neocomplete#enable_smart_case = 1
 let g:neocomplete#enable_underbar_completion = 1
 let g:neocomplete#snippets_dir = '$HOME/.vim/snippets'
 
-if !exists('g:neocomplete#keyword_patterns')
-  let g:neocomplete#keyword_patterns = {}
-endif
+let g:neocomplete#keyword_patterns = get(g:, 'neocomplete#keyword_patterns', {})
 let g:neocomplete#keyword_patterns['default'] = '\h\w*'
 
 " <TAB>で補完
