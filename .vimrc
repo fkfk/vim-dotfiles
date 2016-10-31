@@ -73,8 +73,14 @@ filetype indent on
 filetype plugin on
 
 " Windowsでscpを使う場合pscp.exeを用いる
-if has('win32') && !exists('g:netrw_scp_cmd')
-  let g:netrw_scp_cmd="c:\\opt\\putty\\pscp.exe -q"
+if has('win32') && executable('pscp.exe')
+  let g:netrw_scp_cmd = "pscp.exe -q"
+  let g:unite_kind_file_ssh_command = 'plink.exe -P PORT HOSTNAME'
+  let g:unite_kind_file_ssh_copy_directory_command = 'pscp.exe -P PORT -q -r $srcs $dest'
+  let g:unite_kind_file_ssh_copy_file_command = 'pscp.exe -P PORT -q $srcs $dest'
+  let g:neossh#ssh_command = 'plink.exe -P PORT HOSTNAME'
+  let g:neossh#copy_directory_command = 'pscp.exe -P PORT -q -r $srcs $dest'
+  let g:neossh#copy_file_command = 'pscp.exe -P PORT -q $srcs $dest'
 endif
 
 if has('gui_macvim')
