@@ -36,10 +36,6 @@ endif
 " use dein.vim
 filetype off
 
-if &compatible
-  set nocompatible
-endif
-
 augroup MyAutoCmd
   autocmd!
 augroup END
