@@ -424,6 +424,7 @@ let g:lightline = {
       \     ]
       \   },
       \   'component_function': {
+      \     'filename': 'GetFileName',
       \     'git-branch': 'GetBranchName',
       \     'anzu': 'anzu#search_status'
       \   },
@@ -438,4 +439,18 @@ function! GetBranchName()
   catch
   endtry
   return ''
+endfunction
+
+function! GetFileName()
+  let nr = bufnr('%')
+  if &ft == 'vimfiler'
+    let name = vimfiler#get_status_string()
+  elseif &ft == 'unite'
+    let name = unite#get_status_string()
+  elseif expand('%:t') != ''
+    let name = expand('%:t')
+  else
+    let name = '[No Name]'
+  endif
+  return nr .":" . name
 endfunction
