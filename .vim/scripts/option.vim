@@ -53,6 +53,10 @@ set splitright
 "<C-x> <C-a>で増減させるもの
 set nrformats=alpha,hex
 
+set breakindent
+set breakindentopt=shift:2,sbr
+set showbreak=>
+
 if g:myvimrc.encodings.encoding != ""
   let &encoding = g:myvimrc.encodings.encoding
 elseif has('win32')
