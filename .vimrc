@@ -17,6 +17,7 @@ set ruler
 set ambiwidth=double
 set laststatus=2
 set foldmethod=marker
+set showtabline=2
 
 set list
 set listchars=tab:>\ ,trail:~,extends:>,precedes:<

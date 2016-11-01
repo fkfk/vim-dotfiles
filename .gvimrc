@@ -3,7 +3,7 @@
 "set columns=180
 
 "ツールバー、スクロールバー非表示
-set go=egmtc 
+set go=gmtc
 
 if has("win32")
   " DirectXで描画できるならばDirectXを用いる
