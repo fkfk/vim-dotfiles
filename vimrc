@@ -35,8 +35,6 @@ else
 endif
 
 " use dein.vim
-filetype off
-
 augroup MyAutoCmd
   autocmd!
 augroup END
