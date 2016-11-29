@@ -1,4 +1,3 @@
-.vim/.netrwhist
-.vim/dein/
-!.vim/dein/config.toml
-!.vim/dein/repos/github.com/Shougo/dein.vim/
+dein/
+!dein/config.toml
+!dein/repos/github.com/Shougo/dein.vim/

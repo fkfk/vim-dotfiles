@@ -1,4 +1,4 @@
-let s:dein_dir = g:myvimrc.rc.basedir . '/.vim/dein'
+let s:dein_dir = g:myvimrc.rc.basedir . '/dein'
 let s:dein_repo_dir = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
 let &rtp = &rtp .",". s:dein_repo_dir
 

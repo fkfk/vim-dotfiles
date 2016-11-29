@@ -15,7 +15,7 @@ let s:merged_config = {}
 call extend(s:merged_config, s:default_config)
 call extend(s:merged_config, get(g:, 'myvimrc', {}))
 let g:myvimrc = s:merged_config
-let g:myvimrc.rc.scriptsdir = get(g:, 'myvimrc.rc.scriptsdir', g:myvimrc.rc.basedir . '/.vim/scripts')
+let g:myvimrc.rc.scriptsdir = get(g:, 'myvimrc.rc.scriptsdir', g:myvimrc.rc.basedir . '/scripts')
 
 function! g:myvimrc.source(name)
   let fpath = g:myvimrc.rc.scriptsdir . '/' . a:name

@@ -32,7 +32,7 @@ let g:neocomplete#min_keyword_length = 3
 let g:neocomplete#min_syntax_length = 3
 let g:neocomplete#enable_smart_case = 1
 let g:neocomplete#enable_underbar_completion = 1
-let g:neocomplete#snippets_dir = g:myvimrc.rc.basedir . '/.vim/snippets'
+let g:neocomplete#snippets_dir = g:myvimrc.rc.basedir . '/snippets'
 let g:neocomplete#keyword_patterns = get(g:, 'neocomplete#keyword_patterns', {})
 let g:neocomplete#keyword_patterns['default'] = '\h\w*'
 
@@ -40,7 +40,7 @@ let g:neocomplete#keyword_patterns['default'] = '\h\w*'
 let g:neomru#time_format = "[%Y/%m/%d %H:%M:%S] "
 
 " for neosnippet
-let g:neosnippet#snippets_directory = g:myvimrc.rc.basedir."/.vim/snippets"
+let g:neosnippet#snippets_directory = g:myvimrc.rc.basedir."/snippets"
 
 " for phpfolding.vim
 let g:DisableAutoPHPFolding = 1
@@ -109,7 +109,7 @@ endif
 
 " for vim-ref
 let g:ref_refe_cmd = "refe"
-let g:ref_phpmanual_path = g:myvimrc.rc.basedir . "/.vim/manual/phpmanual"
+let g:ref_phpmanual_path = g:myvimrc.rc.basedir . "/manual/phpmanual"
 let g:ref_phpmanual_cmd = "lynx -dump -nonumbers -display_charset=UTF-8 %s"
 
 " for ref webdict
