@@ -9,6 +9,7 @@ noremap <silent> <C-n> :UniteWithBufferDir -start-insert -buffer-name=files file
 noremap <silent> <C-p> :Unite -start-insert file_mru<CR>
 noremap <silent> <C-r> :QuickRun<CR>
 noremap <silent> <C-t> :TagbarToggle<CR>
+noremap <silent> <C-x>c :WatchdogsRun<CR>
 noremap <silent> <C-x>e :VimFilerExplorer<CR>
 noremap <silent> <C-x>n :new<CR>
 noremap <silent> <C-x>s :VimShell<CR>

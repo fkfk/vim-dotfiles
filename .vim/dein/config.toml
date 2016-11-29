@@ -76,6 +76,9 @@ repo = 'Shougo/neosnippet-snippets'
 repo = 'phux/phpfolding.vim'
 
 [[plugins]]
+repo = 'osyo-manga/shabadou.vim'
+
+[[plugins]]
 repo = 'majutsushi/tagbar'
 on_cmd = ['TagbarOpen', 'TagbarClose', 'TagbarToggle', 'Tagbar', 'TagbarOpenAutoClose', 'TagbarTogglePause', 'TagbarSetFoldlevel', 'TagbarShowTag', 'TagbarCurrentTag', 'TagbarGetTypeConfig', 'TagbarDebug', 'TagbarDebugEnd']
 
@@ -172,6 +175,9 @@ on_ft = ['ruby']
 
 [[plugins]]
 repo = 'cespare/vim-toml'
+
+[[plugins]]
+repo = 'osyo-manga/vim-watchdogs'
 
 [[plugins]]
 repo = 'vim-scripts/vcscommand.vim'

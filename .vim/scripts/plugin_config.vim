@@ -94,7 +94,22 @@ let g:quickrun_config = {
 \     'command': 'cscript',
 \     'cmdopt': '/Nologo',
 \     'tempfile': "{tempname()}.vbs"
-\   }
+\   },
+\   'php/watchdogs_checker': {
+\       'type': 'watchdogs_checker/php'
+\   },
+\   'watchdogs_checker/_': {
+\     'runner/vimproc/updatetime':       40,
+\     'hook/close_quickfix/enable_exit': 0,
+\     'hook/back_window/enable':         1,
+\     'hook/back_window/enable_exit':    1,
+\     'hook/back_window/priority_exit':  1,
+\   },
+\   'watchdogs_checker/php': {
+\       'command': 'php',
+\       'cmdopt':  '-l -d error_reporting=E_ALL -d display_errors=1 -d display_startup_errors=1 -d log_errors=0 -d xdebug.cli_color=0',
+\       'exec':    '%c %o %s:p'
+\   },
 \ }
 if has("clientserver") && v:servername != ''
   let g:quickrun_config["_"] = {'runner': 'remote', 'runner/remote/vimproc': 1}
@@ -129,6 +144,11 @@ let g:vimfiler_as_default_explorer = 1
 
 " for vimshell
 let g:vimshell_prompt = '> '
+
+" for watchdogs
+call watchdogs#setup(g:quickrun_config)
+let g:watchdogs_check_BufWritePost_enable = 1
+let g:watchdogs_check_CursorHold_enable = 1
 
 " Windowsでscpを使う場合pscp.exeを用いる
 if has('win32') && executable('pscp.exe')
