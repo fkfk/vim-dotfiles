@@ -66,29 +66,21 @@ let g:quickrun_config = {
 \     'runner/vimproc/updatetime': 100
 \   },
 \   'coffee': {
-\     'command': 'coffee',
-\     'runner': 'vimproc',
-\     'runner/vimproc/updatetime': 100
+\     'command': 'coffee'
 \   },
 \   'coffee/compile': {
 \     'command': 'coffee',
-\     'cmdopt': '-cp',
-\     'runner': 'vimproc',
-\     'runner/vimproc/updatetime': 100
+\     'cmdopt': '-cp'
 \   },
 \   'javascript': {
 \     'command': 'node'
 \   },
 \   'less': {
-\     'command': 'lessc',
-\     'runner': 'vimproc',
-\     'runner/vimproc/updatetime': 100
+\     'command': 'lessc'
 \   },
 \   'sass': {
 \     'command': 'sass',
-\     'cmdopt': '-t expanded',
-\     'runner': 'vimproc',
-\     'runner/vimproc/updatetime': 100
+\     'cmdopt': '-t expanded'
 \   },
 \   'vb': {
 \     'command': 'cscript',
