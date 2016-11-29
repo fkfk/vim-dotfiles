@@ -143,3 +143,74 @@ if has('win32') && executable('pscp.exe')
   let g:neossh#copy_directory_command = 'pscp.exe -P PORT -q -r $srcs $dest'
   let g:neossh#copy_file_command = 'pscp.exe -P PORT -q $srcs $dest'
 endif
+
+function! g:myvimrc.rc.lazyconfig.altercmd()
+  call altercmd#load()
+
+  AlterCommand g Global
+  AlterCommand v Vglobal
+  AlterCommand s Substitute
+  AlterCommand %g %Global
+  AlterCommand %v %Vglobal
+  AlterCommand %s %Substitute
+  AlterCommand '<,'>g '<,'>Global
+  AlterCommand '<,'>v '<,'>Vglobal
+  AlterCommand '<,'>s '<,'>Substitute
+
+  call g:myvimrc.rc.lazyconfig.enable_tabpagecd()
+endfunction
+
+function! g:myvimrc.rc.lazyconfig.enable_tabpagecd()
+  command! -complete=customlist,s:complete_cdpath -nargs=? TabpageCD
+  \ execute 'cd' fnameescape(<q-args>)
+  \| let t:cwd = getcwd()
+
+  function! s:complete_cdpath(arglead, cmdline, cursorpos)
+      return split(globpath(&cdpath,
+              \ join(split(a:cmdline, '\s', 1)[1:], ' ') . '*/'),
+              \ "\n")
+  endfunction
+
+  AlterCommand cd TabpageCD
+
+  command! CD silent exe "TabpageCD " . expand('%:p:h')
+
+  augroup vimrc-autocmd
+      autocmd VimEnter,TabEnter *
+      \ if !exists('t:cwd')
+      \| let t:cwd = getcwd()
+      \| endif
+      \| execute 'cd' fnameescape(t:cwd)
+  augroup END
+endfunction
+
+function! g:myvimrc.rc.lazyconfig.smartinput()
+  call smartinput#map_to_trigger('i', '<Space>', '<Space>', '<Space>')
+  call smartinput#map_to_trigger('i', '#', '#', '#')
+  call smartinput#map_to_trigger('i', '<Bar>', '<Bar>', '<Bar>')
+
+  call smartinput#define_rule({
+  \   'at'    : '(\%#)',
+  \   'char'  : '<Space>',
+  \   'input' : '<Space><Space><Left>',
+  \   })
+
+  call smartinput#define_rule({
+  \   'at'    : '( \%# )',
+  \   'char'  : '<BS>',
+  \   'input' : '<Del><BS>',
+  \   })
+
+  call smartinput#define_rule({
+  \   'at': '\s\+\%#',
+  \   'char': '<CR>',
+  \   'input': "<C-o>:call setline('.', substitute(getline('.'), '\\s\\+$', '', ''))<CR><CR>",
+  \   })
+
+  call smartinput#define_rule({
+  \   'at' : '\({\|\<do\>\)\s*\%#',
+  \   'char' : '<Bar>',
+  \   'input' : '<Bar><Bar><Left>',
+  \   'filetype' : ['ruby'],
+  \    })
+endfunction
