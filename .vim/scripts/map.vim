@@ -9,17 +9,14 @@ noremap <silent> <C-n> :UniteWithBufferDir -start-insert -buffer-name=files file
 noremap <silent> <C-p> :Unite -start-insert file_mru<CR>
 noremap <silent> <C-r> :QuickRun<CR>
 noremap <silent> <C-t> :TagbarToggle<CR>
+noremap <silent> <C-w>N :vnew<CR>
 noremap <silent> <C-x>c :WatchdogsRun<CR>
 noremap <silent> <C-x>e :VimFilerExplorer<CR>
-noremap <silent> <C-x>n :new<CR>
 noremap <silent> <C-x>s :VimShell<CR>
 noremap <silent> <C-x>r :source $HOME/.vimrc<CR>
-noremap <silent> <C-x>S :sp<CR>
 noremap <silent> <C-x>tn :tabnew<CR>
 noremap <silent> <C-x>tq :tabclose<CR>
 noremap <silent> <C-x>to :tabonly<CR>
-noremap <silent> <C-x>v :vnew<CR>
-noremap <silent> <C-x>V :vsp<CR>
 noremap <silent> <ESC><ESC> :<C-u>call anzu#clear_search_status() \| exec 'nohl'<CR>
 noremap <silent> <Leader>d :bdelete<CR>
 noremap <silent> <Leader>D :bdelete!<CR>
