@@ -1,0 +1,80 @@
+snippet     package_initial
+  package ${1:main}
+
+  import (
+    ${2:module}
+  )
+
+  func main() {
+    ${3:code}
+  }
+
+snippet     package_test
+  package ${1:package_name}
+
+  import (
+    "testing"
+  )
+
+  func ${2:test_name}(t *testing.T) {
+    ${3:code}
+  }
+
+snippet     type_struct
+  type ${1:Type} struct {
+    ${2:Property} ${3:type}
+  }
+
+snippet     func
+  func ${1:func_name}(${2:args}) (${3:ret}){
+    ${4:code}
+  }
+
+snippet     func_type
+  func (${1:type}) ${2:func_name}(${3:args}) (${4:ret}) {
+    ${5:code}
+  }
+
+snippet     func_nameless
+  func(${1:ret}) {
+    ${2:code}
+  }
+
+snippet     if
+  if ${1:condition} {
+    ${2:code}
+  }
+
+snippet     if_error
+  if ${1:err} != nil {
+    ${2:code}
+  }
+
+snippet     for
+  for ${1:condition} {
+    ${2:code}
+  }
+
+snippet     for_loop
+  for i:= 0; i < ${1:condition}; i++ {
+    ${2:code}
+  }
+
+snippet     for_range
+  for i, ${1:item} := range ${2:target} {
+    ${3:code}
+  }
+
+snippet     switch
+  switch {
+  case ${1:condition}:
+    ${2:code}
+  default:
+    ${3:default_code}
+  }
+
+snippet     select
+  select {
+  case ${1:condition}:
+    ${2:code}
+  }
