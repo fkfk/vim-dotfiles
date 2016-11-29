@@ -29,3 +29,10 @@ au FileType perl setl kp=:Ref\ perldoc
 au FileType php setl kp=:Ref\ phpmanual
 au FileType python setl kp=:Ref\ pydoc
 au FileType ruby setl kp=:Ref\ refe
+
+" golang
+augroup golang
+  au!
+  au FileType go setlocal sw=4 ts=4 sts=4 noet
+  au BufWritePre *.go Fmt
+augroup END
