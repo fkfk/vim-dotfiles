@@ -34,5 +34,5 @@ au FileType ruby setl kp=:Ref\ refe
 augroup golang
   au!
   au FileType go setlocal sw=4 ts=4 sts=4 noet
-  au BufWritePre *.go Fmt
+  au BufWritePre *.go GoFmt
 augroup END

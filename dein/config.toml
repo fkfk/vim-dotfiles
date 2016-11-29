@@ -127,7 +127,7 @@ repo = 'kchmck/vim-coffee-script'
 repo = 'tpope/vim-fugitive'
 
 [[plugins]]
-repo = 'Blackrush/vim-gocode'
+repo = 'fatih/vim-go'
 on_ft = ['go']
 
 [[plugins]]
