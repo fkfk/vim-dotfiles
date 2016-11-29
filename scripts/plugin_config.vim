@@ -138,7 +138,6 @@ let g:vimfiler_as_default_explorer = 1
 let g:vimshell_prompt = '> '
 
 " for watchdogs
-call watchdogs#setup(g:quickrun_config)
 let g:watchdogs_check_BufWritePost_enable = 1
 let g:watchdogs_check_CursorHold_enable = 1
 
@@ -228,4 +227,8 @@ function! g:myvimrc.rc.lazyconfig.smartinput()
   \   'input' : '<Bar><Bar><Left>',
   \   'filetype' : ['ruby'],
   \    })
+endfunction
+
+function! g:myvimrc.rc.lazyconfig.watchdogs()
+  call watchdogs#setup(g:quickrun_config)
 endfunction
