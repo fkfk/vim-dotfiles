@@ -157,6 +157,9 @@ function! g:myvimrc.rc.lazyconfig.altercmd()
   AlterCommand '<,'>v '<,'>Vglobal
   AlterCommand '<,'>s '<,'>Substitute
 
+  command! -nargs=? Exec call vimproc#system(<q-args>)
+  AlterCommand ! Exec
+
   call g:myvimrc.rc.lazyconfig.enable_tabpagecd()
 endfunction
 
