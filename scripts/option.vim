@@ -117,9 +117,6 @@ if g:myvimrc.encodings.termencoding != ""
   let &termencoding = g:myvimrc.encodings.termencoding
 elseif has('kaoriya') && ! has('gui') && glob($VIM."/switches/enabled/utf-8.vim") != ""
   set termencoding=cp932
-  " g:vimshell_interactive_encodingsでutf-8を指定しなければ文字化けする
-  let g:vimshell_interactive_encodings = get(g:, 'vimshell_interactive_encodings', {})
-  let g:vimshell_interactive_encodings['/'] = 'utf-8'
 elseif has('gui_macvim')
   " E617 - It's not possible to change 'termencoding' in MacVim.
 else  " fallback

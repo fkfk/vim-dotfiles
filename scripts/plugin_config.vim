@@ -131,6 +131,12 @@ let g:vimfiler_as_default_explorer = 1
 " for vimshell
 let g:vimshell_prompt = '> '
 
+if &termencoding != "cp932"
+  " g:vimshell_interactive_encodingsでutf-8を指定しなければ文字化けする
+  let g:vimshell_interactive_encodings = get(g:, 'vimshell_interactive_encodings', {})
+  let g:vimshell_interactive_encodings['/'] = 'utf-8'
+endif
+
 " for watchdogs
 let g:watchdogs_check_BufWritePost_enable = 1
 let g:watchdogs_check_CursorHold_enable = 1
