@@ -100,9 +100,6 @@ let g:quickrun_config = {
 \       'exec':    '%c %o %s:p'
 \   },
 \ }
-if has("clientserver") && v:servername != ''
-  let g:quickrun_config["_"] = {'runner': 'remote', 'runner/remote/vimproc': 1}
-endif
 
 " for vim-ref
 let g:ref_refe_cmd = "refe"
