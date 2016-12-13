@@ -73,7 +73,7 @@ on_i = 1
 repo = 'Shougo/neosnippet-snippets'
 
 [[plugins]]
-repo = 'phux/phpfolding.vim'
+repo = 'rayburgemeestre/phpfolding.vim'
 
 [[plugins]]
 repo = 'osyo-manga/shabadou.vim'
