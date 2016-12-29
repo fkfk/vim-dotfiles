@@ -3,8 +3,8 @@ if !exists("s:original_ruby_libruby")
 endif
 
 if exists('&rubydll') && !has('ruby')
-  let l:dllpath = g:myvimrc.find_rubydll()
+  let s:dllpath = g:myvimrc.find_rubydll()
   if s:dllpath != ""
-    let &rubydll = l:dllpath
+    let &rubydll = s:dllpath
   endif
 endif
