@@ -201,10 +201,11 @@ depends = ['unite.vim']
 repo = 'Shougo/vimproc'
 merged = 0
 hook_add = '''
-  if dein#util#_is_windows()
-    let s:vimproc_dll_basename = has('win64') ?
-          \ 'vimproc_win64.dll' : 'vimproc_win32.dll'
-  elseif dein#util#_is_cygwin()
+  if has('win32')
+    let s:vimproc_dll_basename = 'vimproc_win32.dll'
+  elseif has('win64')
+    let s:vimproc_dll_basename = 'vimproc_win64.dll'
+  elseif has('win32unix')
     let s:vimproc_dll_basename = 'vimproc_cygwin.dll'
   elseif dein#util#_is_mac()
     let s:vimproc_dll_basename = 'vimproc_mac.so'
@@ -230,7 +231,7 @@ hook_add = '''
 hook_post_update = '''
   if dein#util#_is_windows()
     let cmd = 'tools\\update-dll-mingw'
-  elseif dein#util#_is_cygwin()
+  elseif has('win32unix')
     let cmd = 'make -f make_cygwin.mak'
     if $MSYSTEM == "MINGW32" || $MSYSTEM == "MINGW64"
       let cmd = "MSYSTEM=MSYS bash --login -c 'cd " . g:dein#plugin.path . ";" . cmd . "'"
