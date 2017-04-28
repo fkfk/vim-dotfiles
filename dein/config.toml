@@ -99,9 +99,16 @@ hook_post_source = '''
 '''
 
 [[plugins]]
+repo = 'leafgarland/typescript-vim'
+
+[[plugins]]
 repo = 'osyo-manga/vim-anzu'
 on_map = ['<Plug>(anzu-']
 on_func = ['anzu']
+
+[[plugins]]
+repo = 'Quramy/tsuquyomi'
+on_ft = ['typescript']
 
 [[plugins]]
 repo = 't9md/vim-choosewin'
