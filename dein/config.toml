@@ -40,10 +40,6 @@ on_cmd = [
 ]
 
 [[plugins]]
-repo = 'sjl/gundo.vim'
-on_cmd = ['GundoToggle']
-
-[[plugins]]
 repo = 'Shougo/junkfile.vim'
 on_cmd = ['JunkfileOpen']
 on_func = ['junkfile']
@@ -79,6 +75,10 @@ on_cmd = ['TagbarOpen', 'TagbarClose', 'TagbarToggle', 'Tagbar', 'TagbarOpenAuto
 
 [[plugins]]
 repo = 'davidoc/taskpaper.vim'
+
+[[plugins]]
+repo = 'mbbill/undotree'
+on_cmd = ['UndotreeToggle']
 
 [[plugins]]
 repo = 'Shougo/unite.vim'

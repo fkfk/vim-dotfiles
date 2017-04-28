@@ -41,7 +41,7 @@ nmap N <Plug>(anzu-N-with-echo)
 nmap * <Plug>(anzu-star-with-echo)
 nmap # <Plug>(anzu-sharp-with-echo)
 nmap - <Plug>(choosewin)
-nnoremap <silent> <C-u> :GundoToggle<CR>
+nnoremap <silent> <C-u> :UndotreeToggle<CR>
 
 " select
 smap <expr> <C-e> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<C-e>"
