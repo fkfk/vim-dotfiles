@@ -2,6 +2,14 @@
 repo = 'cairo140/actionscript.vim'
 
 [[plugins]]
+repo = 'Shougo/denite.nvim'
+depends = ['neomru.vim']
+on_event = 'BufRead'
+hook_post_source = '''
+  call g:myvimrc.rc.lazyconfig.denite()
+'''
+
+[[plugins]]
 repo = 'mattn/emmet-vim'
 on_cmd = ['Emmet', 'EmmetInstall']
 on_func = ['emmet']
@@ -54,7 +62,6 @@ on_i = 1
 [[plugins]]
 repo = 'Shougo/neomru.vim'
 on_path = '.*'
-on_source = ['unite.vim']
 
 [[plugins]]
 repo = 'Shougo/neosnippet'
@@ -62,6 +69,9 @@ on_i = 1
 
 [[plugins]]
 repo = 'Shougo/neosnippet-snippets'
+
+[[plugins]]
+repo = 'Shougo/neoyank.vim'
 
 [[plugins]]
 repo = 'rayburgemeestre/phpfolding.vim'
@@ -79,24 +89,6 @@ repo = 'davidoc/taskpaper.vim'
 [[plugins]]
 repo = 'mbbill/undotree'
 on_cmd = ['UndotreeToggle']
-
-[[plugins]]
-repo = 'Shougo/unite.vim'
-on_cmd = ['Unite']
-on_func = ['unite']
-on_source = ['vimfiler.vim']
-
-[[plugins]]
-repo = 'rhysd/unite-ruby-require.vim'
-on_func = ['unite']
-on_source = ['vimfiler.vim']
-depends = ['unite.vim']
-
-[[plugins]]
-repo = 'Shougo/unite-ssh'
-on_func = ['unite']
-on_source = ['vimfiler.vim']
-depends = ['unite.vim']
 
 [[plugins]]
 repo = 'kana/vim-altercmd'
@@ -117,6 +109,9 @@ on_map = ['<Plug>(choosewin)']
 
 [[plugins]]
 repo = 'kchmck/vim-coffee-script'
+
+[[plugins]]
+repo = 'justinmk/vim-dirvish'
 
 [[plugins]]
 repo = 'tpope/vim-fugitive'
@@ -190,12 +185,6 @@ on_map = ['<F5>', '<F2>', '<F3>', '<F4>', '<F6>', '<F7>', '<F9>', '<F10>', '<F11
 
 [[plugins]]
 repo = 'vim-jp/vimdoc-ja'
-
-[[plugins]]
-repo = 'Shougo/vimfiler.vim'
-on_path = '.*'
-on_cmd = ['VimFiler']
-depends = ['unite.vim']
 
 [[plugins]]
 repo = 'Shougo/vimproc'

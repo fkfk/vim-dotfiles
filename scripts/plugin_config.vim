@@ -232,3 +232,9 @@ endfunction
 function! g:myvimrc.rc.lazyconfig.watchdogs()
   call watchdogs#setup(g:quickrun_config)
 endfunction
+
+function! g:myvimrc.rc.lazyconfig.denite()
+  if executable("rg")
+    call denite#custom#var('file_rec', 'command', ['rg', '--files', '-uu', '--color', 'never', '-l', '-g', '!.git'])
+  endif
+endfunction
