@@ -127,3 +127,9 @@ endif
 if has('conceal')
   set conceallevel=2 concealcursor=i
 endif
+
+" for ripgrep
+if executable("rg")
+  set grepprg=rg\ --vimgrep\ --no-heading
+  set grepformat=%f:%l:%c:%m,%f:%l:%m
+endif
