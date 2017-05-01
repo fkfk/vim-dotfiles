@@ -1,7 +1,4 @@
 [[plugins]]
-repo = 'cairo140/actionscript.vim'
-
-[[plugins]]
 repo = 'Shougo/denite.nvim'
 depends = ['neomru.vim']
 on_event = 'BufRead'
