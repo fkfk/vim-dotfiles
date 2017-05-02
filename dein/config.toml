@@ -115,6 +115,9 @@ on_map = ['<Plug>(choosewin)']
 repo = 'kchmck/vim-coffee-script'
 
 [[plugins]]
+repo = 'rafi/vim-denite-session'
+
+[[plugins]]
 repo = 'justinmk/vim-dirvish'
 
 [[plugins]]

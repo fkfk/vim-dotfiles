@@ -220,6 +220,8 @@ function! g:myvimrc.rc.lazyconfig.watchdogs()
 endfunction
 
 function! g:myvimrc.rc.lazyconfig.denite()
+  call denite#custom#var('session', 'path', '~/.vim-sessions')
+
   if executable("rg")
     call denite#custom#var('file_rec', 'command', ['rg', '--files', '-uu', '--color', 'never', '-l', '-g', '!.git'])
 
@@ -233,6 +235,8 @@ function! g:myvimrc.rc.lazyconfig.denite()
 
   call denite#custom#map('_', "<C-j>", '<denite:do_action:split>')
   call denite#custom#map('_', "<C-l>", '<denite:do_action:vsplit>')
+  call denite#custom#map('_', "<C-s>", '<denite:do_action:save>')
   call denite#custom#map('insert', "<C-j>", '<denite:do_action:split>')
   call denite#custom#map('insert', "<C-l>", '<denite:do_action:vsplit>')
+  call denite#custom#map('insert', "<C-s>", '<denite:do_action:save>')
 endfunction
