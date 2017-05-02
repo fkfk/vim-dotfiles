@@ -11,11 +11,7 @@ endfunction
 
 function! g:myvimrc.get_printable_filename()
   let nr = bufnr('%')
-  if &ft == 'vimfiler'
-    let name = vimfiler#get_status_string()
-  elseif &ft == 'unite'
-    let name = unite#get_status_string()
-  elseif expand('%:t') != ''
+  if expand('%:t') != ''
     let name = expand('%:t')
   else
     let name = '[No Name]'
