@@ -145,14 +145,6 @@ let g:watchdogs_check_CursorHold_enable = 1
 if has('win32') && executable('pscp.exe')
   " for netrw
   let g:netrw_scp_cmd = "pscp.exe -q"
-
-  " for unite-ssh
-  let g:unite_kind_file_ssh_command = 'plink.exe -P PORT HOSTNAME'
-  let g:unite_kind_file_ssh_copy_directory_command = 'pscp.exe -P PORT -q -r $srcs $dest'
-  let g:unite_kind_file_ssh_copy_file_command = 'pscp.exe -P PORT -q $srcs $dest'
-  let g:neossh#ssh_command = 'plink.exe -P PORT HOSTNAME'
-  let g:neossh#copy_directory_command = 'pscp.exe -P PORT -q -r $srcs $dest'
-  let g:neossh#copy_file_command = 'pscp.exe -P PORT -q $srcs $dest'
 endif
 
 function! g:myvimrc.rc.lazyconfig.altercmd()
