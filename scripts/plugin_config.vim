@@ -230,4 +230,9 @@ function! g:myvimrc.rc.lazyconfig.denite()
     call denite#custom#var('grep', 'separator', ['--'])
     call denite#custom#var('grep', 'final_opts', [])
   endif
+
+  call denite#custom#map('_', "<C-j>", '<denite:do_action:split>')
+  call denite#custom#map('_', "<C-l>", '<denite:do_action:vsplit>')
+  call denite#custom#map('insert', "<C-j>", '<denite:do_action:split>')
+  call denite#custom#map('insert', "<C-l>", '<denite:do_action:vsplit>')
 endfunction
