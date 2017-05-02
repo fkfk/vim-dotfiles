@@ -122,9 +122,6 @@ let g:ref_source_webdict_sites = {
 \   },
 \ }
 
-" for vcscommand
-let git_diff_spawn_mode=1
-
 " for vimfiler
 let g:vimfiler_as_default_explorer = 1
 
