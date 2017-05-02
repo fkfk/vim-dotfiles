@@ -1,6 +1,6 @@
 function! g:myvimrc.get_current_branch_name()
   try
-    if &ft !~? 'vimfiler\|gundo' && exists('*fugitive#head')
+    if &ft !~? 'undotree' && exists('*fugitive#head')
       let _ = fugitive#head()
       return strlen(_) ? _ : ''
     endif
