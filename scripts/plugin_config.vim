@@ -122,9 +122,6 @@ let g:ref_source_webdict_sites = {
 \   },
 \ }
 
-" for vimfiler
-let g:vimfiler_as_default_explorer = 1
-
 " for vimshell
 let g:vimshell_prompt = '> '
 
