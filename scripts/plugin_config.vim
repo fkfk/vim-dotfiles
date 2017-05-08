@@ -154,6 +154,13 @@ function! g:myvimrc.rc.lazyconfig.altercmd()
   AlterCommand '<,'>v '<,'>Vglobal
   AlterCommand '<,'>s '<,'>Substitute
 
+  " for denite
+  AlterCommand denite Denite
+  AlterCommand D Denite
+  AlterCommand DB DeniteBufferDir
+  AlterCommand DC DeniteCursorWord
+  AlterCommand DP DeniteProjectDir
+
   command! -nargs=? Exec call vimproc#system(<q-args>)
   AlterCommand ! Exec
 
