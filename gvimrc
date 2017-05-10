@@ -13,7 +13,7 @@ if has("win32")
     set rop=type:directx,renmode:5,taamode:1
   endif
 elseif has("unix")
-  set guifont=Noto\ Mono\ 10,Ricty\ 11,Monospace\ 10
+  set guifont=Takao\ Gothic\ 11,Ricty\ 11,Monospace\ 10
 elseif has("gui_macvim")
   "フルスクリーン時にウィンドウサイズをMAXに指定
   set fuoptions=maxvert,maxhorz
