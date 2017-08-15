@@ -88,6 +88,18 @@ repo = 'mbbill/undotree'
 on_cmd = ['UndotreeToggle']
 
 [[plugins]]
+repo = 'Shougo/unite.vim'
+on_cmd = ['Unite']
+on_func = ['unite']
+on_source = ['vimfiler.vim']
+
+[[plugins]]
+repo = 'Shougo/unite-ssh'
+on_func = ['unite']
+on_source = ['vimfiler.vim']
+depends = ['unite.vim']
+
+[[plugins]]
 repo = 'kana/vim-altercmd'
 on_map = [':']
 on_cmd = ['cd', 'CD', 'TabpageCD', 'AlterCommand', 's', 'S']
@@ -188,6 +200,12 @@ on_map = ['<F5>', '<F2>', '<F3>', '<F4>', '<F6>', '<F7>', '<F9>', '<F10>', '<F11
 
 [[plugins]]
 repo = 'vim-jp/vimdoc-ja'
+
+[[plugins]]
+repo = 'Shougo/vimfiler.vim'
+on_path = '.*'
+on_cmd = ['VimFiler']
+depends = ['unite.vim']
 
 [[plugins]]
 repo = 'Shougo/vimproc'
