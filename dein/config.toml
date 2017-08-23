@@ -146,6 +146,7 @@ hook_add = '''
   \ se bg=dark
   \| colorscheme hybrid
   \| hi! SpecialKey ctermfg=255 ctermbg=52 guifg=#ffffff guibg=#5f0000
+  \| hi! Normal ctermbg=none
 '''
 
 [[plugins]]
