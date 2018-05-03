@@ -262,3 +262,6 @@ depends = ['vimproc']
 [[plugins]]
 repo = 'ujihisa/vimshell-ssh'
 depends = ['vimshell']
+
+[[plugins]]
+repo = 'posva/vim-vue'
