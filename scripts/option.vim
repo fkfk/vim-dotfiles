@@ -15,6 +15,8 @@ set fileformats=unix,dos,mac
 set tags=$HOME/.tags
 set kp=:help
 
+set nottimeout
+
 "表示回り
 set wrap
 set ruler
