@@ -7,6 +7,14 @@ hook_post_source = '''
 '''
 
 [[plugins]]
+repo = 'Shougo/deoplete.nvim'
+on_i = 1
+on_if = '((has("nvim")  || has("timers")) && has("python3")) && system("pip3 show neovim") !=# ""'
+hook_post_source = '''
+  call g:myvimrc.rc.lazyconfig.deoplete()
+'''
+
+[[plugins]]
 repo = 'mattn/emmet-vim'
 on_cmd = ['Emmet', 'EmmetInstall']
 on_func = ['emmet']
@@ -55,6 +63,7 @@ repo = 'itchyny/lightline.vim'
 [[plugins]]
 repo = 'Shougo/neocomplete.vim'
 on_i = 1
+on_if = '!has("nvim") || !has("timers") || !has("python3") || system("pip3 show neovim") ==# ""'
 
 [[plugins]]
 repo = 'Shougo/neomru.vim'
@@ -72,6 +81,14 @@ repo = 'Shougo/neoyank.vim'
 
 [[plugins]]
 repo = 'rayburgemeestre/phpfolding.vim'
+
+[[plugins]]
+repo = 'roxma/nvim-yarp'
+on_if= '!has("nvim") && has("timers") && has("python3") && system("pip3 show neovim") !=# ""'
+
+[[plugins]]
+repo = 'roxma/vim-hug-neovim-rpc'
+on_if= '!has("nvim") && has("timers") && has("python3") && system("pip3 show neovim") !=# ""'
 
 [[plugins]]
 repo = 'osyo-manga/shabadou.vim'

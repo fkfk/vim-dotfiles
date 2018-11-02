@@ -25,16 +25,22 @@ let g:lightline = {
       \   },
       \ }
 
-" for neocomplete
-let g:neocomplete#enable_at_startup = 1
-let g:neocomplete#auto_completion_start_length = 1
-let g:neocomplete#min_keyword_length = 3
-let g:neocomplete#min_syntax_length = 3
-let g:neocomplete#enable_smart_case = 1
-let g:neocomplete#enable_underbar_completion = 1
-let g:neocomplete#snippets_dir = g:myvimrc.rc.basedir . '/snippets'
-let g:neocomplete#keyword_patterns = get(g:, 'neocomplete#keyword_patterns', {})
-let g:neocomplete#keyword_patterns['default'] = '\h\w*'
+" for neocomplete/deoplete
+if dein#tap('deoplete.nvim')
+  let g:deoplete#enable_at_startup = 1
+  let g:deoplete#keyword_patterns = get(g:, 'deoplete#keyword_patterns', {})
+  let g:deoplete#keyword_patterns['default'] = '\h\w*'
+else
+  let g:neocomplete#enable_at_startup = 1
+  let g:neocomplete#auto_completion_start_length = 1
+  let g:neocomplete#min_keyword_length = 3
+  let g:neocomplete#min_syntax_length = 3
+  let g:neocomplete#enable_smart_case = 1
+  let g:neocomplete#enable_underbar_completion = 1
+  let g:neocomplete#snippets_dir = g:myvimrc.rc.basedir . '/snippets'
+  let g:neocomplete#keyword_patterns = get(g:, 'neocomplete#keyword_patterns', {})
+  let g:neocomplete#keyword_patterns['default'] = '\h\w*'
+endif
 
 " for neomru
 let g:neomru#time_format = "[%Y/%m/%d %H:%M:%S] "
@@ -246,4 +252,10 @@ function! g:myvimrc.rc.lazyconfig.denite()
   call denite#custom#map('insert', "<C-j>", '<denite:do_action:split>')
   call denite#custom#map('insert', "<C-l>", '<denite:do_action:vsplit>')
   call denite#custom#map('insert', "<C-s>", '<denite:do_action:save>')
+endfunction
+
+function! g:myvimrc.rc.lazyconfig.deoplete()
+  " call deoplete#custom#option({
+  "       \   'smart_case': 1
+  "       \ })
 endfunction
