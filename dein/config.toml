@@ -226,6 +226,9 @@ on_cmd = ['VimFiler']
 depends = ['unite.vim']
 
 [[plugins]]
+repo = 'calviken/vim-gdscript3'
+
+[[plugins]]
 repo = 'Shougo/vimproc'
 merged = 0
 hook_add = '''
