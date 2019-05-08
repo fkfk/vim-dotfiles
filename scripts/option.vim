@@ -11,6 +11,7 @@ set shiftwidth=2
 set expandtab
 set noautoindent
 set nowritebackup
+set nofixeol
 set fileformats=unix,dos,mac
 set tags=$HOME/.tags
 set kp=:help
