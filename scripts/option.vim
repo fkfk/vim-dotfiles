@@ -36,9 +36,11 @@ set hidden
 if has('win32')
   set directory=$TMP
   set backupdir=$TMP
+  set undodir=$TMP
 else
   set directory=/tmp
   set backupdir=/tmp
+  set undodir=/tmp
 endif
 
 " zsh っぽい補完に
