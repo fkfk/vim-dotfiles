@@ -9,7 +9,7 @@ hook_post_source = '''
 [[plugins]]
 repo = 'Shougo/deoplete.nvim'
 on_event = 'InsertEnter'
-on_if = '((has("nvim")  || has("timers")) && has("python3")) && system("pip3 show neovim") !=# ""'
+on_if = '((has("nvim")  || has("timers")) && has("python3")) && system("pip3 show pynvim") !=# ""'
 hook_post_source = '''
   call g:myvimrc.rc.lazyconfig.deoplete()
 '''
@@ -63,7 +63,7 @@ repo = 'itchyny/lightline.vim'
 [[plugins]]
 repo = 'Shougo/neocomplete.vim'
 on_event = 'InsertEnter'
-on_if = '!has("nvim") || !has("timers") || !has("python3") || system("pip3 show neovim") ==# ""'
+on_if = '!has("nvim") || !has("timers") || !has("python3") || system("pip3 show pynvim") ==# ""'
 
 [[plugins]]
 repo = 'Shougo/neomru.vim'
@@ -84,11 +84,11 @@ repo = 'rayburgemeestre/phpfolding.vim'
 
 [[plugins]]
 repo = 'roxma/nvim-yarp'
-on_if= '!has("nvim") && has("timers") && has("python3") && system("pip3 show neovim") !=# ""'
+on_if= '!has("nvim") && has("timers") && has("python3") && system("pip3 show pynvim") !=# ""'
 
 [[plugins]]
 repo = 'roxma/vim-hug-neovim-rpc'
-on_if= '!has("nvim") && has("timers") && has("python3") && system("pip3 show neovim") !=# ""'
+on_if= '!has("nvim") && has("timers") && has("python3") && system("pip3 show pynvim") !=# ""'
 
 [[plugins]]
 repo = 'osyo-manga/shabadou.vim'
