@@ -53,6 +53,10 @@ on_cmd = [
 ]
 
 [[plugins]]
+repo = 'deoplete-plugins/deoplete-jedi'
+on_source = ['deoplete.vim']
+
+[[plugins]]
 repo = 'Shougo/junkfile.vim'
 on_cmd = ['JunkfileOpen']
 on_func = ['junkfile']
