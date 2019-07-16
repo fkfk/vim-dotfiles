@@ -75,6 +75,10 @@ let g:quickrun_config = {
 \     'command': 'coffee',
 \     'cmdopt': '-cp'
 \   },
+\   'dart': {
+\     'command': 'dart',
+\     'cmdopt': '--enable-asserts'
+\   },
 \   'javascript': {
 \     'command': 'node'
 \   },
