@@ -90,6 +90,9 @@ let g:quickrun_config = {
 \     'cmdopt': '/Nologo',
 \     'tempfile': "{tempname()}.vbs"
 \   },
+\   'javascript/watchdogs_checker': {
+\       'type': 'watchdogs_checker/javascript'
+\   },
 \   'php/watchdogs_checker': {
 \       'type': 'watchdogs_checker/php'
 \   },
@@ -99,6 +102,12 @@ let g:quickrun_config = {
 \     'hook/back_window/enable':         1,
 \     'hook/back_window/enable_exit':    1,
 \     'hook/back_window/priority_exit':  1,
+\   },
+\   'watchdogs_checker/javascript': {
+\       'command':     'eslint',
+\       'cmdopt':      '--format compact --max-warnings 1 --no-color --no-ignore --quiet',
+\       'errorformat': '%E%f: line %l\, col %c\, Error - %m,%W%f: line %l\, col %c\, Warning - %m,%-G%.%#',
+\       'exec':        '%c %o %s:p'
 \   },
 \   'watchdogs_checker/php': {
 \       'command': 'php',
