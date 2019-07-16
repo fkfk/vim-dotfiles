@@ -69,11 +69,6 @@ on_func = ['junkfile']
 repo = 'itchyny/lightline.vim'
 
 [[plugins]]
-repo = 'Shougo/neocomplete.vim'
-on_event = 'InsertEnter'
-on_if = '!has("nvim") || !has("timers") || !has("python3") || system("pip3 show pynvim") ==# ""'
-
-[[plugins]]
 repo = 'Shougo/neomru.vim'
 on_path = '.*'
 
@@ -106,23 +101,8 @@ repo = 'majutsushi/tagbar'
 on_cmd = ['TagbarOpen', 'TagbarClose', 'TagbarToggle', 'Tagbar', 'TagbarOpenAutoClose', 'TagbarTogglePause', 'TagbarSetFoldlevel', 'TagbarShowTag', 'TagbarCurrentTag', 'TagbarGetTypeConfig', 'TagbarDebug', 'TagbarDebugEnd']
 
 [[plugins]]
-repo = 'davidoc/taskpaper.vim'
-
-[[plugins]]
 repo = 'mbbill/undotree'
 on_cmd = ['UndotreeToggle']
-
-[[plugins]]
-repo = 'Shougo/unite.vim'
-on_cmd = ['Unite']
-on_func = ['unite']
-on_source = ['vimfiler.vim']
-
-[[plugins]]
-repo = 'Shougo/unite-ssh'
-on_func = ['unite']
-on_source = ['vimfiler.vim']
-depends = ['unite.vim']
 
 [[plugins]]
 repo = 'kana/vim-altercmd'
@@ -228,15 +208,6 @@ on_map = ['<F5>', '<F2>', '<F3>', '<F4>', '<F6>', '<F7>', '<F9>', '<F10>', '<F11
 repo = 'vim-jp/vimdoc-ja'
 
 [[plugins]]
-repo = 'Shougo/vimfiler.vim'
-on_path = '.*'
-on_cmd = ['VimFiler']
-depends = ['unite.vim']
-
-[[plugins]]
-repo = 'calviken/vim-gdscript3'
-
-[[plugins]]
 repo = 'Shougo/vimproc'
 merged = 0
 hook_add = '''
@@ -282,14 +253,6 @@ hook_post_update = '''
   endif
   let g:dein#plugin.build = cmd
 '''
-
-[[plugins]]
-repo = 'Shougo/vimshell'
-depends = ['vimproc']
-
-[[plugins]]
-repo = 'ujihisa/vimshell-ssh'
-depends = ['vimshell']
 
 [[plugins]]
 repo = 'tomlion/vim-solidity'
