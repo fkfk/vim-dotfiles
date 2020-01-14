@@ -271,4 +271,5 @@ function! g:myvimrc.rc.lazyconfig.deoplete()
   " call deoplete#custom#option({
   "       \   'smart_case': 1
   "       \ })
+  UpdateRemotePlugins
 endfunction

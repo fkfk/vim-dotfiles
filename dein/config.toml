@@ -1,4 +1,8 @@
 [[plugins]]
+repo = 'beeender/Comrade'
+on_ft = ['python']
+
+[[plugins]]
 repo = 'dart-lang/dart-vim-plugin'
 on_ft = ['dart']
 
