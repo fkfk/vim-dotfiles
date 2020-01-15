@@ -118,19 +118,21 @@ if has('iconv')
   unlet s:enc_jis
 endif
 
-if g:myvimrc.encodings.termencoding != ""
-  let &termencoding = g:myvimrc.encodings.termencoding
-elseif has('kaoriya') && ! has('gui') && glob($VIM."/switches/enabled/utf-8.vim") != ""
-  set termencoding=cp932
-elseif has('gui_macvim')
-  " E617 - It's not possible to change 'termencoding' in MacVim.
-else  " fallback
-  set termencoding=  " same as 'encoding'
-endif
+if !has('nvim')
+  if g:myvimrc.encodings.termencoding != ""
+    let &termencoding = g:myvimrc.encodings.termencoding
+  elseif has('kaoriya') && ! has('gui') && glob($VIM."/switches/enabled/utf-8.vim") != ""
+    set termencoding=cp932
+  elseif has('gui_macvim')
+    " E617 - It's not possible to change 'termencoding' in MacVim.
+  else  " fallback
+    set termencoding=  " same as 'encoding'
+  endif
 
-" For snippet_complete marker.
-if has('conceal')
-  set conceallevel=2 concealcursor=i
+  " For snippet_complete marker.
+  if has('conceal')
+    set conceallevel=2 concealcursor=i
+  endif
 endif
 
 " for ripgrep
