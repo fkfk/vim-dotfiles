@@ -118,6 +118,9 @@ let g:quickrun_config = {
 \       'cmdopt':  '-l -d error_reporting=E_ALL -d display_errors=1 -d display_startup_errors=1 -d log_errors=0 -d xdebug.cli_color=0',
 \       'exec':    '%c %o %s:p'
 \   },
+\   'watchdogs_checker/python': {
+\       "type" : "watchdogs_checker/flake8"
+\   },
 \ }
 
 " for vim-ref

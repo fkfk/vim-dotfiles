@@ -1,4 +1,9 @@
 [[plugins]]
+repo = 'psf/black'
+rev = '19.10b0'
+on_ft = ['python']
+
+[[plugins]]
 repo = 'beeender/Comrade'
 on_ft = ['python']
 

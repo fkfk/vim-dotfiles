@@ -26,4 +26,6 @@ augroup golang
   "au FileType go setlocal sw=4 ts=4 sts=4 noet
 augroup END
 
-autocmd VimEnter * call dein#update()
+"autocmd VimEnter * call dein#update()
+"
+au BufWritePre *.py execute ':Black'
