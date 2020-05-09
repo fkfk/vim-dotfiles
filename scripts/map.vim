@@ -25,7 +25,6 @@ noremap <silent> <Leader>T <C-w>T
 noremap <silent> <Leader>cn :cn<CR>
 noremap <silent> <Leader>cp :cp<CR>
 noremap <silent> <M-a> <C-a>
-noremap <silent> <M-c> :WatchdogsRun<CR>
 noremap <silent> <M-r> <C-r>
 noremap <silent> <M-t> <C-t>
 noremap <silent> <M-x> <C-x>
