@@ -28,8 +28,6 @@ let g:lightline = {
 " for neocomplete/deoplete
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
-  let g:deoplete#keyword_patterns = get(g:, 'deoplete#keyword_patterns', {})
-  let g:deoplete#keyword_patterns['default'] = '\h\w*'
 else
   let g:neocomplete#enable_at_startup = 1
   let g:neocomplete#auto_completion_start_length = 1
@@ -274,5 +272,8 @@ function! g:myvimrc.rc.lazyconfig.deoplete()
   " call deoplete#custom#option({
   "       \   'smart_case': 1
   "       \ })
+  let s:deoplete_keyword_patterns = get(g:, 'deoplete#keyword_patterns', {})
+  let s:deoplete_keyword_patterns['default'] = '\h\w*'
+  call deoplete#custom#option('keyword_patterns', s:deoplete_keyword_patterns)
   UpdateRemotePlugins
 endfunction
