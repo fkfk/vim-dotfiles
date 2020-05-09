@@ -27,5 +27,3 @@ augroup golang
 augroup END
 
 "autocmd VimEnter * call dein#update()
-"
-au BufWritePre *.py execute ':Black'
