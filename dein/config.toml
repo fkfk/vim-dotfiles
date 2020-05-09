@@ -1,4 +1,8 @@
 [[plugins]]
+repo = 'dense-analysis/ale'
+on_path = '.*'
+
+[[plugins]]
 repo = 'beeender/Comrade'
 on_ft = ['python']
 
@@ -71,6 +75,9 @@ on_func = ['junkfile']
 
 [[plugins]]
 repo = 'itchyny/lightline.vim'
+
+[[plugins]]
+repo = 'maximbaz/lightline-ale'
 
 [[plugins]]
 repo = 'Shougo/neomru.vim'
@@ -194,14 +201,6 @@ on_ft = ['ruby']
 
 [[plugins]]
 repo = 'cespare/vim-toml'
-
-[[plugins]]
-repo = 'osyo-manga/vim-watchdogs'
-on_path = '.*'
-on_cmd = ['WatchdogsRun', 'WatchdogsRunSilent', 'WatchdogsRunSweep']
-hook_post_source = '''
-  call g:myvimrc.rc.lazyconfig.watchdogs()
-'''
 
 [[plugins]]
 repo = 'joonty/vdebug'

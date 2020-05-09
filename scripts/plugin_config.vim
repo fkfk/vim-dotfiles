@@ -1,3 +1,11 @@
+" for ALE
+let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
+let g:ale_fixers = get(g:, 'ale_fixers', {
+      \ 'php': ['php_cs_fixer'],
+      \ 'python': ['black']
+      \ })
+let g:ale_fix_on_save = 1
+
 " eregex.vim
 let g:eregex_default_enable = 0
 
@@ -10,7 +18,8 @@ let g:lightline = {
       \   'active': {
       \     'left': [
       \         ['mode', 'paste'],
-      \         ['readonly', 'filename', 'modified', 'anzu']
+      \         ['readonly', 'filename', 'modified', 'anzu'],
+      \         ['linter_checking', 'linter_errors', 'linter_warnings', 'linter_ok'],
       \     ],
       \     'right': [
       \       ['lineinfo', 'syntastic'],
@@ -18,11 +27,23 @@ let g:lightline = {
       \       ['git-branch', 'fileformat', 'fileencoding', 'filetype'],
       \     ]
       \   },
+      \   'component_expand': {
+      \     'linter_checking': 'lightline#ale#checking',
+      \     'linter_warnings': 'lightline#ale#warnings',
+      \     'linter_errors': 'lightline#ale#errors',
+      \     'linter_ok': 'lightline#ale#ok',
+      \   },
       \   'component_function': {
       \     'filename': 'g:myvimrc.get_printable_filename',
       \     'git-branch': 'g:myvimrc.get_current_branch_name',
       \     'anzu': 'anzu#search_status'
       \   },
+      \   'component_type': {
+      \     'linter_checking': 'left',
+      \     'linter_warnings': 'warning',
+      \     'linter_errors': 'error',
+      \     'linter_ok': 'left',
+      \   }
       \ }
 
 " for neocomplete/deoplete
@@ -274,6 +295,10 @@ function! g:myvimrc.rc.lazyconfig.deoplete()
   "       \ })
   let s:deoplete_keyword_patterns = get(g:, 'deoplete#keyword_patterns', {})
   let s:deoplete_keyword_patterns['default'] = '\h\w*'
+  let s:deoplete_sources = get(g:, 'deoplete_sources', {
+        \ '_': ['ale']
+  })
   call deoplete#custom#option('keyword_patterns', s:deoplete_keyword_patterns)
+  call deoplete#custom#option('sources', s:deoplete_sources)
   UpdateRemotePlugins
 endfunction
