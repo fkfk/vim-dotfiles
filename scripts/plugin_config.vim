@@ -296,8 +296,8 @@ function! g:myvimrc.rc.lazyconfig.deoplete()
   let s:deoplete_keyword_patterns = get(g:, 'deoplete#keyword_patterns', {})
   let s:deoplete_keyword_patterns['default'] = '\h\w*'
   let s:deoplete_sources = get(g:, 'deoplete_sources', {
-        \ '_': ['ale']
-  })
+        \ '_': ['ale', 'buffer', 'around']
+        \})
   call deoplete#custom#option('keyword_patterns', s:deoplete_keyword_patterns)
   call deoplete#custom#option('sources', s:deoplete_sources)
   UpdateRemotePlugins
