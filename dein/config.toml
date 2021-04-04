@@ -1,6 +1,9 @@
 [[plugins]]
 repo = 'dense-analysis/ale'
 on_path = '.*'
+hook_post_source = '''
+  call g:myvimrc.rc.lazyconfig.ale()
+'''
 
 [[plugins]]
 repo = 'beeender/Comrade'

@@ -182,6 +182,22 @@ if has('win32') && executable('pscp.exe')
   let g:netrw_scp_cmd = "pscp.exe -q"
 endif
 
+function! g:myvimrc.rc.enable_ale_mapping()
+  let g:lsp_found=0
+  for l:linter in ale#linter#Get(&filetype) | if !empty(l:linter.lsp) | let g:lsp_found=1 | endif | endfor
+  if (g:lsp_found)
+    nnoremap <buffer> <C-]> <Plug>(ale_go_to_definition)
+    nnoremap <buffer> <C-^> <Plug>(ale_find_references)
+  else
+    silent! unmap <buffer> <C-]>
+    silent! unmap <buffer> <C-^>
+  endif
+endfunction
+
+function! g:myvimrc.rc.lazyconfig.ale()
+  autocmd BufRead,FileType * call g:myvimrc.rc.enable_ale_mapping()
+endfunction
+
 function! g:myvimrc.rc.lazyconfig.altercmd()
   call altercmd#load()
 
