@@ -104,6 +104,9 @@ let g:quickrun_config = {
 \   'less': {
 \     'command': 'lessc'
 \   },
+\   'python': {
+\     'command': 'python3'
+\   },
 \   'sass': {
 \     'command': 'sass',
 \     'cmdopt': '-t expanded'
