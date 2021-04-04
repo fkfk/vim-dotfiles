@@ -2,9 +2,15 @@
 let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 let g:ale_fixers = get(g:, 'ale_fixers', {
       \ 'php': ['php_cs_fixer'],
-      \ 'python': ['black']
+      \ 'python': ['black'],
+      \ 'rust': ['rustfmt'],
+      \ 'go': ['gofmt']
       \ })
 let g:ale_fix_on_save = 1
+let g:ale_linters = get(g:, 'ale_linters', {
+      \ 'python': ['flake8', 'pylint'],
+      \ 'rust': ['analyzer']
+      \ })
 
 " eregex.vim
 let g:eregex_default_enable = 0
