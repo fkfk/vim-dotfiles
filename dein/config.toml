@@ -162,10 +162,6 @@ repo = 'justinmk/vim-dirvish'
 repo = 'tpope/vim-fugitive'
 
 [[plugins]]
-repo = 'fatih/vim-go'
-on_ft = ['go']
-
-[[plugins]]
 repo = 'w0ng/vim-hybrid'
 hook_add = '''
   autocmd MyAutoCmd VimEnter * nested
