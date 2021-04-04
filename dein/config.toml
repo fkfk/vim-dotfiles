@@ -104,6 +104,9 @@ repo = 'Shougo/neoyank.vim'
 repo = 'rayburgemeestre/phpfolding.vim'
 
 [[plugins]]
+repo = 'aklt/plantuml-syntax'
+
+[[plugins]]
 repo = 'roxma/nvim-yarp'
 on_if= '!has("nvim") && has("timers") && has("python3") && system("pip3 show pynvim") !=# ""'
 
