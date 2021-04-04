@@ -80,6 +80,13 @@ repo = 'itchyny/lightline.vim'
 repo = 'maximbaz/lightline-ale'
 
 [[plugins]]
+repo = 'iamcco/markdown-preview.nvim'
+on_ft = ['markdown', 'pandoc.markdown', 'rmd']
+build = '''
+sh -c "cd app & yarn install"
+'''
+
+[[plugins]]
 repo = 'Shougo/neomru.vim'
 on_path = '.*'
 
